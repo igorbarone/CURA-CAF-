@@ -9,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "descubra/",
     "clube/",
     "historia/",
+    "empresas/",
     ...getCatalog().map((entry) => `cafes/${entry.coffee.slug}/`),
   ].map((path) => ({ url: canonical(path) }));
 }

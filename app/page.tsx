@@ -5,6 +5,8 @@ import { Arrow } from "../components/arrow";
 import { Footer } from "../components/footer";
 import { Journey } from "../components/brand";
 import { Header } from "../components/header";
+import { EditorialTopics } from "../components/editorial-topics";
+import { ProducerFeature } from "../components/producer-feature";
 import { CoffeeCard } from "../components/coffee-card";
 import { getHomeSelection } from "../lib/coffees";
 import { getEditorial } from "../lib/editorial";
@@ -17,7 +19,13 @@ export const metadata: Metadata = metadataFor(
 
 export default function Home() {
   const { settings, entries } = getHomeSelection();
-  const { hero, curation, story, club } = getEditorial();
+  const { hero, curation, story, club, access, producers } = getEditorial();
+  const producerCoffees = entries.flatMap((entry) => {
+    const coffee = projectCoffee(entry);
+    return entry.lots.find((lot) => lot.id === coffee.lotId)?.producers.length
+      ? [coffee]
+      : [];
+  });
   return (
     <div id="inicio" className="home-v1">
       <Header />
@@ -107,6 +115,23 @@ export default function Home() {
             Dados comerciais em confirmação · Sem venda online nesta fase.
           </p>
         </section>
+        <section
+          className="access-section section wrap"
+          aria-labelledby="access-title"
+        >
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">{access.eyebrow}</p>
+              <h2 id="access-title">
+                {access.title}
+                <br />
+                <em>{access.emphasis}</em>
+              </h2>
+            </div>
+            <p className="section-intro">{access.intro}</p>
+          </div>
+          <EditorialTopics items={access.pillars} />
+        </section>
         <section className="discovery-band">
           <div className="wrap discovery-inner">
             <div>
@@ -159,6 +184,29 @@ export default function Home() {
             </div>
           </div>
         </section>
+        {producerCoffees.length > 0 && (
+          <section
+            className="producers-section section wrap"
+            aria-labelledby="producers-title"
+          >
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">{producers.eyebrow}</p>
+                <h2 id="producers-title">
+                  {producers.title}
+                  <br />
+                  <em>{producers.emphasis}</em>
+                </h2>
+              </div>
+              <p className="section-intro">{producers.intro}</p>
+            </div>
+            <div className="producer-grid">
+              {producerCoffees.map((coffee) => (
+                <ProducerFeature key={coffee.id} coffee={coffee} />
+              ))}
+            </div>
+          </section>
+        )}
         <section className="story section wrap" id="historia">
           <div className="story-drawing">
             <Journey />

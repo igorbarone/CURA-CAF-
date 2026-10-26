@@ -20,6 +20,9 @@ import {
   featuredCatalog,
   catalogFilters,
   filterCatalog,
+  coffeePath,
+  sortCatalog,
+  mediaForLot,
   publicProductRoutes,
   EMPTY_CATALOG_ROUTE,
 } from "../../lib/catalog-model";
@@ -359,6 +362,7 @@ test("invalid prices, stock, scores and unsafe media paths are rejected", () => 
   ]) {
     data.coffees[0].media = {
       kind: "photograph",
+      lotId: null,
       src,
       alt: "Teste",
       credit: "Teste",
@@ -370,7 +374,13 @@ test("invalid prices, stock, scores and unsafe media paths are rejected", () => 
 test("CMS empty optional fields normalize to null, never to a zero price or stock", () => {
   const data = content([coffee("one")], [lot("a", "one")], [offer("a", "a")]);
   const input = JSON.parse(JSON.stringify(data));
-  input.coffees[0].media = { kind: "photograph", src: "", alt: "", credit: "" };
+  input.coffees[0].media = {
+    kind: "photograph",
+    lotId: null,
+    src: "",
+    alt: "",
+    credit: "",
+  };
   input.coffees[0].primaryLotId = "";
   input.lots[0].score = "";
   input.lots[0].body = "";
@@ -397,6 +407,7 @@ test("loader accepts media under public/media and rejects missing files and mism
     const item = coffee("test", {
       media: {
         kind: "photograph",
+        lotId: null,
         src: "/media/test.png",
         alt: "Imagem técnica de teste",
         credit: "Fixture de teste",
@@ -439,6 +450,7 @@ test("editorial SVG accepts static vectors and refuses active or remote content"
         coffee("test", {
           media: {
             kind: "artwork",
+            lotId: null,
             src: "/media/rotulo-test.svg",
             alt: "Arte técnica de teste",
             credit: "Fixture",
@@ -468,4 +480,132 @@ test("editorial SVG accepts static vectors and refuses active or remote content"
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
+});
+
+test("filtered cards project one matching lot, including score, origin, producer and offers", () => {
+  const entry = publicEntryForFilterTest();
+  const snapshot = JSON.stringify(entry);
+  const filtered = filterCatalog([entry], { ...filters, roast: "Clara" });
+  const view = projectCoffee(filtered[0]);
+  assert.deepEqual(
+    [
+      view.lotId,
+      view.score,
+      view.roast,
+      view.notes,
+      view.producers,
+      view.origin,
+      view.preparation,
+      view.producerStory,
+    ],
+    [
+      "alternate",
+      86,
+      "Clara",
+      "Nota B",
+      "Produtor B",
+      "Origem B",
+      "Gelado",
+      "História técnica do lote B.",
+    ],
+  );
+  assert.deepEqual(
+    filtered[0].offers.map((item) => item.id),
+    ["offer-b"],
+  );
+  assert.equal(coffeePath(view), "/cafes/variable/?lote=alternate");
+  for (const partial of [
+    { profile: "Perfil B" },
+    { query: "Produtor B" },
+    { preparation: "Gelado" },
+  ])
+    assert.equal(
+      projectCoffee(filterCatalog([entry], { ...filters, ...partial })[0])
+        .lotId,
+      "alternate",
+    );
+  assert.equal(
+    filterCatalog([entry], { ...filters, roast: "Clara", profile: "Perfil A" })
+      .length,
+    0,
+  );
+  assert.equal(projectCoffee(filterCatalog([entry], filters)[0]).score, 84);
+  assert.equal(JSON.stringify(entry), snapshot);
+});
+
+function publicEntryForFilterTest() {
+  return publishedCatalog(
+    content(
+      [coffee("variable", { primaryLotId: "primary" })],
+      [
+        lot("primary", "variable", {
+          score: 84,
+          roast: "Média",
+          profile: "Perfil A",
+        }),
+        lot("alternate", "variable", {
+          score: 86,
+          roast: "Clara",
+          profile: "Perfil B",
+          notes: ["Nota B"],
+          producers: ["Produtor B"],
+          origin: "Origem B",
+          preparations: ["Gelado"],
+          producerStory: "História técnica do lote B.",
+        }),
+      ],
+      [offer("offer-a", "primary"), offer("offer-b", "alternate")],
+    ),
+  )[0];
+}
+
+test("score ordering follows the displayed lot, while unknown scores stay unknown", () => {
+  const variable = publicEntryForFilterTest();
+  const other = publishedCatalog(
+    content([coffee("other")], [lot("single", "other", { score: 85 })]),
+  )[0];
+  const unknown = publishedCatalog(
+    content(
+      [coffee("unknown")],
+      [lot("unknown-lot", "unknown", { score: null })],
+    ),
+  )[0];
+  const sorted = sortCatalog([variable, unknown, other], "score-desc");
+  assert.deepEqual(
+    sorted.map((entry) => projectCoffee(entry).score),
+    [85, 84, null],
+  );
+  assert.equal(projectCoffee(unknown).score, null);
+});
+
+test("label media remains tied to its recorded lot when filters or the primary lot change", () => {
+  const entry = publicEntryForFilterTest();
+  const media = {
+    kind: "artwork" as const,
+    lotId: "primary",
+    src: "/media/rotulo-test.svg",
+    alt: "Arte técnica",
+    credit: "Teste",
+  };
+  entry.coffee.media = media;
+  assert.equal(mediaForLot(projectCoffee(entry))?.src, media.src);
+  assert.equal(
+    mediaForLot(
+      projectCoffee(filterCatalog([entry], { ...filters, roast: "Clara" })[0]),
+    ),
+    null,
+  );
+  entry.coffee.primaryLotId = "alternate";
+  assert.equal(mediaForLot(projectCoffee(entry)), null);
+  entry.coffee.media = { ...media, lotId: null };
+  assert.equal(mediaForLot(projectCoffee(entry)), null);
+  entry.coffee.media = {
+    ...media,
+    kind: "photograph",
+    lotId: null,
+    src: "/media/test.png",
+  };
+  assert.equal(mediaForLot(projectCoffee(entry))?.src, "/media/test.png");
+  const bad = content([coffee("one", { media })], [lot("primary", "another")]);
+  assert.equal(contentSchema.safeParse(bad).success, false);
 });

@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { z } from "zod";
 const text = z.string().trim().min(1);
+const section = { eyebrow: text, title: text, emphasis: text, intro: text };
+const article = z.object({ title: text, text }).strict();
 export const editorialSchema = z
   .object({
     hero: z
@@ -53,6 +55,18 @@ export const editorialSchema = z
         resultTitle: text,
         empty: text,
         noMatch: text,
+      })
+      .strict(),
+    access: z.object({ ...section, pillars: z.array(article).min(1) }).strict(),
+    producers: z.object(section).strict(),
+    business: z
+      .object({
+        ...section,
+        segmentsTitle: text,
+        segmentsIntro: text,
+        segments: z.array(article).min(1),
+        nextTitle: text,
+        nextText: text,
       })
       .strict(),
     footer: z.object({ tagline: text, notice: text }).strict(),

@@ -16,6 +16,7 @@ export function Footer() {
           <Link href="/historia/">Nossa história</Link>
           <Link href="/descubra/">Descubra seu café</Link>
           <Link href="/clube/">Clube Cura</Link>
+          <Link href="/empresas/">Para empresas</Link>
         </nav>
         <p className="footer-note">{footer.tagline}</p>
       </div>

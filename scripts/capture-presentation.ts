@@ -59,6 +59,7 @@ async function capture() {
         ["quiz", "descubra/"],
         ["clube", "clube/"],
         ["historia", "historia/"],
+        ["empresas", "empresas/"],
         ["carrinho", "carrinho/"],
       ]) {
         await page.goto(base + path, { waitUntil: "networkidle" });
@@ -88,6 +89,22 @@ async function capture() {
           fullPage: true,
         });
         files.push({ page: label, viewport: `${width} × ${height}`, file });
+        if (
+          label === "catalogo" &&
+          catalogFilters(getCatalog()).roasts.includes("Clara")
+        ) {
+          await page.getByLabel("Torra", { exact: true }).selectOption("Clara");
+          const filteredFile = `catalogo-torra-clara-${name}.png`;
+          await page.screenshot({
+            path: `docs/screenshots/${filteredFile}`,
+            fullPage: true,
+          });
+          files.push({
+            page: "catalogo-torra-clara",
+            viewport: `${width} × ${height}`,
+            file: filteredFile,
+          });
+        }
         if (label === "quiz") {
           const profile = catalogFilters(getCatalog()).profiles[0];
           if (profile) {

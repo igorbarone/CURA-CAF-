@@ -80,6 +80,15 @@ export function Catalog({ entries }: { entries: CatalogEntry[] }) {
           </select>
         </div>
       </div>
+      <details className="catalog-help">
+        <summary>Como ler perfil, torra e pontuação?</summary>
+        <p>
+          O perfil e as notas descrevem sensações na xícara. A torra indica o
+          perfil de torra do lote; a pontuação SCA é sua avaliação publicada.
+          São informações diferentes para ajudar a conhecer o café, não uma
+          regra para o seu gosto.
+        </p>
+      </details>
       <div className="catalog-order">
         <label htmlFor="catalog-order">Ordenar por</label>
         <select

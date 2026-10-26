@@ -1,30 +1,32 @@
 import Image from "next/image";
 import { BrandArt } from "./brand-art";
-import type { CoffeeView } from "../lib/catalog-model";
+import { mediaForLot, type CoffeeView } from "../lib/catalog-model";
 export function CoffeeArt({ coffee }: { coffee: CoffeeView }) {
-  if (coffee.media)
+  // A label's printed facts belong to its explicit lot, not whichever lot is primary.
+  const media = mediaForLot(coffee);
+  if (media)
     return (
       <figure
-        className={`coffee-art coffee-photo ${coffee.media.kind === "artwork" ? "official-label" : ""}`}
+        className={`coffee-art coffee-photo ${media.kind === "artwork" ? "official-label" : ""}`}
       >
         <Image
-          src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}${coffee.media.src}`}
-          alt={coffee.media.alt}
+          src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}${media.src}`}
+          alt={media.alt}
           fill
           sizes="(max-width:640px) 100vw, 50vw"
         />
         <figcaption>
-          {coffee.media.kind === "artwork" && (
+          {media.kind === "artwork" && (
             <strong>ARTE OFICIAL DE RÓTULO · </strong>
           )}
-          {coffee.media.credit}
+          {media.credit}
         </figcaption>
       </figure>
     );
   return (
     <div className="coffee-art coffee-placeholder" aria-hidden="true">
       <span className="art-caption">
-        VISUAL EDITORIAL · FOTO OFICIAL DESTE CAFÉ PENDENTE
+        VISUAL EDITORIAL · IMAGEM DESTE LOTE PENDENTE
       </span>
       <div className="coffee-data-sheet">
         <BrandArt />

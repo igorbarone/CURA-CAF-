@@ -54,6 +54,7 @@ for (const [path, title] of [
   ["clube/", "Clube Cura"],
   ["historia/", "Nossa história"],
   ["descubra/", "Descubra seu café"],
+  ["empresas/", "Para empresas"],
 ] as const) {
   test(`${path} is honest, accessible and mobile ready`, async ({
     page,
@@ -101,6 +102,7 @@ test("published pages expose canonical URLs and a sitemap without cart or drafts
   const xml = await sitemap.text();
   expect(xml).toContain("/descubra/");
   expect(xml).toContain("/clube/");
+  expect(xml).toContain("/empresas/");
   expect(xml).not.toContain("/carrinho/");
 });
 
