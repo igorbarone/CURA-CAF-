@@ -1,0 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root { color-scheme: light; }
+body { background:#EFE9DD; color:#17352A; margin:0; font-family:Arial, sans-serif; }
+a:focus-visible { outline: 3px solid #BF9A50; outline-offset: 3px; }
