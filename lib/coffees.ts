@@ -1,6 +1,12 @@
 export const coffees = [
   {
     name: "SAMBA",
+    slug: "samba",
+    profile: "Doce e cremoso",
+    acidity: "Média",
+    body: "Cremoso",
+    origin: "Origem exata a confirmar.",
+    variety: null,
     lot: "CURA-26-01",
     score: 84,
     roast: "Média",
@@ -13,6 +19,12 @@ export const coffees = [
   },
   {
     name: "SALSA",
+    slug: "salsa",
+    profile: "Frutado e cítrico",
+    acidity: "Cítrica",
+    body: null,
+    origin: "Fazenda Serrinha. Município e UF a confirmar.",
+    variety: "Arara",
     lot: "CURA-26-02",
     score: 86,
     roast: "Clara",
@@ -24,3 +36,5 @@ export const coffees = [
     tone: "anil",
   },
 ] as const;
+
+export type Coffee = (typeof coffees)[number];

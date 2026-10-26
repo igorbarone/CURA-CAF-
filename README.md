@@ -50,3 +50,15 @@ Para desenvolvimento, execute `npm run dev` sem `GITHUB_PAGES`. Não rode dev e 
 Animações são curtas e respeitam `prefers-reduced-motion`. A navegação inclui link para pular ao conteúdo, estados de foco e menu nativo acessível sem JavaScript de aplicação. Catálogo e páginas individuais seguem como próximos itens do roadmap.
 
 Validação local da Home V2: lint sem avisos; build estático Pages concluído; seis testes Playwright aprovados em Chromium (desktop 1280 px e mobile 390 px), incluindo axe sem violações nos critérios automatizados WCAG A/AA. Capturas desktop/mobile inspecionadas. Os assets originais de marca continuam pendentes; auditoria automatizada não substitui avaliação humana completa de acessibilidade.
+
+## Catálogo e páginas de produto
+
+Rotas estáticas: `/cafes/`, `/cafes/samba/`, `/cafes/salsa/` e `/carrinho/`. A home e a navegação levam ao catálogo; cartões levam às fichas e breadcrumbs permitem retornar. `next/link` respeita o `basePath` do GitHub Pages inclusive entre páginas e âncoras da home.
+
+O catálogo permite busca por nome, lote, nota sensorial ou produtor e filtro pelos dois perfis documentados, com contagem acessível e recuperação de resultado vazio. As fichas apresentam notas, acidez, corpo quando confirmado, torra, pontos, preparo, produtor, variedade e origem documentados, sem escalas sensoriais inventadas. Metadados próprios e geração estática com `generateStaticParams` preservam SEO e acesso direto às páginas.
+
+Header, footer, breadcrumbs, arte dos cafés e estado comercial são compartilhados. `lib/coffees.ts` centraliza os dados editoriais. `lib/commerce.ts` define um contrato futuro de oferta e linha de carrinho, separado do editorial. Não há ofertas ativas: preço, estoque, peso e moagem aguardam confirmação. O carrinho é apenas uma página informativa “Em breve”; não adiciona itens, calcula totais, recebe pedidos nem simula checkout.
+
+O benchmark solicitado, suas limitações de acesso, as decisões funcionais e a diferenciação da Cura estão em [docs/BENCHMARK-ECOMMERCE.md](docs/BENCHMARK-ECOMMERCE.md). Após a liberação de rede, foram estudados a home, a listagem, o produto Arara e o carrinho vazio da Coffee++ em desktop/mobile. A adaptação prioriza descoberta por perfil, fichas claras e continuidade da navegação, sem copiar ativos ou implementar comércio sem dados reais. O checkout transacional da referência não foi exercitado.
+
+A suíte passa a conter 16 testes em desktop/mobile, cobrindo também busca, filtros, resultado vazio, fichas de ambos os cafés, origem confirmada/pendente, compra desabilitada, jornada entre páginas, recarga direta, carrinho sem checkout, links com o prefixo Pages, rota inexistente e axe nas novas rotas. O servidor de testes reproduz arquivos RSC como texto e o redirecionamento de diretórios para barra final, conforme a hospedagem estática.

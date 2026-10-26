@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { Brand } from "./brand";
 const links = [
-  ["#cafes", "Nossos cafés"],
-  ["#curadoria", "A curadoria"],
-  ["#historia", "Nossa história"],
+  ["/cafes/", "Nossos cafés"],
+  ["/#curadoria", "A curadoria"],
+  ["/#historia", "Nossa história"],
 ] as const;
 export function Header() {
   return (
@@ -16,11 +17,14 @@ export function Header() {
         <Brand />
         <nav className="desktop-nav" aria-label="Principal">
           {links.map(([href, label]) => (
-            <a key={href} href={href}>
+            <Link key={href} href={href}>
               {label}
-            </a>
+            </Link>
           ))}
         </nav>
+        <Link className="header-cart" href="/carrinho/">
+          Carrinho <span className="mono">Em breve</span>
+        </Link>
         <details className="mobile-menu">
           <summary>
             Menu <span aria-hidden="true">＋</span>
@@ -33,9 +37,9 @@ export function Header() {
             }}
           >
             {links.map(([href, label]) => (
-              <a key={href} href={href}>
+              <Link key={href} href={href}>
                 {label}
-              </a>
+              </Link>
             ))}
           </nav>
         </details>

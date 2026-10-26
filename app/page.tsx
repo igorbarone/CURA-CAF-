@@ -1,4 +1,7 @@
-import { Brand, Journey } from "../components/brand";
+import { Arrow } from "../components/arrow";
+import Link from "next/link";
+import { Footer } from "../components/footer";
+import { Journey } from "../components/brand";
 import { Header } from "../components/header";
 import { CoffeeCard } from "../components/coffee-card";
 import { coffees } from "../lib/coffees";
@@ -35,9 +38,12 @@ export default function Home() {
               <br />
               Explicar de um jeito simples.
             </p>
-            <a className="button" href="#cafes">
-              Encontre o seu café <span aria-hidden="true">↗</span>
-            </a>
+            <Link className="button" href="/cafes/">
+              Encontre o seu café{" "}
+              <span aria-hidden="true">
+                <Arrow />
+              </span>
+            </Link>
             <p className="hero-footnote mono">
               ENCONTRADO. ESCOLHIDO. EXPLICADO.
             </p>
@@ -55,7 +61,10 @@ export default function Home() {
               </p>
             </div>
             <p className="city-label mono">
-              02 / SEU DIA A DIA <span aria-hidden="true">↗</span>
+              02 / SEU DIA A DIA{" "}
+              <span aria-hidden="true">
+                <Arrow />
+              </span>
             </p>
             <span className="art-legend mono">
               UMA CURVA. UM ENCONTRO. UM NOVO CAMINHO.
@@ -121,7 +130,10 @@ export default function Home() {
               {steps.map((step, index) => (
                 <article key={step.title}>
                   <span className="step-number mono">
-                    0{index + 1} <span aria-hidden="true">↗</span>
+                    0{index + 1}{" "}
+                    <span aria-hidden="true">
+                      <Arrow />
+                    </span>
                   </span>
                   <h3>{step.title}</h3>
                   <p>{step.text}</p>
@@ -161,7 +173,10 @@ export default function Home() {
               cuidado de explicar, sem complicar a sua relação com a xícara.
             </p>
             <a className="text-link" href="#cafes">
-              Conheça a nossa seleção <span aria-hidden="true">↗</span>
+              Conheça a nossa seleção{" "}
+              <span aria-hidden="true">
+                <Arrow />
+              </span>
             </a>
           </div>
         </section>
@@ -176,28 +191,7 @@ export default function Home() {
           </a>
         </section>
       </main>
-      <footer className="site-footer">
-        <div className="wrap footer-top">
-          <div>
-            <Brand />
-            <p>da roça à cidade.</p>
-          </div>
-          <nav aria-label="Rodapé">
-            <a href="#cafes">Nossos cafés</a>
-            <a href="#curadoria">A curadoria</a>
-            <a href="#historia">Nossa história</a>
-          </nav>
-          <p className="footer-note">
-            Escolher muito bem.
-            <br />
-            Explicar de um jeito simples.
-          </p>
-        </div>
-        <div className="wrap footer-bottom mono">
-          <span>CURA CAFÉ · SITE EM DESENVOLVIMENTO</span>
-          <span>SEM CHECKOUT OU PEDIDOS NESTA FASE</span>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
