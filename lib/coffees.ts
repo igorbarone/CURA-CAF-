@@ -1,40 +1,21 @@
-export const coffees = [
-  {
-    name: "SAMBA",
-    slug: "samba",
-    profile: "Doce e cremoso",
-    acidity: "Média",
-    body: "Cremoso",
-    origin: "Origem exata a confirmar.",
-    variety: null,
-    lot: "CURA-26-01",
-    score: 84,
-    roast: "Média",
-    notes: "Rapadura e melaço",
-    description:
-      "Doçura que abraça. Corpo cremoso, acidez média e um convite para ir com calma.",
-    producers: "Mauricio Lemos e Diego Campos",
-    preparation: "Coado · Espresso",
-    tone: "rapadura",
-  },
-  {
-    name: "SALSA",
-    slug: "salsa",
-    profile: "Frutado e cítrico",
-    acidity: "Cítrica",
-    body: null,
-    origin: "Fazenda Serrinha. Município e UF a confirmar.",
-    variety: "Arara",
-    lot: "CURA-26-02",
-    score: 86,
-    roast: "Clara",
-    notes: "Laranja e tangerina",
-    description:
-      "Uma escolha vibrante. Notas de frutas e acidez cítrica para descobrir outro lado do café.",
-    producers: "Décio José Lemos",
-    preparation: "Coado · Gelado",
-    tone: "anil",
-  },
-] as const;
-
-export type Coffee = (typeof coffees)[number];
+import { loadContent } from "./content-loader";
+import {
+  featuredCatalog,
+  publicProduct,
+  publishedCatalog,
+  publicProductRoutes,
+} from "./catalog-model";
+// Only server pages import this adapter; browser components receive public projections.
+export function getCatalog() {
+  return publishedCatalog(loadContent());
+}
+export function getProduct(slug: string) {
+  return publicProduct(loadContent(), slug);
+}
+export function getHomeSelection() {
+  const content = loadContent();
+  return { settings: content.home, entries: featuredCatalog(content) };
+}
+export function getProductRoutes() {
+  return publicProductRoutes(loadContent());
+}

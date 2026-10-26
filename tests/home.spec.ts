@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-test("renders the real coffees and honest commercial states", async ({
+import { getHomeSelection } from "../lib/coffees";
+const selection = getHomeSelection();
+test("renders the configured selection and honest commercial states", async ({
   page,
 }) => {
   const failures: string[] = [];
@@ -14,19 +16,18 @@ test("renders the real coffees and honest commercial states", async ({
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Da roçaà cidade.",
   );
-  for (const name of ["SAMBA", "SALSA"])
+  await expect(page.locator("#cafes-title")).toHaveText(
+    selection.settings.title + selection.settings.emphasis,
+  );
+  await expect(page.locator("#cafes .coffee-card")).toHaveCount(
+    selection.entries.length,
+  );
+  for (const { coffee } of selection.entries)
+    await expect(page.locator(`#cafe-${coffee.id}`)).toHaveText(coffee.name);
+  if (!selection.entries.length)
     await expect(
-      page.getByRole("heading", { name, exact: true }),
+      page.getByText("Estamos preparando a próxima seleção.", { exact: false }),
     ).toBeVisible();
-  await expect(
-    page.getByText("Preço e disponibilidade a confirmar.", { exact: true }),
-  ).toHaveCount(2);
-  await expect(
-    page.getByText("CURA-26-01", { exact: true }).last(),
-  ).toBeVisible();
-  await expect(
-    page.getByText("CURA-26-02", { exact: true }).last(),
-  ).toBeVisible();
   await expect(
     page.getByRole("button", { name: /comprar|checkout/i }),
   ).toHaveCount(0);
@@ -41,33 +42,30 @@ test("renders the real coffees and honest commercial states", async ({
   ).toBe(true);
   expect(failures).toEqual([]);
 });
-test("navigation, mobile menu and layout work", async ({ page }, testInfo) => {
+test("navigation, mobile menu and layout work", async ({ page }, info) => {
   await page.goto("./");
-  if (testInfo.project.name === "mobile") {
-    await page.getByText("Menu", { exact: false }).click();
-    await page
-      .getByRole("navigation", { name: "Principal mobile" })
-      .getByRole("link", { name: "Nossa história" })
-      .click();
-  } else {
-    await page
-      .getByRole("navigation", { name: "Principal", exact: true })
-      .getByRole("link", { name: "Nossa história" })
-      .click();
-  }
+  if (info.project.name === "mobile")
+    await page.locator(".mobile-menu summary").click();
+  await page
+    .getByRole("navigation", {
+      name: info.project.name === "mobile" ? "Principal mobile" : "Principal",
+      exact: true,
+    })
+    .getByRole("link", { name: "Nossa história" })
+    .click();
   await expect(page).toHaveURL(/#historia$/);
-  if (testInfo.project.name === "mobile")
+  if (info.project.name === "mobile")
     await expect(page.locator(".mobile-menu")).not.toHaveAttribute("open");
   expect(
     await page.evaluate(
-      () => document.documentElement.scrollWidth <= window.innerWidth,
+      () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
   await page.getByRole("link", { name: "Voltar ao início" }).click();
   await expect(page).toHaveURL(/#inicio$/);
   await page.getByRole("heading", { level: 1 }).click();
   await page.screenshot({
-    path: `test-results/home-${testInfo.project.name}.png`,
+    path: `test-results/home-${info.project.name}.png`,
     fullPage: true,
   });
 });
@@ -77,10 +75,10 @@ test("passes automated accessibility checks and supports reduced motion", async 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("./");
   await expect(page.locator("html")).toHaveCSS("scroll-behavior", "auto");
-  const results = await new AxeBuilder({ page })
+  const result = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
     .analyze();
-  expect(results.violations).toEqual([]);
+  expect(result.violations).toEqual([]);
   await page.keyboard.press("Tab");
   await expect(
     page.getByRole("link", { name: "Pular para o conteúdo" }),

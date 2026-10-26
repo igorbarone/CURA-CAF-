@@ -1,17 +1,24 @@
 "use client";
 import { useState } from "react";
-import { coffees } from "../lib/coffees";
+import {
+  catalogFilters,
+  filterCatalog,
+  projectCoffee,
+  type CatalogEntry,
+} from "../lib/catalog-model";
 import { CoffeeCard } from "./coffee-card";
-export function Catalog() {
+export function Catalog({ entries }: { entries: CatalogEntry[] }) {
   const [query, setQuery] = useState("");
-  const [profile, setProfile] = useState("Todos");
-  const visible = coffees.filter(
-    (coffee) =>
-      (profile === "Todos" || coffee.profile === profile) &&
-      `${coffee.name} ${coffee.lot} ${coffee.notes} ${coffee.producers}`
-        .toLocaleLowerCase("pt-BR")
-        .includes(query.trim().toLocaleLowerCase("pt-BR")),
-  );
+  const [profile, setProfile] = useState("");
+  const [roast, setRoast] = useState("");
+  const [preparation, setPreparation] = useState("");
+  const options = catalogFilters(entries);
+  const visible = filterCatalog(entries, {
+    query,
+    profile,
+    roast,
+    preparation,
+  });
   return (
     <>
       <div className="catalog-tools">
@@ -28,20 +35,44 @@ export function Catalog() {
         <fieldset>
           <legend>Perfil na xícara</legend>
           <div className="filter-options">
-            {["Todos", ...coffees.map((coffee) => coffee.profile)].map(
-              (value) => (
-                <button
-                  key={value}
-                  type="button"
-                  aria-pressed={profile === value}
-                  onClick={() => setProfile(value)}
-                >
-                  {value}
-                </button>
-              ),
-            )}
+            {["", ...options.profiles].map((value) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={profile === value}
+                onClick={() => setProfile(value)}
+              >
+                {value || "Todos"}
+              </button>
+            ))}
           </div>
         </fieldset>
+        <div>
+          <label htmlFor="roast-filter">Torra</label>
+          <select
+            id="roast-filter"
+            value={roast}
+            onChange={(event) => setRoast(event.target.value)}
+          >
+            <option value="">Todas</option>
+            {options.roasts.map((value) => (
+              <option key={value}>{value}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="preparation-filter">Preparo sugerido</label>
+          <select
+            id="preparation-filter"
+            value={preparation}
+            onChange={(event) => setPreparation(event.target.value)}
+          >
+            <option value="">Todos</option>
+            {options.preparations.map((value) => (
+              <option key={value}>{value}</option>
+            ))}
+          </select>
+        </div>
       </div>
       <p className="result-count mono" role="status">
         {visible.length}{" "}
@@ -49,8 +80,8 @@ export function Catalog() {
       </p>
       {visible.length ? (
         <div className="coffee-grid">
-          {visible.map((coffee) => (
-            <CoffeeCard key={coffee.lot} coffee={coffee} />
+          {visible.map((entry) => (
+            <CoffeeCard key={entry.coffee.id} coffee={projectCoffee(entry)} />
           ))}
         </div>
       ) : (
@@ -62,7 +93,9 @@ export function Catalog() {
             className="button"
             onClick={() => {
               setQuery("");
-              setProfile("Todos");
+              setProfile("");
+              setRoast("");
+              setPreparation("");
             }}
           >
             Limpar filtros

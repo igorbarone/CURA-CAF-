@@ -1,19 +1,19 @@
 import { Arrow } from "./arrow";
 import Link from "next/link";
 import { CoffeeArt } from "./coffee-art";
-import { coffees } from "../lib/coffees";
-export function CoffeeCard({ coffee }: { coffee: (typeof coffees)[number] }) {
+import type { CoffeeView } from "../lib/catalog-model";
+export function CoffeeCard({ coffee }: { coffee: CoffeeView }) {
   return (
     <article
       className={`coffee-card ${coffee.tone}`}
-      aria-labelledby={`cafe-${coffee.lot}`}
+      aria-labelledby={`cafe-${coffee.id}`}
     >
       <CoffeeArt coffee={coffee} />
       <div className="coffee-info">
         <p className="eyebrow">
           {coffee.lot} <span>Torra {coffee.roast.toLowerCase()}</span>
         </p>
-        <h3 id={`cafe-${coffee.lot}`}>
+        <h3 id={`cafe-${coffee.id}`}>
           <Link href={`/cafes/${coffee.slug}/`}>{coffee.name}</Link>
         </h3>
         <p className="coffee-notes">{coffee.notes}</p>

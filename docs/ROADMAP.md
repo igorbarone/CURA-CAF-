@@ -23,3 +23,10 @@
 
 ## Critérios de aceite
 Build sem erros, navegação mobile, contraste legível, sem dados fictícios tratados como reais, sem promessas de checkout antes de integração.
+
+## Fundação editorial — Missão 03
+- [x] Entidades separadas de café, lote e oferta, com validação build-time
+- [x] Filtros derivados dos lotes publicados e destaques configuráveis na Home
+- [x] Configuração Pages CMS preparada e comparação Git/API documentada
+- [x] Operação, migração e arquivamento sem perder URLs documentados
+- [ ] Autorizar e conectar CMS real, configurar equipe e validar edição/publicação ponta a ponta
