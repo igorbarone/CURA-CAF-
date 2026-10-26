@@ -75,3 +75,7 @@ Manual de 26/10/2026 aplicado: marrom/creme/ocre, cinco cores de perfil, Archivo
 ## Refinamento editorial e empresas
 
 Página B2B `/empresas/`, democratização em linguagem/conhecimento/experiência e protagonismo dos produtores. Filtros e ordenação exibem os atributos do mesmo lote, com pontuação textual e links para a ficha correspondente. [Diagnóstico, operação do CMS e futura captação](docs/EMPRESAS-E-REFINAMENTO.md).
+
+## Posicionamento e Food Service
+
+**Democratizar café especial.** lidera a Home; **Da roça à cidade.** assina a origem e os três verbos explicam o método. `/empresas/` prioriza estabelecimentos gastronômicos e usa o mesmo catálogo publicado. [Comunicação, CMS, jornada de parceria e pendências comerciais](docs/POSICIONAMENTO-FOOD-SERVICE.md).

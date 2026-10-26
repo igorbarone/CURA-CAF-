@@ -352,6 +352,10 @@ content:
             label: Link de descoberta
             type: string
             required: true
+          - name: originSignature
+            label: Assinatura de origem (Da roça à cidade.)
+            type: string
+            required: true
           - name: artLabel
             label: Assinatura editorial
             type: text
@@ -542,7 +546,7 @@ content:
             type: text
             required: true
       - name: business
-        label: Para empresas — proposta B2B
+        label: Para empresas — Food Service
         type: object
         required: true
         fields:
@@ -561,6 +565,10 @@ content:
           - name: intro
             label: Introdução
             type: text
+            required: true
+          - name: ctaLabel
+            label: CTA para a seção de parceria
+            type: string
             required: true
           - name: segmentsTitle
             label: Título dos segmentos
@@ -584,6 +592,57 @@ content:
                 label: Texto
                 type: text
                 required: true
+          - name: benefitsTitle
+            label: Título — por que servir Cura
+            type: string
+            required: true
+          - name: benefitsIntro
+            label: Introdução dos diferenciais
+            type: text
+            required: true
+          - name: benefits
+            label: Diferenciais confirmados e proposta de relacionamento
+            type: object
+            required: true
+            list: true
+            fields:
+              - name: title
+                label: Título
+                type: string
+                required: true
+              - name: text
+                label: Texto
+                type: text
+                required: true
+          - name: coffeesTitle
+            label: Título — catálogo compartilhado
+            type: string
+            required: true
+          - name: coffeesIntro
+            label: Introdução dos cafés
+            type: text
+            required: true
+          - name: coffeesEmpty
+            label: Estado vazio do catálogo
+            type: text
+            required: true
+          - name: purposeTitle
+            label: Título — democratizar também é servir
+            type: string
+            required: true
+          - name: purposeText
+            label: Propósito no Food Service
+            type: text
+            required: true
+          - name: intakeTitle
+            label: Chamada — futura conversa
+            type: string
+            required: true
+          - name: intakeItems
+            label: Informações previstas para o canal futuro (não ativa coleta)
+            type: string
+            required: true
+            list: true
           - name: nextTitle
             label: Título da próxima conversa
             type: string

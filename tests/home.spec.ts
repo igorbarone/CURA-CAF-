@@ -12,9 +12,9 @@ test("renders the configured selection and honest commercial states", async ({
       failures.push(`${response.status()} ${response.url()}`);
   });
   await page.goto("./");
-  await expect(page).toHaveTitle("Cura Café | Da roça à cidade");
+  await expect(page).toHaveTitle("Cura Café | Democratizar café especial.");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Da roçaà cidade.",
+    "Democratizarcafé especial.",
   );
   await expect(page.locator("#cafes-title")).toHaveText(
     selection.settings.title + selection.settings.emphasis,

@@ -11,6 +11,8 @@ O manual atual substitui a paleta institucional anterior. A cor principal é Mar
 
 ## Essência e linguagem
 
+A hierarquia editorial atual, confirmada pela equipe, é: **Democratizar café especial.** (slogan principal) → **Da roça à cidade.** (assinatura de origem) → **Encontrado. Escolhido. Explicado.** (método). O propósito é aproximar o pequeno produtor do consumidor, simplificando conhecimento, escolha e experiência. Essa atualização de comunicação preserva a referência visual definitiva. Food Service é o foco da página B2B; a operação comercial aguarda definições, sem promessas de preços ou serviços.
+
 Escolher muito bem. Explicar de um jeito simples. Curadoria brasileira contemporânea, humana e transparente. “Da roça à cidade”; “Encontrado. Escolhido. Explicado.”; “O produtor assina o café. A Cura assina a escolha.” A jornada dos flyers é Encontramos → Escolhemos → Torramos → Explicamos. O texto não deve afirmar visitas, quantidade de lotes provados, torrefação própria ou localização operacional sem confirmação.
 
 A frase “Não precisa entender de café” informa a comunicação digital. A continuação sobre pagar menos, preços, descontos e economia por xícara aguarda confirmação comercial; não é publicada como promessa.

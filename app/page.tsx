@@ -12,7 +12,7 @@ import { getHomeSelection } from "../lib/coffees";
 import { getEditorial } from "../lib/editorial";
 import { projectCoffee } from "../lib/catalog-model";
 export const metadata: Metadata = metadataFor(
-  "Cura Café | Da roça à cidade",
+  "Cura Café | Democratizar café especial.",
   getEditorial().hero.description,
   "",
 );
@@ -64,10 +64,8 @@ export default function Home() {
 
             <Journey />
             <div className="hero-editorial-note">
-              <p>
-                Critério na escolha.
-                <br />
-                <em>Clareza na xícara.</em>
+              <p className="origin-signature">
+                <em>{hero.originSignature}</em>
               </p>
               <span className="mono">CURADORIA BRASILEIRA</span>
             </div>

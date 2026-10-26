@@ -91,10 +91,16 @@ O campo de lote **Por que escolhemos** só deve receber uma nota real confirmada
 
 ## Democratização, produtores e empresas
 
-Em **Conteúdo editorial V1**, os grupos **Democratização do café especial**, **Protagonismo de quem produz na Home** e **Para empresas — proposta B2B** controlam os novos títulos, textos, tópicos e segmentos. A seção de produtores usa a seleção de **Destaques da Home** e os dados do lote principal publicado; nomes e origem continuam no cadastro de lotes. Um destaque sem produtores confirmados não gera um perfil de pessoa.
+Em **Conteúdo editorial V1**, os grupos **Democratização do café especial**, **Protagonismo de quem produz na Home** e **Para empresas — Food Service** controlam os novos títulos, textos, tópicos e segmentos. A seção de produtores usa a seleção de **Destaques da Home** e os dados do lote principal publicado; nomes e origem continuam no cadastro de lotes. Um destaque sem produtores confirmados não gera um perfil de pessoa.
 
 Em **Lotes → História de quem produz**, inserir somente texto confirmado e autorizado; vazio omite a história. Não atribuir porte de propriedade, trajetória, certificação ou visitas sem fonte. Os lotes existentes não receberam biografias novas. Fotos/rótulos oficiais e todos os dados comerciais seguem as regras anteriores.
 
 Os segmentos B2B são contextos em preparação. Atualizar texto editorial não ativa formulário nem atendimento. [Preparação do canal e correção dos filtros](EMPRESAS-E-REFINAMENTO.md).
 
 No objeto de imagem do café, **Lote representado** vincula rótulos/fotos específicos ao lote correto. Selecionar um lote do mesmo café. As artes oficiais atuais já têm vínculo. Alterar o lote principal não reassocia uma arte antiga automaticamente. Uma foto geral pode deixar o vínculo vazio; arte sem vínculo usa placeholder identificado até a associação ser confirmada.
+
+## Slogan oficial e Food Service
+
+O slogan principal é **Democratizar café especial.**; usar as duas linhas do Hero da Home para preservá-lo em destaque. **Assinatura de origem** mantém “Da roça à cidade.” junto ao símbolo. Nossa História reforça o propósito sem biografias inventadas.
+
+Em **Para empresas — Food Service**, a equipe pode editar CTA, segmentos gastronômicos, diferenciais, textos do catálogo compartilhado, propósito e estado da parceria. O CTA aponta para a seção da futura conversa, sem envio. As informações previstas são conteúdo, não um formulário ativo. [Detalhamento e pendências de ativação](POSICIONAMENTO-FOOD-SERVICE.md).

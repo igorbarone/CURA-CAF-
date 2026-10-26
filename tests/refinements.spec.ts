@@ -24,14 +24,12 @@ test("roast and sensory filters preserve the published lot score and displayed f
       const expected =
         matching.find((item) => item.id === entry.coffee.primaryLotId) ??
         matching[0];
-      const card = page
-        .locator(".coffee-card")
-        .filter({
-          has: page.getByRole("heading", {
-            name: entry.coffee.name,
-            exact: true,
-          }),
-        });
+      const card = page.locator(".coffee-card").filter({
+        has: page.getByRole("heading", {
+          name: entry.coffee.name,
+          exact: true,
+        }),
+      });
       await expect(card.locator(".coffee-info > .eyebrow")).toHaveText(
         expected.code,
       );
@@ -76,7 +74,7 @@ test("business navigation leads to an honest editorial page without simulated le
     page.locator("form, input, textarea, button[type=submit]"),
   ).toHaveCount(0);
   await page
-    .getByRole("link", { name: "Conheça a proposta", exact: true })
+    .getByRole("link", { name: "Quero servir Cura Café", exact: true })
     .click();
   await expect(page.locator("#proxima-conversa")).toContainText(
     "Ainda não recebemos solicitações por este site.",
