@@ -33,4 +33,8 @@ A Cura organiza a experiência em “Encontrado. Escolhido. Explicado.” e no p
 
 O catálogo separa café, lote e oferta editorial em `lib/content-schema.ts`, com dados em `content/` e schema validado no build. `lib/commerce.ts` mantém apenas a fronteira futura de carrinho por `offerId`. Uma oferta pode registrar SKU e atributos comerciais confirmados, sem habilitar compra. A integração transacional deverá validar os dados do provedor e o estoque antes de qualquer pedido.
 
-Hoje não existem ofertas, persistência de carrinho, subtotal, reserva, frete, cobrança ou checkout. A rota `/carrinho/` explica isso e retorna ao catálogo. Próxima etapa: confirmar operador de commerce, dados comerciais e opções reais; integrar e validar as ofertas antes de implementar adição, alteração de quantidade e checkout. Todas as páginas atuais são exportadas estaticamente.
+Hoje não existem ofertas reais, subtotal de pedido, reserva, frete, cobrança ou checkout. A V1 permite selecionar ofertas publicadas para revisão local (IDs na sessão do navegador), sem transação; com zero ofertas, `/carrinho/` explica o estado e retorna ao catálogo. Próxima etapa: confirmar operador de commerce, dados comerciais e opções reais; integrar e validar as ofertas antes de implementar adição, alteração de quantidade e checkout. Todas as páginas atuais são exportadas estaticamente.
+
+## Aplicação na V1 de apresentação
+
+A Home pública da Coffee++ foi consultada novamente nesta execução: há acessos explícitos à descoberta por quiz, clube, catálogo e carrinho. A Cura adapta essa continuidade funcional em navegação própria: catálogo → ficha → quiz explicável, além de páginas de história e proposta de Clube. O quiz da Cura foi implementado a partir dos atributos publicados dos seus lotes; não reproduz perguntas, textos ou algoritmo do benchmark. Não foram exercitados cadastro, assinatura ou checkout da referência. A linguagem, a marca, os assets e o desenho editorial permanecem próprios.

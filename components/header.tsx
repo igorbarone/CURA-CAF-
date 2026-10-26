@@ -1,13 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { useSelection } from "./selection-provider";
 import { Brand } from "./brand";
 const links = [
   ["/cafes/", "Nossos cafés"],
   ["/#curadoria", "A curadoria"],
-  ["/#historia", "Nossa história"],
+  ["/descubra/", "Descubra seu café"],
+  ["/clube/", "Clube Cura"],
+  ["/historia/", "Nossa história"],
 ] as const;
 export function Header() {
+  const { ids } = useSelection();
   return (
     <>
       <a className="skip-link" href="#conteudo">
@@ -23,9 +27,22 @@ export function Header() {
           ))}
         </nav>
         <Link className="header-cart" href="/carrinho/">
-          Carrinho <span className="mono">Em breve</span>
+          Carrinho{" "}
+          <span className="mono">
+            {ids.length
+              ? `${ids.length} na seleção · demonstração`
+              : "Em breve"}
+          </span>
         </Link>
-        <details className="mobile-menu">
+        <details
+          className="mobile-menu"
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.currentTarget.removeAttribute("open");
+              event.currentTarget.querySelector("summary")?.focus();
+            }
+          }}
+        >
           <summary>
             Menu <span aria-hidden="true">＋</span>
           </summary>

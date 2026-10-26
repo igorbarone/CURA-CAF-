@@ -1,3 +1,4 @@
+import { metadataFor } from "../../../lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -22,10 +23,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `${coffee.name} — Arquivado | Cura Café`,
       robots: { index: false, follow: true },
     };
-  return {
-    title: `${coffee.name} — ${coffee.notes} | Cura Café`,
-    description: `${coffee.name}, ${coffee.lot}. ${coffee.notes}, torra ${coffee.roast.toLowerCase()}. Conheça o perfil e quem produz.`,
-  };
+  return metadataFor(
+    `${coffee.name} — ${coffee.notes} | Cura Café`,
+    `${coffee.name}, ${coffee.lot}. ${coffee.notes}, torra ${coffee.roast.toLowerCase()}. Conheça o perfil e quem produz.`,
+    `cafes/${coffee.slug}/`,
+  );
 }
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
@@ -56,6 +58,10 @@ export default async function ProductPage({ params }: Props) {
     (item) => item.coffee.id !== entry.coffee.id,
   );
   return (
-    <ProductDetail key={entry.coffee.id} entry={entry} related={related} />
+    <>
+      <Header />
+      <ProductDetail key={entry.coffee.id} entry={entry} related={related} />
+      <Footer />
+    </>
   );
 }

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { BrandArt } from "./brand-art";
 import type { CoffeeView } from "../lib/catalog-model";
 export function CoffeeArt({ coffee }: { coffee: CoffeeView }) {
   if (coffee.media)
@@ -14,21 +15,17 @@ export function CoffeeArt({ coffee }: { coffee: CoffeeView }) {
       </figure>
     );
   return (
-    <div className="coffee-art" aria-hidden="true">
+    <div className="coffee-art coffee-placeholder" aria-hidden="true">
       <span className="art-caption">
-        ESTUDO GRÁFICO · NÃO É A EMBALAGEM FINAL
+        VISUAL EDITORIAL · FOTO OFICIAL DESTE CAFÉ PENDENTE
       </span>
-      <div className="coffee-pack">
-        <div className="pack-seal" />
-        <span className="pack-brand">CURA CAFÉ</span>
-        <span className="pack-signature">da roça à cidade.</span>
-        <div className="pack-label">
-          <span className="mono">{coffee.lot}</span>
-          <strong>{coffee.name}</strong>
-          <span>{coffee.notes}</span>
-          <span className="pack-line" />
-          <span className="mono">ENCONTRADO. ESCOLHIDO. EXPLICADO.</span>
-        </div>
+      <div className="coffee-data-sheet">
+        <BrandArt />
+        <span className="mono">FICHA DE CURADORIA / {coffee.lot}</span>
+        <strong>{coffee.name}</strong>
+        <span className="sheet-notes">{coffee.notes}</span>
+        <span className="sheet-rule" />
+        <span className="mono">ENCONTRADO. ESCOLHIDO. EXPLICADO.</span>
       </div>
       {coffee.score !== null && (
         <span className="art-number">

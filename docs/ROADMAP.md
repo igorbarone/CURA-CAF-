@@ -11,12 +11,12 @@
 - [x] Estados claros para preço/estoque ainda não definidos
 
 ## Fase 3 — Descoberta
-- [ ] Quiz de preferência e recomendações baseadas em regras
+- [x] Quiz de preferência e recomendações explicáveis pelos lotes publicados
 - [ ] Comparador de até três cafés (quando houver catálogo suficiente)
-- [ ] Conteúdo de origem e curadoria
+- [x] Conteúdo de origem e curadoria, com página de história sem fatos inventados
 
 ## Fase 4 — Comércio
-- [ ] Carrinho demonstrativo
+- [x] Seleção demonstrativa por oferta publicada, sem pedido ou checkout
 - [ ] Escolher plataforma de commerce e pagamentos
 - [ ] Integração real de estoque, frete, checkout e pedidos
 - [ ] Assinaturas somente após definir operador de cobrança recorrente
@@ -30,3 +30,12 @@ Build sem erros, navegação mobile, contraste legível, sem dados fictícios tr
 - [x] Configuração Pages CMS preparada e comparação Git/API documentada
 - [x] Operação, migração e arquivamento sem perder URLs documentados
 - [ ] Autorizar e conectar CMS real, configurar equipe e validar edição/publicação ponta a ponta
+
+## V1 de apresentação
+- [x] Home refinada e marca original disponível aplicada sem redesenho
+- [x] Quiz, história e proposta futura de Clube, com textos no Pages CMS
+- [x] SEO por rota, sitemap e robots estáticos
+- [x] Edição editorial direta na main preservada; código em branch/PR
+- [x] Capturas e roteiro de apresentação documentados
+- [ ] Fotos reais por café/lote, logo isolado e embalagens finais aprovadas
+- [ ] Dados comerciais, operação transacional e termos de assinatura definidos

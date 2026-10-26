@@ -1,11 +1,9 @@
+import { BrandArt } from "./brand-art";
 import Link from "next/link";
 export function Brand() {
   return (
     <Link className="brand" href="/#inicio" aria-label="Cura Café — início">
-      <span>
-        CURA CAFÉ<span className="brand-dot">.</span>
-      </span>
-      <small>Identificação provisória · logo em breve</small>
+      <BrandArt />
     </Link>
   );
 }

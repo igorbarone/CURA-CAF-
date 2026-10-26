@@ -2,11 +2,11 @@
 
 ## O que já existe e o que falta ativar
 
-O site lê conteúdo validado de `content/`, suporta múltiplos lotes/ofertas e fotos autorizadas, e o formulário Pages CMS está definido em `.pages.yml`. O painel real ainda precisa de conexão ao GitHub, autorização da App e usuários, conforme [CMS-DECISAO.md](CMS-DECISAO.md). Até essa ativação, um responsável técnico pode editar JSON; não existe painel funcional fictício no site.
+O site lê conteúdo validado de `content/`, suporta múltiplos lotes/ofertas e fotos autorizadas, e o formulário Pages CMS está definido em `.pages.yml`. A instalação/autorização existente do serviço não foi modificada; acesso e usuários são administrados no Pages CMS/GitHub, conforme [CMS-DECISAO.md](CMS-DECISAO.md). A edição direta de conteúdo na main é preservada. Não existe painel fictício no site.
 
 ## Fluxo da equipe no CMS (após a ativação)
 
-Antes de editar, conferir o repositório e selecionar o ramo editorial aprovado. Não trabalhar diretamente em `main`.
+Antes de editar conteúdo no Pages CMS, conferir o repositório e selecionar `main`, preservando a edição editorial direta solicitada pela equipe. Alterações de código, schema e configuração seguem branch e PR; esta entrega não altera permissões do GitHub.
 
 ### Cadastrar um café e seus lotes
 
@@ -19,7 +19,7 @@ Antes de editar, conferir o repositório e selecionar o ramo editorial aprovado.
 ### Editar, publicar e arquivar
 
 - Editar o registro existente; não duplicar café para trocar seu lote. Usar um novo registro de lote e atualizar a seleção principal. Os filtros vêm dos lotes publicados e mudam no próximo deploy, sem editar componentes.
-- **Publicar** significa escolher `Publicado`, salvar no ramo editorial, abrir PR, revisar e integrar depois dos checks. O site só muda quando o deploy termina. O texto pode estar publicado no ramo de edição e ainda não estar no site.
+- **Publicar conteúdo** significa escolher `Publicado` e salvar diretamente em `main` pelo Pages CMS, para executar o fluxo de validação e publicação já existente. O site só muda quando o deploy termina. Alterações de código continuam exigindo branch e PR; este PR não foi integrado nem publicado automaticamente.
 - Para retirar um café, selecionar **Arquivado**, sem excluir ou alterar slug. A URL mantém um aviso e saída para o catálogo; Home e catálogo deixam de mostrá-lo. Para retirar só um lote, arquivar o lote: suas ofertas somem junto. Reativar exige revisão e novo deploy.
 - Rascunhos são excluídos do export, mas continuam visíveis no histórico de um repositório público. Nunca armazenar dados confidenciais, contatos privados ou credenciais nos registros.
 - O formulário desabilita exclusão/renomeação de arquivos para reduzir acidentes. Isso é proteção de UX, não substitui permissões GitHub, backups ou revisão.
@@ -51,7 +51,7 @@ npm test
 
 O script de cenários faz builds com dados técnicos isolados e com catálogo completamente vazio, remove a imagem temporária e **reconstrói a exportação real ao final**. Não o executar junto do servidor dev. Alternativamente, para regressão apenas dos registros reais: `GITHUB_PAGES=true npm run build` e `npm test`. Num ambiente com Chromium instalado, prefixar os testes com `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium`.
 
-O CI faz validação, lint, unidades, cenários, export real e regressões antes de publicar `out/`. Falhas interrompem a implantação. A publicação continua pelo workflow Pages existente, ao integrar em `main`. Não enviar o export técnico ou fixar `CURA_CONTENT_ROOT` nas configurações do ambiente.
+O CI faz validação, lint, unidades, cenários, export real e regressões antes de publicar `out/`. Falhas interrompem a implantação. A publicação continua pelo workflow Pages existente, em commits editoriais na `main` ou após integrar um PR de código. Não enviar o export técnico ou fixar `CURA_CONTENT_ROOT` nas configurações do ambiente.
 
 ## Migração desta versão
 
@@ -76,3 +76,9 @@ Após integrar: revisar o diff dos JSON, executar checks, confirmar as duas URLs
 - Relação quebrada: restaurar o ID original ou corrigir as referências; não criar cópias fictícias para satisfazer a validação.
 - Export técnico interrompido: não publicar `out/`; conferir ausência de `public/media/cms-fixture.png`, remover apenas esse arquivo técnico se criado pelo teste e rodar o build real sem `CURA_CONTENT_ROOT`.
 - Migração para API: seguir [CMS-DECISAO.md](CMS-DECISAO.md), preservando IDs/URLs e snapshot Git recuperável.
+
+## Textos da V1
+
+Em **Conteúdo editorial V1**, editar Hero da Home, Curadoria, Nossa história, Clube Cura, textos do quiz e rodapé. Os campos têm rótulos editoriais em português e são validados antes do build. Preferências, resultados e explicações do quiz são derivados dos lotes publicados; o CMS não cadastra recomendações fictícias ou uma regra fixa SAMBA/SALSA. Labels operacionais do fluxo e bloqueios de contratação continuam em código para manter a clareza da demonstração.
+
+Consultar [APRESENTACAO-V1.md](APRESENTACAO-V1.md) para roteiro e pendências e [ASSETS-V1.md](ASSETS-V1.md) antes de trocar imagens. Uma arte genérica de embalagem ou referência conceitual não confirma dados de oferta.

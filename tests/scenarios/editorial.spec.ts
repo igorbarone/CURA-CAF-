@@ -45,7 +45,7 @@ test("multiple lots switch all technical and offer details, with no invented com
     0,
   );
   await select.selectOption("fixture-a");
-  await expect(page.getByRole("status")).toHaveText(
+  await expect(page.locator(".lot-selector [role=status]")).toHaveText(
     "Ficha do lote TEST-ONLY-A",
   );
   await expect(
@@ -94,4 +94,41 @@ test("coffee without lots and archived coffee keep honest states and draft route
     "noindex, follow",
   );
   expect((await page.request.get("cafes/fixture-draft/")).status()).toBe(404);
+});
+
+test("published offers can be reviewed locally without orders, totals or checkout", async ({
+  page,
+}) => {
+  await page.goto("cafes/fixture-editorial/");
+  await page
+    .getByRole("button", {
+      name: "Selecionar oferta · demonstração",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Oferta incluída" }),
+  ).toBeVisible();
+  await page
+    .getByRole("link", { name: /Revisar seleção demonstrativa/ })
+    .click();
+  await expect(
+    page.getByText("SKU TEST-ONLY-B", { exact: false }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Pedidos, reserva, pagamento e checkout indisponíveis", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(page.getByText(/R\$/)).toHaveCount(0);
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Remover oferta TEST-ONLY-B" }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Remover oferta TEST-ONLY-B" })
+    .click();
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(
+    "Em breve.",
+  );
 });

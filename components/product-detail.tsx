@@ -1,9 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Arrow } from "./arrow";
 import Link from "next/link";
-import { Header } from "./header";
-import { Footer } from "./footer";
 import { Breadcrumbs } from "./breadcrumbs";
 import { CoffeeArt } from "./coffee-art";
 import { CoffeeCard } from "./coffee-card";
@@ -19,10 +17,14 @@ export function ProductDetail({
   const [selectedLotId, setSelectedLotId] = useState(
     entry.coffee.primaryLotId ?? "",
   );
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("lote");
+    if (requested && entry.lots.some((lot) => lot.id === requested))
+      setSelectedLotId(requested);
+  }, [entry.lots]);
   const coffee = projectCoffee(entry, selectedLotId);
   return (
     <>
-      <Header />
       <main className="wrap product-page" id="conteudo">
         <Breadcrumbs current={coffee.name} product />
         {entry.lots.length > 1 && (
@@ -31,7 +33,12 @@ export function ProductDetail({
             <select
               id="lot-select"
               value={coffee.lotId ?? ""}
-              onChange={(event) => setSelectedLotId(event.target.value)}
+              onChange={(event) => {
+                setSelectedLotId(event.target.value);
+                const url = new URL(window.location.href);
+                url.searchParams.set("lote", event.target.value);
+                window.history.replaceState(null, "", url);
+              }}
             >
               {entry.lots.map((lot) => (
                 <option key={lot.id} value={lot.id}>
@@ -178,7 +185,6 @@ export function ProductDetail({
           </section>
         )}
       </main>
-      <Footer />
     </>
   );
 }
