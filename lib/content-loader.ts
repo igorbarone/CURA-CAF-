@@ -32,5 +32,17 @@ export function loadContent(
       !statSync(join(root, "public", coffee.media.src)).isFile()
     )
       throw new Error(`Mídia inexistente: ${coffee.media.src}`);
+  for (const coffee of content.coffees)
+    if (coffee.media?.src.endsWith(".svg")) {
+      const svg = readFileSync(join(root, "public", coffee.media.src), "utf8");
+      if (
+        /<script|<style|<image|@import|<foreignObject|<!DOCTYPE|<!ENTITY|\bon[a-z]+\s*=|javascript:|(?:href\s*=\s*["'](?!#))|url\(\s*["']?(?!#)/i.test(
+          svg,
+        )
+      )
+        throw new Error(
+          `SVG editorial contém recurso ativo/externo: ${coffee.media.src}`,
+        );
+    }
   return content;
 }

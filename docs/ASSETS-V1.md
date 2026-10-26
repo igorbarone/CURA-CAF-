@@ -1,3 +1,7 @@
+# Registro histórico V1 — substituído na Missão 05
+
+A identidade atual, os vetores oficiais e as pendências reais estão em [MISSAO05.md](MISSAO05.md). O manual e os adesivos vetoriais foram recebidos e analisados. As observações abaixo registram o estado anterior de arquivos para fins de migração; não indicam os assets em uso hoje.
+
 # Assets da V1 — uso e pendências
 
 Foram encontrados somente dois arquivos visuais oficiais em `public/media/` nesta revisão. Nenhuma imagem de terceiros, fotografia gerada ou novo desenho de logotipo foi adicionado.

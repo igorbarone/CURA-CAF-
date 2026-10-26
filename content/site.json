@@ -3,7 +3,7 @@
     "eyebrow": "CURADORIA DE CAFÉS BRASILEIROS",
     "line1": "Da roça",
     "line2": "à cidade.",
-    "description": "Entre quem produz e quem prepara, existe uma escolha. A nossa é encontrar cafés com personalidade e explicar o que faz cada um especial.",
+    "description": "Não precisa entender de café. A Cura aproxima você dos produtores e dos perfis da origem brasileira, com critérios claros e explicações sem complicação.",
     "primaryCta": "Encontre o seu café",
     "secondaryCta": "Descubra seu café",
     "artLabel": "O produtor assina o café. A Cura assina a escolha."
@@ -15,16 +15,20 @@
     "intro": "Menos complicação. Mais atenção à origem, a quem produz e ao que chega à sua xícara.",
     "steps": [
       {
-        "title": "Encontrado.",
-        "text": "A origem brasileira é o começo. Damos nome a quem produz e publicamos os dados que estão confirmados."
+        "title": "Encontramos.",
+        "text": "O começo é a origem brasileira. Identificamos quem produz e distinguimos os dados confirmados das informações ainda pendentes."
       },
       {
-        "title": "Escolhido.",
-        "text": "Perfis diferentes, escolhas conscientes. A curadoria aproxima você do café que faz sentido para o seu paladar."
+        "title": "Escolhemos.",
+        "text": "Cada lote tem seu perfil. A curadoria aproxima essas diferenças do que você procura na xícara."
       },
       {
-        "title": "Explicado.",
-        "text": "Notas, torra e preparo com clareza. Informação para escolher com autonomia, sem precisar dominar o vocabulário do café."
+        "title": "Torramos.",
+        "text": "A torra faz parte do caminho. Apresentamos o perfil confirmado de cada lote, sem antecipar local, data ou operação ainda não validados."
+      },
+      {
+        "title": "Explicamos.",
+        "text": "Como é, para quem pode fazer sentido e como preparar. O técnico está disponível; a explicação vem em língua de gente."
       }
     ]
   },
@@ -36,7 +40,8 @@
     "paragraphs": [
       "Da roça à cidade é o caminho que queremos aproximar. De um lado, o trabalho de quem produz. Do outro, as pausas, conversas e pequenos rituais de quem prepara.",
       "Nossa assinatura está na curadoria. Apresentamos quem produz, explicamos os perfis e distinguimos o que está confirmado do que ainda precisa ser conhecido.",
-      "Encontrado. Escolhido. Explicado. É assim que queremos construir uma relação mais próxima com o café brasileiro."
+      "Encontrado. Escolhido. Explicado. É assim que queremos construir uma relação mais próxima com o café brasileiro.",
+      "O símbolo oficial desdobra o C da Cura em três curvas de nível que terminam em retas paralelas para a direita. Origem, escolha e cidade se encontram na mesma direção."
     ]
   },
   "club": {

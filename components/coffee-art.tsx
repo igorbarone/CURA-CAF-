@@ -4,14 +4,21 @@ import type { CoffeeView } from "../lib/catalog-model";
 export function CoffeeArt({ coffee }: { coffee: CoffeeView }) {
   if (coffee.media)
     return (
-      <figure className="coffee-art coffee-photo">
+      <figure
+        className={`coffee-art coffee-photo ${coffee.media.kind === "artwork" ? "official-label" : ""}`}
+      >
         <Image
           src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}${coffee.media.src}`}
           alt={coffee.media.alt}
           fill
           sizes="(max-width:640px) 100vw, 50vw"
         />
-        <figcaption>{coffee.media.credit}</figcaption>
+        <figcaption>
+          {coffee.media.kind === "artwork" && (
+            <strong>ARTE OFICIAL DE RÓTULO · </strong>
+          )}
+          {coffee.media.credit}
+        </figcaption>
       </figure>
     );
   return (
@@ -30,7 +37,7 @@ export function CoffeeArt({ coffee }: { coffee: CoffeeView }) {
       {coffee.score !== null && (
         <span className="art-number">
           {coffee.score}
-          <small>pontos SCAA</small>
+          <small>pontos SCA</small>
         </span>
       )}
     </div>

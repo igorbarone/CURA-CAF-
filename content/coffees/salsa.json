@@ -8,8 +8,9 @@
   "sortOrder": 1,
   "primaryLotId": "cura-26-02",
   "media": {
-    "src": "/media/cura-cafe-adesivo-salsa-arte-300dpi.png",
-    "alt": "86 Pontos SCA",
-    "credit": "Direto da Fazenda"
+    "src": "/media/rotulo-salsa.svg",
+    "kind": "artwork",
+    "alt": "Arte vetorial oficial do rótulo SALSA, com campos de origem provisórios identificados",
+    "credit": "Arte oficial Cura Café · campos entre colchetes e apresentação comercial pendentes"
   }
 }

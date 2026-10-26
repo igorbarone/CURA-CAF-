@@ -8,8 +8,9 @@
   "sortOrder": 0,
   "primaryLotId": "cura-26-01",
   "media": {
-    "src": "/media/cura-cafe-adesivo-samba-arte-300dpi.png",
-    "alt": "84 Pontos SCA",
-    "credit": "Direto da Fazenda"
+    "src": "/media/rotulo-samba.svg",
+    "kind": "artwork",
+    "alt": "Arte vetorial oficial do rótulo SAMBA, com campos de origem provisórios identificados",
+    "credit": "Arte oficial Cura Café · campos entre colchetes e apresentação comercial pendentes"
   }
 }

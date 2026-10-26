@@ -1,34 +1,27 @@
 import { BrandArt } from "./brand-art";
 import Link from "next/link";
-export function Brand() {
+import Image from "next/image";
+export function Brand({ inverse = false }: { inverse?: boolean }) {
   return (
-    <Link className="brand" href="/#inicio" aria-label="Cura Café — início">
-      <BrandArt />
+    <Link
+      className={`brand ${inverse ? "brand-inverse" : ""}`}
+      href="/#inicio"
+      aria-label="Cura Café — início"
+    >
+      <BrandArt inverse={inverse} />
     </Link>
   );
 }
-
+// The artwork is extracted from page 2 of the supplied manual, never redrawn.
 export function Journey({ className = "" }: { className?: string }) {
   return (
-    <svg
+    <Image
       className={`journey ${className}`}
-      viewBox="0 0 600 360"
-      fill="none"
+      src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/brand/cura-simbolo.svg`}
+      width={149}
+      height={147}
+      alt=""
       aria-hidden="true"
-    >
-      <path
-        d="M-30 300C210 300 15 50 235 50S290 240 400 240H640"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-      <path
-        d="M-30 322C230 322 35 72 235 72S290 262 400 262H640"
-        stroke="currentColor"
-        strokeWidth="1"
-        opacity=".35"
-      />
-      <circle cx="400" cy="240" r="9" fill="#BF9A50" />
-      <path d="m560 232 8 8-8 8" stroke="currentColor" strokeWidth="2" />
-    </svg>
+    />
   );
 }

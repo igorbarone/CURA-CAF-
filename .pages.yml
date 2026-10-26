@@ -8,6 +8,7 @@ media:
     - png
     - webp
     - avif
+    - svg
 content:
   - name: coffees
     label: Cafés
@@ -75,13 +76,32 @@ content:
         default: cura
         options:
           values:
-            - cura
-            - rapadura
-            - anil
+            - name: cura
+              label: Marrom Cura (neutro)
+            - name: rapadura
+              label: Rapadura · caramelado
+            - name: anil
+              label: Anil · cítrico
+            - name: amora
+              label: Amora · frutado
+            - name: ipe
+              label: Ipê · floral
+            - name: cacau
+              label: Cacau · achocolatado
       - name: media
         label: Foto autorizada (opcional)
         type: object
         fields:
+          - name: kind
+            label: Natureza da imagem
+            type: select
+            default: photograph
+            options:
+              values:
+                - name: photograph
+                  label: Fotografia autorizada
+                - name: artwork
+                  label: Arte oficial (não é fotografia)
           - name: src
             label: Imagem
             type: image
@@ -92,6 +112,7 @@ content:
                 - png
                 - webp
                 - avif
+                - svg
             required: true
           - name: alt
             label: Descrição acessível
@@ -186,6 +207,9 @@ content:
       - name: score
         label: Pontuação confirmada (0–100)
         type: number
+      - name: curationNote
+        label: Por que escolhemos (publicar somente motivo confirmado)
+        type: text
   - name: offers
     label: Ofertas editoriais (sem venda)
     type: collection

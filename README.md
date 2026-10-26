@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-No desenvolvimento, não definir `GITHUB_PAGES`. Não executar dev e build simultaneamente: compartilham `.next`. As fontes Archivo, DM Mono e Newsreader itálica são hospedadas localmente via Fontsource. A identidade usa creme, verde Cura e ocre, com o percurso gráfico da curva à reta e animações que respeitam movimento reduzido.
+No desenvolvimento, não definir `GITHUB_PAGES`. Não executar dev e build simultaneamente: compartilham `.next`. As fontes Archivo, DM Mono e Newsreader itálica são hospedadas localmente via Fontsource. A identidade usa creme, Marrom Cura e ocre, com o percurso gráfico da curva à reta e animações que respeitam movimento reduzido.
 
 Rotas: `/`, `/cafes/`, `/cafes/{slug}/` e `/carrinho/`. As URLs atuais de SAMBA e SALSA foram preservadas. Header/menu mobile, footer, cartões, arte, breadcrumbs e estado comercial são reutilizáveis. O carrinho permite revisar uma seleção demonstrativa quando há ofertas publicadas, guardando apenas IDs na sessão do navegador; não cria transações, reservas ou totais de pedido.
 
@@ -27,7 +27,7 @@ A proposta inicial é Pages CMS sobre Git, com formulários em `.pages.yml` para
 - [Decisão de CMS: Git versus API, custos e segurança](docs/CMS-DECISAO.md)
 - [Operação editorial, migração e reversão](docs/OPERACAO-CONTEUDO.md)
 
-A marca desenhada é exibida diretamente da arte oficial de embalagem, por recorte CSS sem redesenho. Enquanto não há fotos oficiais por café, usamos fichas editoriais identificadas. Fotos reais autorizadas podem ser cadastradas em `public/media/`, com alt e crédito obrigatórios. Não há fotografias sintéticas apresentadas como registro de origem, nem dados de origem, preço ou disponibilidade presumidos.
+A marca e o símbolo usam vetores extraídos diretamente do manual oficial de 26/10/2026, sem redesenho. Enquanto não há fotos oficiais por café, usamos fichas editoriais identificadas. Fotos reais autorizadas podem ser cadastradas em `public/media/`, com alt e crédito obrigatórios. Não há fotografias sintéticas apresentadas como registro de origem, nem dados de origem, preço ou disponibilidade presumidos.
 
 ## Validação
 
@@ -65,3 +65,9 @@ O benchmark informou descoberta por atributos, fichas claras e continuidade da n
 Novas rotas: `/descubra/`, `/clube/` e `/historia/`. Quiz baseado exclusivamente nos lotes publicados, com correspondência exata de preferências e explicações por atributo, sem cadastro ou envio de respostas. Clube é uma proposta futura, sem contratação. História apresenta somente o propósito documentado da curadoria. O conteúdo editorial está em `content/site.json`, disponível no Pages CMS.
 
 [Guia de apresentação, checklist e pendências](docs/APRESENTACAO-V1.md) · [Assets oficiais e arquivos pendentes](docs/ASSETS-V1.md) · [Capturas desktop/mobile](docs/screenshots/README.md). `npm run screenshots` gera as capturas sobre o export Pages; `npm run present` serve o export local para apresentação, sem deploy.
+
+## Missão 05 — identidade definitiva
+
+Manual de 26/10/2026 aplicado: marrom/creme/ocre, cinco cores de perfil, Archivo Expanded real no eixo 125%, vetores oficiais de marca/símbolo/favicon e rótulos de SAMBA/SALSA. Os rótulos são artes identificadas com campos provisórios; não são fotografia ou oferta confirmada. Catálogo ganhou ordenação por curadoria, nome e pontuação, sem ordenação por preço ausente. O CMS ganhou natureza da imagem e nota confirmada de curadoria por lote, sem limites a dois cafés.
+
+[Auditoria, fontes e pendências da Missão 05](docs/MISSAO05.md) · [Comparação antes/depois](docs/missao05/README.md). Edição editorial direta na main e publicação Pages preservadas.

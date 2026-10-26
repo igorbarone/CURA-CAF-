@@ -45,21 +45,19 @@ export default function History() {
         </div>
       </div>
       <details className="identity-reference">
-        <summary>Um olhar sobre a identidade · estudo conceitual</summary>
+        <summary>O C da Cura · desenho oficial e direção</summary>
         <p>
-          Referência oficial de identidade. Os nomes ilustrados são conceituais,
-          não produtos cadastrados. Não é uma fotografia de produtos
-          disponíveis.
+          Três curvas de nível terminam em retas paralelas para a direita. É o
+          desenho original da marca, extraído do manual de 26/10/2026.
         </p>
         <Image
-          src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/media/cura-cafe-video-referencia-prateleira-9x16.png`}
-          alt="Estudo de prateleira da Cura com embalagens conceituais, fora do catálogo real"
-          width={540}
-          height={960}
-          loading="lazy"
+          src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/brand/cura-logo.svg`}
+          alt="Assinatura oficial Cura Café do manual de identidade"
+          width={322}
+          height={117}
         />
         <p className="mono">
-          Material fornecido pela Cura Café · referência visual
+          Desenho proprietário · nenhuma fonte substitui o logotipo
         </p>
       </details>
     </EditorialShell>

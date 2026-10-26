@@ -63,6 +63,21 @@ async function capture() {
       ]) {
         await page.goto(base + path, { waitUntil: "networkidle" });
         await page.evaluate(() => document.fonts.ready);
+        // Load visible lazy media throughout the document before a full-page capture.
+        for (
+          let y = 0;
+          y <
+          (await page.evaluate(() => document.documentElement.scrollHeight));
+          y += 700
+        ) {
+          await page.evaluate((top) => window.scrollTo(0, top), y);
+          await page.waitForTimeout(60);
+        }
+        await page.waitForFunction(() =>
+          Array.from(document.images)
+            .filter((image) => image.checkVisibility())
+            .every((image) => image.complete && image.naturalWidth > 0),
+        );
         const file = `${label}-${name}.png`;
         await page.evaluate(() => {
           (document.activeElement as HTMLElement)?.blur?.();

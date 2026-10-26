@@ -7,7 +7,7 @@ export function Footer() {
     <footer className="site-footer">
       <div className="wrap footer-top">
         <div>
-          <Brand />
+          <Brand inverse />
           <p>da roça à cidade.</p>
         </div>
         <nav aria-label="Rodapé">

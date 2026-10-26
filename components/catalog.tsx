@@ -4,6 +4,8 @@ import {
   catalogFilters,
   filterCatalog,
   projectCoffee,
+  sortCatalog,
+  type CatalogOrder,
   type CatalogEntry,
 } from "../lib/catalog-model";
 import { CoffeeCard } from "./coffee-card";
@@ -12,13 +14,17 @@ export function Catalog({ entries }: { entries: CatalogEntry[] }) {
   const [profile, setProfile] = useState("");
   const [roast, setRoast] = useState("");
   const [preparation, setPreparation] = useState("");
+  const [order, setOrder] = useState<CatalogOrder>("curation");
   const options = catalogFilters(entries);
-  const visible = filterCatalog(entries, {
-    query,
-    profile,
-    roast,
-    preparation,
-  });
+  const visible = sortCatalog(
+    filterCatalog(entries, {
+      query,
+      profile,
+      roast,
+      preparation,
+    }),
+    order,
+  );
   return (
     <>
       <div className="catalog-tools">
@@ -73,6 +79,19 @@ export function Catalog({ entries }: { entries: CatalogEntry[] }) {
             ))}
           </select>
         </div>
+      </div>
+      <div className="catalog-order">
+        <label htmlFor="catalog-order">Ordenar por</label>
+        <select
+          id="catalog-order"
+          value={order}
+          onChange={(event) => setOrder(event.target.value as CatalogOrder)}
+        >
+          <option value="curation">Seleção da curadoria</option>
+          <option value="name-asc">Nome: A–Z</option>
+          <option value="name-desc">Nome: Z–A</option>
+          <option value="score-desc">Pontuação: maior primeiro</option>
+        </select>
       </div>
       <p className="result-count mono" role="status">
         {visible.length}{" "}

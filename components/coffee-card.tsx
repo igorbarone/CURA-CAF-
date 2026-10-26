@@ -16,6 +16,7 @@ export function CoffeeCard({ coffee }: { coffee: CoffeeView }) {
         <h3 id={`cafe-${coffee.id}`}>
           <Link href={`/cafes/${coffee.slug}/`}>{coffee.name}</Link>
         </h3>
+        <p className="profile-tag">{coffee.profile}</p>
         <p className="coffee-notes">{coffee.notes}</p>
         <p className="body-copy">{coffee.description}</p>
         <dl>

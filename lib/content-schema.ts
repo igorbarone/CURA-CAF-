@@ -23,22 +23,25 @@ export const coffeeSchema = z
     primaryLotId: z
       .preprocess((value) => (value === "" ? null : value), id.nullish())
       .transform((value) => value ?? null),
-    tone: z.enum(["rapadura", "anil", "cura"]),
+    tone: z.enum(["rapadura", "anil", "amora", "ipe", "cacau", "cura"]),
     media: z
       .preprocess(
         (value) =>
           value &&
           typeof value === "object" &&
           !Array.isArray(value) &&
-          Object.values(value).every((item) => item === "" || item == null)
+          Object.entries(value)
+            .filter(([key]) => key !== "kind")
+            .every(([, item]) => item === "" || item == null)
             ? null
             : value,
         z
           .object({
+            kind: z.enum(["photograph", "artwork"]).default("photograph"),
             src: z
               .string()
               .regex(
-                /^\/media\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.(?:jpg|jpeg|png|webp|avif)$/,
+                /^(?:\/media\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.(?:jpg|jpeg|png|webp|avif)|\/media\/rotulo-[a-z0-9-]+\.svg)$/,
               ),
             alt: text,
             credit: text,
@@ -56,6 +59,7 @@ export const lotSchema = z
     code: text,
     status: statusSchema,
     sortOrder: z.number().int().nonnegative(),
+    curationNote: nullableText,
     profile: nullableText,
     notes: z
       .array(text)

@@ -2,7 +2,7 @@
 
 ## Fase 1 — Fundação
 - [x] Documentação e estrutura técnica
-- [ ] Incorporar assets originais e logotipo vetorial autorizado
+- [x] Incorporar marca, símbolo e rótulos vetoriais oficiais do manual de 26/10/2026
 - [x] Validar visual da home em desktop e mobile (Home V2; capturas Playwright em 1280 px e 390 px)
 
 ## Fase 2 — Catálogo
@@ -29,7 +29,7 @@ Build sem erros, navegação mobile, contraste legível, sem dados fictícios tr
 - [x] Filtros derivados dos lotes publicados e destaques configuráveis na Home
 - [x] Configuração Pages CMS preparada e comparação Git/API documentada
 - [x] Operação, migração e arquivamento sem perder URLs documentados
-- [ ] Autorizar e conectar CMS real, configurar equipe e validar edição/publicação ponta a ponta
+- [x] Pages CMS conectado e em uso pela equipe; fluxo editorial direto na main preservado
 
 ## V1 de apresentação
 - [x] Home refinada e marca original disponível aplicada sem redesenho
@@ -39,3 +39,9 @@ Build sem erros, navegação mobile, contraste legível, sem dados fictícios tr
 - [x] Capturas e roteiro de apresentação documentados
 - [ ] Fotos reais por café/lote, logo isolado e embalagens finais aprovadas
 - [ ] Dados comerciais, operação transacional e termos de assinatura definidos
+
+## Missão 05
+- [x] Identidade oficial marrom/creme/ocre e tipografia Expanded aplicadas
+- [x] Vetores de marca, símbolo, favicon e rótulos extraídos dos originais
+- [x] Cinco cores de perfil, ordenação e nota de curadoria preparados no CMS
+- [x] Antes/depois, proveniência dos vetores e pendências reais documentados

@@ -30,6 +30,7 @@ content.coffees.push(
     name: "CAFÉ TÉCNICO DE TESTE",
     primaryLotId: "fixture-b",
     media: {
+      kind: "photograph",
       src: "/media/cms-fixture.png",
       alt: "Imagem técnica de teste, não é fotografia de café",
       credit: "Fixture técnica, não é foto de produto",
@@ -63,6 +64,7 @@ content.lots.push(
   {
     ...sourceLot,
     id: "fixture-a",
+    curationNote: "Nota técnica de teste: critério do lote A.",
     code: "TEST-ONLY-A",
     coffeeId: "fixture-editorial",
     profile: "Perfil técnico A",

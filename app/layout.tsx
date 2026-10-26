@@ -1,11 +1,15 @@
 import { SelectionProvider } from "../components/selection-provider";
 import { getCatalog } from "../lib/coffees";
 import type { Metadata } from "next";
-import "@fontsource-variable/archivo";
+import "@fontsource-variable/archivo/standard.css";
 import "@fontsource/dm-mono/400.css";
+import "@fontsource/dm-mono/500.css";
 import "@fontsource-variable/newsreader/wght-italic.css";
 import "./globals.css";
 export const metadata: Metadata = {
+  icons: {
+    icon: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/brand/cura-simbolo.svg`,
+  },
   metadataBase: new URL("https://igorbarone.github.io"),
   openGraph: {
     siteName: "Cura Café",

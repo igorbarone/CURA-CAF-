@@ -61,6 +61,7 @@ export function projectCoffee(entry: CatalogEntry, selectedLotId?: string) {
     lot: lot?.code ?? "Lote a confirmar",
     profile: lot?.profile ?? "Perfil a confirmar",
     notes: lot?.notes.join(" e ") || "Notas a confirmar",
+    curationNote: lot?.curationNote ?? null,
     acidity: lot?.acidity ?? null,
     body: lot?.body ?? null,
     origin: lot?.origin ?? "Origem a confirmar.",
@@ -127,4 +128,18 @@ export function publicProductRoutes(content: Content) {
     .filter((coffee) => coffee.status !== "draft")
     .map(({ slug }) => ({ slug }));
   return routes.length ? routes : [{ slug: EMPTY_CATALOG_ROUTE }];
+}
+
+export type CatalogOrder = "curation" | "name-asc" | "name-desc" | "score-desc";
+export function sortCatalog(entries: CatalogEntry[], order: CatalogOrder) {
+  return [...entries].sort((a, b) =>
+    order === "name-asc"
+      ? a.coffee.name.localeCompare(b.coffee.name, "pt-BR")
+      : order === "name-desc"
+        ? b.coffee.name.localeCompare(a.coffee.name, "pt-BR")
+        : order === "score-desc"
+          ? Math.max(-1, ...b.lots.map((lot) => lot.score ?? -1)) -
+            Math.max(-1, ...a.lots.map((lot) => lot.score ?? -1))
+          : 0,
+  );
 }
