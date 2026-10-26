@@ -357,7 +357,12 @@ test("invalid prices, stock, scores and unsafe media paths are rejected", () => 
     "https://remote.invalid/image.jpg",
     "/media/script.svg",
   ]) {
-    data.coffees[0].media = { src, alt: "Teste", credit: "Teste" };
+    data.coffees[0].media = {
+      kind: "photograph",
+      src,
+      alt: "Teste",
+      credit: "Teste",
+    };
     assert.equal(contentSchema.safeParse(data).success, false);
   }
   // Descriptions are plain strings, never rendered with dangerouslySetInnerHTML.
@@ -365,7 +370,7 @@ test("invalid prices, stock, scores and unsafe media paths are rejected", () => 
 test("CMS empty optional fields normalize to null, never to a zero price or stock", () => {
   const data = content([coffee("one")], [lot("a", "one")], [offer("a", "a")]);
   const input = JSON.parse(JSON.stringify(data));
-  input.coffees[0].media = { src: "", alt: "", credit: "" };
+  input.coffees[0].media = { kind: "photograph", src: "", alt: "", credit: "" };
   input.coffees[0].primaryLotId = "";
   input.lots[0].score = "";
   input.lots[0].body = "";
@@ -391,6 +396,7 @@ test("loader accepts media under public/media and rejects missing files and mism
       mkdirSync(join(root, dir), { recursive: true });
     const item = coffee("test", {
       media: {
+        kind: "photograph",
         src: "/media/test.png",
         alt: "Imagem técnica de teste",
         credit: "Fixture de teste",
@@ -412,6 +418,53 @@ test("loader accepts media under public/media and rejects missing files and mism
       JSON.stringify({ ...item, id: "changed" }),
     );
     assert.throws(() => loadContent(root), /nome do arquivo/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("editorial SVG accepts static vectors and refuses active or remote content", () => {
+  const root = mkdtempSync(join(tmpdir(), "cura-svg-test-"));
+  try {
+    for (const dir of [
+      "content/coffees",
+      "content/lots",
+      "content/offers",
+      "public/media",
+    ])
+      mkdirSync(join(root, dir), { recursive: true });
+    writeFileSync(
+      join(root, "content/coffees/test.json"),
+      JSON.stringify(
+        coffee("test", {
+          media: {
+            kind: "artwork",
+            src: "/media/rotulo-test.svg",
+            alt: "Arte técnica de teste",
+            credit: "Fixture",
+          },
+        }),
+      ),
+    );
+    writeFileSync(
+      join(root, "content/home.json"),
+      JSON.stringify({ ...current.home, featuredCoffeeIds: ["test"] }),
+    );
+    const path = join(root, "public/media/rotulo-test.svg");
+    writeFileSync(
+      path,
+      '<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0L1 1"/></svg>',
+    );
+    assert.equal(loadContent(root).coffees[0].media?.kind, "artwork");
+    for (const invalid of [
+      "<svg><script>alert(1)</script></svg>",
+      '<svg onload="alert(1)"/>',
+      '<svg><use href="https://invalid.test/resource"/></svg>',
+      '<svg><style>@import "https://invalid.test/x";</style></svg>',
+    ]) {
+      writeFileSync(path, invalid);
+      assert.throws(() => loadContent(root), /SVG editorial/);
+    }
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

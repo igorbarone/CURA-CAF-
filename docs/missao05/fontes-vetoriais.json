@@ -1,0 +1,57 @@
+[
+  {
+    "source": "Cura-Cafe-Identidade-referencia-4-paginas.pdf",
+    "page": 1,
+    "clip": [
+      94,
+      190,
+      416,
+      307
+    ],
+    "sha256": "24dc068eb45774e30f6de8c114f1dd353341abc29c8ffffe8752a10f5053706f",
+    "output": "cura-logo.svg",
+    "palette_override": false
+  },
+  {
+    "source": "Cura-Cafe-Identidade-referencia-4-paginas.pdf",
+    "page": 1,
+    "clip": [
+      266,
+      436,
+      386,
+      484
+    ],
+    "sha256": "24dc068eb45774e30f6de8c114f1dd353341abc29c8ffffe8752a10f5053706f",
+    "output": "cura-logo-negativo.svg",
+    "palette_override": false
+  },
+  {
+    "source": "Cura-Cafe-Identidade-referencia-4-paginas.pdf",
+    "page": 2,
+    "clip": [
+      73,
+      235,
+      222,
+      382
+    ],
+    "sha256": "24dc068eb45774e30f6de8c114f1dd353341abc29c8ffffe8752a10f5053706f",
+    "output": "cura-simbolo.svg",
+    "palette_override": false
+  },
+  {
+    "source": "Cura-Cafe-Adesivo-SAMBA-arte-vetorial.pdf",
+    "page": 1,
+    "clip": null,
+    "sha256": "4366b2cab957f29e1744d0c293fefe8d699b67415fbfd9595e9fd934d3225f2b",
+    "output": "rotulo-samba.svg",
+    "palette_override": true
+  },
+  {
+    "source": "Cura-Cafe-Adesivo-SALSA-arte-vetorial.pdf",
+    "page": 1,
+    "clip": null,
+    "sha256": "823135097b50c3587b7cf84f70545334f238022a31ca2ed09e89992fb509dfcc",
+    "output": "rotulo-salsa.svg",
+    "palette_override": true
+  }
+]

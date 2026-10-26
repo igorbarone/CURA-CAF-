@@ -59,7 +59,7 @@ export function ProductDetail({
           <div className="product-summary">
             <p className="eyebrow">
               {coffee.lot}
-              {coffee.score !== null && ` · ${coffee.score} PONTOS SCAA`}
+              {coffee.score !== null && ` · ${coffee.score} PONTOS SCA`}
             </p>
             <h1 id="product-name">
               {coffee.name}
@@ -77,6 +77,12 @@ export function ProductDetail({
             />
           </div>
         </section>
+        {coffee.curationNote && (
+          <aside className="curator-note">
+            <p className="eyebrow">POR QUE ESCOLHEMOS</p>
+            <blockquote>{coffee.curationNote}</blockquote>
+          </aside>
+        )}
         <section className="product-details" aria-labelledby="sensory-title">
           <div>
             <p className="eyebrow">01 / NA XÍCARA</p>
@@ -108,7 +114,7 @@ export function ProductDetail({
               <dd>{coffee.roast}</dd>
             </div>
             <div>
-              <dt>Pontuação SCAA</dt>
+              <dt>Pontuação SCA</dt>
               <dd>
                 {coffee.score !== null
                   ? `${coffee.score} pontos`

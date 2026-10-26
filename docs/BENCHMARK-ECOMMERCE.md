@@ -27,7 +27,7 @@ Os filtros de formato, a ordenação por preço, promoções, avaliações e ass
 
 ## Como a Cura se diferencia
 
-A Cura organiza a experiência em “Encontrado. Escolhido. Explicado.” e no percurso “Da roça à cidade”. Creme dominante, verde Cura, ponto de escolha em ocre e Archivo/DM Mono/Newsreader preservam a identidade editorial V2. O foco é a autoria do produtor e a clareza da escolha entre SAMBA e SALSA, com menos estímulos comerciais e informação sensorial acessível. Não foram copiados fotografias, textos, código, história de marca ou elementos visuais da Coffee++.
+A Cura organiza a experiência em “Encontrado. Escolhido. Explicado.” e no percurso “Da roça à cidade”. Creme dominante, Marrom Cura, ponto de escolha em ocre e Archivo Expanded/Archivo/DM Mono/Newsreader preservam a identidade editorial V2. O foco é a autoria do produtor e a clareza da escolha entre SAMBA e SALSA, com menos estímulos comerciais e informação sensorial acessível. Não foram copiados fotografias, textos, código, história de marca ou elementos visuais da Coffee++.
 
 ## Preparação para comércio real
 

@@ -6,11 +6,11 @@ Uma única branch/PR reúne Home editorial, catálogo escalável, fichas dos caf
 
 ## Roteiro de 8–10 minutos
 
-1. **Home**: apresentar a marca oficial fornecida, “Da roça à cidade” e os três verbos. Mostrar a seleção e o protagonismo de quem produz. Ressaltar que as fichas visuais são placeholders editoriais, não fotos de embalagens finais.
+1. **Home**: apresentar a marca oficial fornecida, “Da roça à cidade” e os três verbos. Mostrar a seleção e o protagonismo de quem produz. Ressaltar que os rótulos são artes oficiais, não fotografias de embalagens finais, e que campos entre colchetes continuam provisórios.
 2. **Catálogo**: buscar por nota/produtor; filtrar por perfil, torra e preparo. Mostrar que filtros e quantidade vêm do conteúdo publicado, sem nomes de produtos fixos no componente.
 3. **SAMBA e SALSA**: abrir as duas páginas, conferir breadcrumbs, notas, produtores, pontuação e origem. No estado atual há um lote publicado por café; o seletor aparece quando há vários lotes publicados. A origem detalhada de SAMBA e município/UF de SALSA continuam pendentes.
 4. **Descubra seu café**: escolher “Doce e cremoso”, avançar com preparo/torra sem preferência e abrir a recomendação explicada. Recomeçar com “Frutado e cítrico”. Para mostrar ausência de correspondência, combinar “Doce e cremoso” com “Gelado”: a interface sugere ajustar respostas, sem inventar um resultado.
-5. **História**: apresentar o propósito de curadoria sem biografia, visitas, certificados ou depoimentos inventados. Abrir o estudo de identidade: seus produtos são conceituais e não entram no catálogo.
+5. **História**: apresentar o propósito de curadoria sem biografia, visitas, certificados ou depoimentos inventados. Abrir a seção de identidade: logo e símbolo são os desenhos oficiais extraídos do manual de 26/10/2026.
 6. **Clube Cura**: mostrar a proposta futura e as definições ainda necessárias. Não existe contratação, promessa de frequência, desconto ou lista de espera.
 7. **Carrinho**: abrir o estado vazio e explicar o limite transacional. Hoje há zero ofertas reais cadastradas. A seleção por oferta já funciona quando ofertas reais publicadas existirem; isso é coberto por testes técnicos isolados. Não cadastrar preços/estoques falsos para “animar” a demonstração.
 8. **CMS**: mostrar os grupos de conteúdo no Pages CMS, usando a instalação autorizada da equipe. Os textos editoriais da V1 ficam em “Conteúdo editorial V1”; os destaques em “Destaques da Home”. Conteúdo pode ser editado diretamente em `main`, como solicitado. Código continua em branch/PR. Não salvar uma mudança na apresentação se não quiser disparar o fluxo de publicação existente.
@@ -47,7 +47,7 @@ Para refazer as capturas após um build Pages, executar `npm run screenshots`. N
 
 ## Pendências reais para lançamento comercial
 
-Definir operador de commerce, planos do Clube, preços, estoque autoritativo, peso, moagem, variantes, frete, pagamentos, pedidos, atendimento, privacidade/termos da operação e testes transacionais. Confirmar dados de origem ainda ausentes. Fornecer fotos finais e arquivo de logo isolado conforme [ASSETS-V1.md](ASSETS-V1.md).
+Definir operador de commerce, planos do Clube, preços, estoque autoritativo, peso, moagem, variantes, frete, pagamentos, pedidos, atendimento, privacidade/termos da operação e testes transacionais. Confirmar dados de origem ainda ausentes. Fornecer fotografias finais e confirmações editoriais conforme [MISSAO05.md](MISSAO05.md).
 
 A seleção local de ofertas não valida disponibilidade; pode ficar desatualizada após publicação. IDs inexistentes são descartados ao carregar a sessão. Não existe subtotal de pedido, quantidade reservada ou botão de checkout. O CMS não é fonte de estoque em tempo real.
 
@@ -56,3 +56,7 @@ A seleção local de ofertas não valida disponibilidade; pode ficar desatualiza
 O pipeline mantém validação de conteúdo, lint, unidades, export com cenários técnicos, catálogo vazio e regressões desktop/mobile antes do export real final. Os cenários técnicos nunca são publicados nem copiados para o conteúdo real. A seleção de ofertas é testada com valores comerciais desconhecidos, sem adicionar valores fictícios.
 
 Capturas e auditorias automatizadas não substituem testes em aparelhos físicos, avaliação humana completa de acessibilidade, direitos de imagem e aprovação de conteúdo pelo sócio. O resultado deste PR é uma experiência demonstrável, não uma loja transacional ativa.
+
+## Atualização de identidade — Missão 05
+
+Usar as capturas atuais de marrom/creme/ocre, os rótulos vetoriais e o símbolo oficial. A comparação histórica está em [missao05/README.md](missao05/README.md). Ordenação por nome/pontuação e cinco cores de perfil foram adicionadas ao catálogo sem introduzir ofertas. O CMS diferencia arte de fotografia e permite uma nota confirmada de curadoria por lote. A frase sobre não precisar entender de café foi incorporada; promessas de preço/economia dos flyers não estão ativadas.

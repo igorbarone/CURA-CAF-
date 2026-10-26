@@ -8,9 +8,9 @@ Next.js App Router + TypeScript + Tailwind CSS. Exportação estática para GitH
 
 ## Diretrizes obrigatórias
 - Seguir docs/IDENTIDADE.md e docs/ROADMAP.md.
-- Usar creme #EFE9DD, verde #17352A e ocre #BF9A50; marrom #3A2618 nas embalagens.
-- Tipos: Archivo (títulos/texto), DM Mono (dados), Newsreader itálico (voz humana).
-- Logo é arte desenhada, não texto de fonte. Usar arquivo original quando disponível; até lá, placeholder textual identificado.
+- Manual de 26/10/2026 prevalece: Marrom Cura #3A2618, creme #EFE9DD e ocre #BF9A50; apoio Breu #1E130C e creme claro #F7F3EA. Perfis subordinados: Rapadura, Anil, Amora, Ipê e Cacau.
+- Tipos: Archivo Expanded (eixo wdth 125%, peso 700–800) para títulos; Archivo para textos/interface; DM Mono 400/500 para dados; Newsreader itálico 400 para voz humana.
+- Logo e símbolo são desenhos proprietários. Usar os vetores oficiais extraídos em public/brand, sem redesenho, fonte substituta, espelhamento ou selo circular.
 - Não inventar fazendas, altitude, safra, número de lotes provados, preço, depoimentos ou histórias de produtores.
 - Os cafés reais iniciais são SAMBA (CURA-26-01, 84 pontos, torra média, rapadura/melaço) e SALSA (CURA-26-02, 86 pontos, torra clara, cítrico/laranja/tangerina). Outros nomes de mockup são **conceituais**.
 - Não publicar fotografias sintéticas como imagens reais de produtores/fazendas.

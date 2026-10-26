@@ -45,6 +45,9 @@ test("multiple lots switch all technical and offer details, with no invented com
     0,
   );
   await select.selectOption("fixture-a");
+  await expect(page.locator(".curator-note blockquote")).toHaveText(
+    "Nota técnica de teste: critério do lote A.",
+  );
   await expect(page.locator(".lot-selector [role=status]")).toHaveText(
     "Ficha do lote TEST-ONLY-A",
   );

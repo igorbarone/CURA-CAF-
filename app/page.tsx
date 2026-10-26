@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { metadataFor } from "../lib/seo";
 import Link from "next/link";
 import { Arrow } from "../components/arrow";
-import { BrandArt } from "../components/brand-art";
 import { Footer } from "../components/footer";
 import { Journey } from "../components/brand";
 import { Header } from "../components/header";
@@ -54,15 +53,13 @@ export default function Home() {
               <span className="eyebrow">ORIGEM → ESCOLHA → CIDADE</span>
               <span className="choice-dot" />
             </div>
-            <div className="hero-brand-panel">
-              <BrandArt large />
-            </div>
+
             <Journey />
             <div className="hero-editorial-note">
               <p>
-                O cuidado começa
+                Critério na escolha.
                 <br />
-                <em>na escolha.</em>
+                <em>Clareza na xícara.</em>
               </p>
               <span className="mono">CURADORIA BRASILEIRA</span>
             </div>
@@ -73,7 +70,6 @@ export default function Home() {
         </section>
         <div className="manifesto-strip">
           <p>{hero.artLabel}</p>
-          <span aria-hidden="true">✳</span>
         </div>
         <section
           className="section wrap"

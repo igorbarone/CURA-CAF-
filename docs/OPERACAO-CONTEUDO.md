@@ -82,3 +82,9 @@ Após integrar: revisar o diff dos JSON, executar checks, confirmar as duas URLs
 Em **Conteúdo editorial V1**, editar Hero da Home, Curadoria, Nossa história, Clube Cura, textos do quiz e rodapé. Os campos têm rótulos editoriais em português e são validados antes do build. Preferências, resultados e explicações do quiz são derivados dos lotes publicados; o CMS não cadastra recomendações fictícias ou uma regra fixa SAMBA/SALSA. Labels operacionais do fluxo e bloqueios de contratação continuam em código para manter a clareza da demonstração.
 
 Consultar [APRESENTACAO-V1.md](APRESENTACAO-V1.md) para roteiro e pendências e [ASSETS-V1.md](ASSETS-V1.md) antes de trocar imagens. Uma arte genérica de embalagem ou referência conceitual não confirma dados de oferta.
+
+## Identidade oficial de 26/10/2026
+
+Cores de perfil disponíveis: Rapadura, Anil, Amora, Ipê e Cacau, além de Marrom Cura neutro. Títulos usam Archivo Expanded 125% e a marca/símbolo vêm dos vetores originais. O campo **Natureza da imagem** diferencia arte de fotografia; os rótulos oficiais SVG ficam em `public/media/rotulo-*.svg`. Para trocar imagens raster, mantém-se o upload normal; SVGs editoriais devem seguir esse padrão e são verificados contra conteúdo ativo/externo no build.
+
+O campo de lote **Por que escolhemos** só deve receber uma nota real confirmada; vazio não gera texto fictício. Nenhum campo entre colchetes dos adesivos vira dado automaticamente. [Fontes e auditoria](MISSAO05.md).
