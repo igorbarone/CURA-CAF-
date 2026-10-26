@@ -53,7 +53,7 @@ test("navigation, mobile menu and layout work", async ({ page }, info) => {
     })
     .getByRole("link", { name: "Nossa história" })
     .click();
-  await expect(page).toHaveURL(/#historia$/);
+  await expect(page).toHaveURL(/\/historia\/$/);
   if (info.project.name === "mobile")
     await expect(page.locator(".mobile-menu")).not.toHaveAttribute("open");
   expect(
@@ -61,7 +61,7 @@ test("navigation, mobile menu and layout work", async ({ page }, info) => {
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  await page.getByRole("link", { name: "Voltar ao início" }).click();
+  await page.locator(".site-header .brand").click();
   await expect(page).toHaveURL(/#inicio$/);
   await page.getByRole("heading", { level: 1 }).click();
   await page.screenshot({

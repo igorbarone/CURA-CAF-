@@ -70,3 +70,11 @@ As regressões dos dados vivos derivam expectativas do conteúdo publicado: uma 
 ### Catálogo completamente vazio no Next 15
 
 O Next 15.5 exige ao menos um parâmetro em `generateStaticParams` para `output: export`, mesmo quando não existe café público. Nesse único caso, o adaptador fornece o parâmetro técnico reservado `_catalogo-vazio` (inválido como slug editorial), cuja página executa `notFound()`. O `postbuild` remove esse diretório gerado de `out/`, para que não exista uma página pública fictícia e o host responda 404. Sempre executar `npm run build`, que inclui validação e finalização, em vez de chamar `next build` diretamente. Os testes fazem um build com zero registros, verificam ausência desse artefato e executam as regressões sobre o catálogo vazio. Reavaliar essa compatibilidade ao atualizar o Next.
+
+## V1: editorial, descoberta e seleção local
+
+`content/site.json` e `lib/editorial.ts` adicionam schema próprio para textos de Home, curadoria, história, Clube, quiz e rodapé; a validação de conteúdo inclui ambos os schemas. `lib/quiz.ts` cruza preferências no mesmo lote publicado, sem escores de gosto inventados, dados pessoais ou API externa. Resultados apontam para `?lote=<id>`; a ficha valida esse ID e atualiza os atributos do lote correspondente.
+
+`SelectionProvider` mantém IDs de ofertas publicadas na sessão, com fallback em memória se o armazenamento estiver bloqueado. IDs inválidos/retirados são descartados ao carregar. A revisão do carrinho recebe somente registros públicos e permite remover itens; não há quantidade, subtotal, reserva ou checkout. O contexto não é um backend transacional e não garante estoque/preço em tempo real.
+
+A edição editorial em `main` pelo Pages CMS foi preservada por instrução da equipe. Código continua em branch/PR. O PR de apresentação não modifica permissões nem executa publicação direta.

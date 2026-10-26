@@ -1,5 +1,10 @@
+"use client";
+import { Arrow } from "./arrow";
+import { useSelection } from "./selection-provider";
+import Link from "next/link";
 import type { Offer } from "../lib/content-schema";
 export function CommerceStatus({ offers = [] }: { offers?: Offer[] }) {
+  const { add, message } = useSelection();
   return (
     <aside className="commerce-status" aria-label="Informações comerciais">
       <p className="eyebrow">UMA ESCOLHA COM TRANSPARÊNCIA</p>
@@ -38,6 +43,13 @@ export function CommerceStatus({ offers = [] }: { offers?: Offer[] }) {
                     <dd>{offer.grind ?? "A confirmar"}</dd>
                   </div>
                 </dl>
+                <button
+                  type="button"
+                  className="offer-select"
+                  onClick={() => add(offer.id)}
+                >
+                  Selecionar oferta · demonstração
+                </button>
               </li>
             ))}
           </ul>
@@ -46,6 +58,16 @@ export function CommerceStatus({ offers = [] }: { offers?: Offer[] }) {
         <p>
           Preço, estoque, peso e opções de moagem ainda não foram confirmados.
         </p>
+      )}
+      {offers.length > 0 && (
+        <>
+          <p role="status" className="selection-feedback">
+            {message}
+          </p>
+          <Link className="text-link" href="/carrinho/">
+            Revisar seleção demonstrativa <Arrow />
+          </Link>
+        </>
       )}
       <button type="button" disabled>
         Compra online · Em breve

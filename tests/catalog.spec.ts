@@ -1,3 +1,4 @@
+import { getEditorial } from "../lib/editorial";
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { getCatalog } from "../lib/coffees";
@@ -150,7 +151,7 @@ test("home to catalog to product to cart, and back to the editorial home", async
     .click();
   await expect(page).toHaveURL(/\/CURA-CAF-\/#curadoria$/);
   await expect(
-    page.getByRole("heading", { name: "Café bom não precisa de complicação." }),
+    page.getByRole("heading", { name: `${getEditorial().curation.title} ${getEditorial().curation.emphasis}` }),
   ).toBeVisible();
 });
 test("catalog and cart pass accessibility checks and contain no broken internal links", async ({

@@ -1,14 +1,16 @@
+import { metadataFor } from "../../lib/seo";
 import { getCatalog } from "../../lib/coffees";
 import type { Metadata } from "next";
 import { Header } from "../../components/header";
 import { Footer } from "../../components/footer";
 import { Breadcrumbs } from "../../components/breadcrumbs";
 import { Catalog } from "../../components/catalog";
-export const metadata: Metadata = {
-  title: "Nossos cafés | Cura Café",
-  description:
-    "Encontre seu café por perfil sensorial. Cafés brasileiros, escolhidos com critério e explicados sem complicação.",
-};
+export const metadata: Metadata = metadataFor(
+  "Nossos cafés | Cura Café",
+  "Cafés brasileiros por perfil sensorial, torra e preparo. Conheça os lotes e quem produz.",
+  "cafes/",
+);
+
 export default function CoffeesPage() {
   return (
     <>

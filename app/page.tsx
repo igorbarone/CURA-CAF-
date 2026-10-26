@@ -1,82 +1,78 @@
-import { Arrow } from "../components/arrow";
+import type { Metadata } from "next";
+import { metadataFor } from "../lib/seo";
 import Link from "next/link";
+import { Arrow } from "../components/arrow";
+import { BrandArt } from "../components/brand-art";
 import { Footer } from "../components/footer";
 import { Journey } from "../components/brand";
 import { Header } from "../components/header";
 import { CoffeeCard } from "../components/coffee-card";
 import { getHomeSelection } from "../lib/coffees";
+import { getEditorial } from "../lib/editorial";
 import { projectCoffee } from "../lib/catalog-model";
-const steps = [
-  {
-    title: "Encontrado.",
-    text: "O começo é a origem brasileira. Cada café tem quem planta, cuida e produz. É de lá que parte a nossa escolha.",
-  },
-  {
-    title: "Escolhido.",
-    text: "A curadoria aproxima você de perfis diferentes. Do doce e cremoso ao frutado e cítrico: há mais de um jeito de gostar de café.",
-  },
-  {
-    title: "Explicado.",
-    text: "Notas, torra e preparo em uma linguagem simples. Para você entender a escolha e encontrar o seu jeito de beber.",
-  },
-];
+export const metadata: Metadata = metadataFor(
+  "Cura Café | Da roça à cidade",
+  getEditorial().hero.description,
+  "",
+);
+
 export default function Home() {
   const { settings, entries } = getHomeSelection();
+  const { hero, curation, story, club } = getEditorial();
   return (
-    <div id="inicio">
+    <div id="inicio" className="home-v1">
       <Header />
       <main id="conteudo">
         <section className="hero wrap" aria-labelledby="hero-title">
           <div className="hero-copy">
             <p className="eyebrow">
-              <span className="choice-dot" /> CAFÉS DE ORIGEM BRASILEIRA
+              <span className="choice-dot" />
+              {hero.eyebrow}
             </p>
             <h1 id="hero-title">
-              Da roça
-              <br />à <em>cidade.</em>
-            </h1>
-            <p className="hero-description">
-              Escolher muito bem.
+              {hero.line1}
               <br />
-              Explicar de um jeito simples.
-            </p>
-            <Link className="button" href="/cafes/">
-              Encontre o seu café{" "}
-              <span aria-hidden="true">
+              <em>{hero.line2}</em>
+            </h1>
+            <p className="hero-description">{hero.description}</p>
+            <div className="hero-actions">
+              <Link className="button" href="/cafes/">
+                {hero.primaryCta}
                 <Arrow />
-              </span>
-            </Link>
+              </Link>
+              <Link className="text-link" href="/descubra/">
+                {hero.secondaryCta}
+                <Arrow />
+              </Link>
+            </div>
             <p className="hero-footnote mono">
               ENCONTRADO. ESCOLHIDO. EXPLICADO.
             </p>
           </div>
           <div className="hero-art">
-            <Journey />
-            <p className="origin-label mono">01 / ORIGEM</p>
-            <div className="editorial-note">
-              <span className="eyebrow">O PONTO DE ESCOLHA</span>
-              <p>
-                Entre a origem
-                <br />e a sua xícara,
-                <br />
-                <em>uma boa escolha.</em>
-              </p>
+            <div className="hero-art-top">
+              <span className="eyebrow">ORIGEM → ESCOLHA → CIDADE</span>
+              <span className="choice-dot" />
             </div>
-            <p className="city-label mono">
-              02 / SEU DIA A DIA{" "}
-              <span aria-hidden="true">
-                <Arrow />
-              </span>
+            <div className="hero-brand-panel">
+              <BrandArt large />
+            </div>
+            <Journey />
+            <div className="hero-editorial-note">
+              <p>
+                O cuidado começa
+                <br />
+                <em>na escolha.</em>
+              </p>
+              <span className="mono">CURADORIA BRASILEIRA</span>
+            </div>
+            <p className="hero-art-caption">
+              Encontrado. Escolhido. Explicado.
             </p>
-            <span className="art-legend mono">
-              UMA CURVA. UM ENCONTRO. UM NOVO CAMINHO.
-            </span>
           </div>
         </section>
         <div className="manifesto-strip">
-          <p>
-            O produtor assina o café. <em>A Cura assina a escolha.</em>
-          </p>
+          <p>{hero.artLabel}</p>
           <span aria-hidden="true">✳</span>
         </div>
         <section
@@ -93,7 +89,12 @@ export default function Home() {
                 <em>{settings.emphasis}</em>
               </h2>
             </div>
-            <p className="section-intro">{settings.intro}</p>
+            <div className="selection-intro">
+              <p className="section-intro">{settings.intro}</p>
+              <Link className="text-link" href="/cafes/">
+                Explorar todos os cafés <Arrow />
+              </Link>
+            </div>
           </div>
           <div className="coffee-grid">
             {entries.map((entry) => (
@@ -107,9 +108,29 @@ export default function Home() {
             </p>
           )}
           <p className="catalog-note mono">
-            A origem detalhada será publicada após confirmação. Sem venda online
-            nesta fase.
+            Dados comerciais em confirmação · Sem venda online nesta fase.
           </p>
+        </section>
+        <section className="discovery-band">
+          <div className="wrap discovery-inner">
+            <div>
+              <p className="eyebrow">NÃO SABE POR ONDE COMEÇAR?</p>
+              <h2>
+                Seu paladar.
+                <br />
+                <em>Um bom ponto de partida.</em>
+              </h2>
+            </div>
+            <div>
+              <p>
+                Um caminho simples entre o que você gosta e os perfis da nossa
+                seleção. Cada recomendação vem com uma explicação.
+              </p>
+              <Link className="button" href="/descubra/">
+                Descubra seu café <Arrow />
+              </Link>
+            </div>
+          </div>
         </section>
         <section
           className="curation"
@@ -119,26 +140,21 @@ export default function Home() {
           <div className="wrap">
             <div className="section-heading">
               <div>
-                <p className="eyebrow">02 / NOSSA MANEIRA DE ESCOLHER</p>
+                <p className="eyebrow">{curation.eyebrow}</p>
                 <h2 id="curation-title">
-                  Café bom não precisa
+                  {curation.title}
                   <br />
-                  de <em>complicação.</em>
+                  <em>{curation.emphasis}</em>
                 </h2>
               </div>
-              <p className="section-intro">
-                Curadoria é dar atenção ao que importa — e dividir essa escolha
-                com você.
-              </p>
+              <p className="section-intro">{curation.intro}</p>
             </div>
             <div className="steps">
-              {steps.map((step, index) => (
-                <article key={step.title}>
+              {curation.steps.map((step, index) => (
+                <article key={`${step.title}-${index}`}>
                   <span className="step-number mono">
-                    0{index + 1}{" "}
-                    <span aria-hidden="true">
-                      <Arrow />
-                    </span>
+                    0{index + 1}
+                    <Arrow />
                   </span>
                   <h3>{step.title}</h3>
                   <p>{step.text}</p>
@@ -147,42 +163,45 @@ export default function Home() {
             </div>
           </div>
         </section>
-        <section
-          className="story section wrap"
-          id="historia"
-          aria-labelledby="story-title"
-        >
+        <section className="story section wrap" id="historia">
           <div className="story-drawing">
             <Journey />
             <p>
-              O caminho muda.
+              A origem tem nome.
               <br />
-              <em>A origem importa.</em>
+              <em>A escolha, cuidado.</em>
             </p>
             <span className="mono">DA ROÇA À CIDADE.</span>
           </div>
           <div className="story-copy">
-            <p className="eyebrow">03 / A CURA CAFÉ</p>
-            <h2 id="story-title">
-              Uma ponte entre
-              <br />a origem e <em>você.</em>
+            <p className="eyebrow">{story.eyebrow}</p>
+            <h2>
+              {story.title}
+              <br />
+              <em>{story.emphasis}</em>
             </h2>
-            <p>
-              A Cura Café existe para aproximar cafés de origem brasileira da
-              vida na cidade. Nosso ponto de partida é uma ideia simples:
-              escolher com critério e compartilhar o que torna cada café
-              especial.
-            </p>
-            <p>
-              Quem produz tem sua assinatura. A nossa está na escolha e no
-              cuidado de explicar, sem complicar a sua relação com a xícara.
-            </p>
-            <a className="text-link" href="#cafes">
-              Conheça a nossa seleção{" "}
-              <span aria-hidden="true">
-                <Arrow />
-              </span>
-            </a>
+            <p>{story.intro}</p>
+            <p>{story.paragraphs[0]}</p>
+            <Link className="text-link" href="/historia/">
+              Conheça nossa história <Arrow />
+            </Link>
+          </div>
+        </section>
+        <section className="wrap club-invitation">
+          <div>
+            <p className="eyebrow">{club.eyebrow}</p>
+            <h2>
+              {club.title}
+              <br />
+              <em>O próximo capítulo.</em>
+            </h2>
+          </div>
+          <div>
+            <p>{club.intro}</p>
+            <Link className="text-link" href="/clube/">
+              Conheça a proposta futura <Arrow />
+            </Link>
+            <p className="mono">SEM PLANOS OU CONTRATAÇÃO DISPONÍVEIS</p>
           </div>
         </section>
         <section className="closing wrap" aria-label="Assinatura da marca">

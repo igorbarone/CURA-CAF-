@@ -1,4 +1,3 @@
-# Configuração preparada para Pages CMS; requer conexão/autorização externa.
 media:
   input: public/media
   output: /media
@@ -284,6 +283,187 @@ content:
           value: "{fields.id}"
           label: "{fields.name}"
           multiple: true
+  - name: site
+    label: Conteúdo editorial V1
+    type: file
+    path: content/site.json
+    format: json
+    fields:
+      - name: hero
+        label: Hero da Home
+        type: object
+        required: true
+        fields:
+          - name: eyebrow
+            label: Chamada
+            type: string
+            required: true
+          - name: line1
+            label: Título — primeira linha
+            type: string
+            required: true
+          - name: line2
+            label: Título — segunda linha
+            type: string
+            required: true
+          - name: description
+            label: Descrição
+            type: text
+            required: true
+          - name: primaryCta
+            label: Botão principal
+            type: string
+            required: true
+          - name: secondaryCta
+            label: Link de descoberta
+            type: string
+            required: true
+          - name: artLabel
+            label: Assinatura editorial
+            type: text
+            required: true
+      - name: curation
+        label: Curadoria
+        type: object
+        required: true
+        fields:
+          - name: eyebrow
+            label: Chamada
+            type: string
+            required: true
+          - name: title
+            label: Título
+            type: string
+            required: true
+          - name: emphasis
+            label: Complemento em itálico
+            type: string
+            required: true
+          - name: intro
+            label: Introdução
+            type: text
+            required: true
+          - name: steps
+            label: Etapas da curadoria
+            type: object
+            required: true
+            list: true
+            fields:
+              - name: title
+                label: Título
+                type: string
+                required: true
+              - name: text
+                label: Texto
+                type: text
+                required: true
+      - name: story
+        label: Nossa história
+        type: object
+        required: true
+        fields:
+          - name: eyebrow
+            label: Chamada
+            type: string
+            required: true
+          - name: title
+            label: Título
+            type: string
+            required: true
+          - name: emphasis
+            label: Complemento em itálico
+            type: string
+            required: true
+          - name: intro
+            label: Introdução
+            type: text
+            required: true
+          - name: paragraphs
+            label: Parágrafos
+            type: text
+            required: true
+            list: true
+      - name: club
+        label: Clube Cura
+        type: object
+        required: true
+        fields:
+          - name: eyebrow
+            label: Chamada
+            type: string
+            required: true
+          - name: title
+            label: Título
+            type: string
+            required: true
+          - name: emphasis
+            label: Complemento em itálico
+            type: string
+            required: true
+          - name: intro
+            label: Introdução
+            type: text
+            required: true
+          - name: paragraphs
+            label: Parágrafos
+            type: text
+            required: true
+            list: true
+          - name: pendingItems
+            label: Definições pendentes
+            type: text
+            required: true
+            list: true
+      - name: quiz
+        label: Descubra seu café
+        type: object
+        required: true
+        fields:
+          - name: eyebrow
+            label: Chamada
+            type: string
+            required: true
+          - name: title
+            label: Título
+            type: string
+            required: true
+          - name: emphasis
+            label: Complemento em itálico
+            type: string
+            required: true
+          - name: intro
+            label: Introdução
+            type: text
+            required: true
+          - name: help
+            label: Nota de privacidade e método
+            type: text
+            required: true
+          - name: resultTitle
+            label: Título dos resultados
+            type: string
+            required: true
+          - name: empty
+            label: Mensagem de seleção pendente
+            type: text
+            required: true
+          - name: noMatch
+            label: Mensagem sem correspondência
+            type: text
+            required: true
+      - name: footer
+        label: Rodapé
+        type: object
+        required: true
+        fields:
+          - name: tagline
+            label: Assinatura
+            type: text
+            required: true
+          - name: notice
+            label: Nota final
+            type: text
+            required: true
 settings:
   content:
     merge: true

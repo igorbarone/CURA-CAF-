@@ -13,7 +13,7 @@ npm run dev
 
 No desenvolvimento, não definir `GITHUB_PAGES`. Não executar dev e build simultaneamente: compartilham `.next`. As fontes Archivo, DM Mono e Newsreader itálica são hospedadas localmente via Fontsource. A identidade usa creme, verde Cura e ocre, com o percurso gráfico da curva à reta e animações que respeitam movimento reduzido.
 
-Rotas: `/`, `/cafes/`, `/cafes/{slug}/` e `/carrinho/`. As URLs atuais de SAMBA e SALSA foram preservadas. Header/menu mobile, footer, cartões, arte, breadcrumbs e estado comercial são reutilizáveis. O carrinho é uma página informativa “Em breve”, sem transação simulada.
+Rotas: `/`, `/cafes/`, `/cafes/{slug}/` e `/carrinho/`. As URLs atuais de SAMBA e SALSA foram preservadas. Header/menu mobile, footer, cartões, arte, breadcrumbs e estado comercial são reutilizáveis. O carrinho permite revisar uma seleção demonstrativa quando há ofertas publicadas, guardando apenas IDs na sessão do navegador; não cria transações, reservas ou totais de pedido.
 
 ## Conteúdo e CMS
 
@@ -21,13 +21,13 @@ Café (identidade/URL/foto), lote (origem e sensorial) e oferta (referência com
 
 Perfil, torra e preparo são filtros derivados de todos os lotes publicados. A ficha permite selecionar lotes; cafés sem lotes têm estados pendentes. Rascunhos não são emitidos no export; cafés arquivados mantêm a URL com aviso e `noindex`. Os componentes não dependem de nomes ou quantidades fixos.
 
-A proposta inicial é Pages CMS sobre Git, com formulários em `.pages.yml` para cadastrar/editar, mudar o estado editorial e trocar fotos sem editar código. **O serviço, a GitHub App, as permissões e os usuários ainda precisam ser conectados e validados**. Não existe painel simulado no site. Consulte:
+A proposta inicial é Pages CMS sobre Git, com formulários em `.pages.yml` para cadastrar/editar, mudar o estado editorial e trocar fotos sem editar código. A instalação, credenciais e permissões do serviço não foram alteradas nesta entrega. A edição de conteúdo diretamente na `main` foi preservada; código segue branch/PR. Não existe painel simulado no site. Consulte:
 
 - [Arquitetura, entidades e validação](docs/ARQUITETURA-CATALOGO.md)
 - [Decisão de CMS: Git versus API, custos e segurança](docs/CMS-DECISAO.md)
 - [Operação editorial, migração e reversão](docs/OPERACAO-CONTEUDO.md)
 
-O logo textual é identificado como provisório até a entrega da arte autorizada. As embalagens em CSS são estudos gráficos identificados. Fotos reais autorizadas podem ser cadastradas em `public/media/`, com alt e crédito obrigatórios, substituindo o estudo gráfico. Não há fotografias sintéticas apresentadas como registro de origem, nem dados de origem, preço ou disponibilidade presumidos.
+A marca desenhada é exibida diretamente da arte oficial de embalagem, por recorte CSS sem redesenho. Enquanto não há fotos oficiais por café, usamos fichas editoriais identificadas. Fotos reais autorizadas podem ser cadastradas em `public/media/`, com alt e crédito obrigatórios. Não há fotografias sintéticas apresentadas como registro de origem, nem dados de origem, preço ou disponibilidade presumidos.
 
 ## Validação
 
@@ -59,3 +59,9 @@ Para comércio real, escolher provedor e validar preço, estoque, variantes, fre
 - [Benchmark funcional Coffee++ e diferenciação da Cura](docs/BENCHMARK-ECOMMERCE.md)
 
 O benchmark informou descoberta por atributos, fichas claras e continuidade da navegação. Nenhum código, texto ou ativo da Coffee++ foi incorporado. A Cura mantém seu recorte de curadoria, autoria do produtor e estética editorial própria.
+
+## V1 de apresentação
+
+Novas rotas: `/descubra/`, `/clube/` e `/historia/`. Quiz baseado exclusivamente nos lotes publicados, com correspondência exata de preferências e explicações por atributo, sem cadastro ou envio de respostas. Clube é uma proposta futura, sem contratação. História apresenta somente o propósito documentado da curadoria. O conteúdo editorial está em `content/site.json`, disponível no Pages CMS.
+
+[Guia de apresentação, checklist e pendências](docs/APRESENTACAO-V1.md) · [Assets oficiais e arquivos pendentes](docs/ASSETS-V1.md) · [Capturas desktop/mobile](docs/screenshots/README.md). `npm run screenshots` gera as capturas sobre o export Pages; `npm run present` serve o export local para apresentação, sem deploy.
