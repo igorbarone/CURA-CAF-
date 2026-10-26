@@ -7,5 +7,9 @@
   "status": "published",
   "sortOrder": 1,
   "primaryLotId": "cura-26-02",
-  "media": null
+  "media": {
+    "src": "/media/cura-cafe-video-referencia-prateleira-9x16.png",
+    "alt": "SAMABAAA",
+    "credit": "aa"
+  }
 }
