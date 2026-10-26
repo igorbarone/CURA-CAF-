@@ -38,6 +38,12 @@ export const coffeeSchema = z
         z
           .object({
             kind: z.enum(["photograph", "artwork"]).default("photograph"),
+            lotId: z
+              .preprocess(
+                (value) => (value === "" ? null : value),
+                id.nullish(),
+              )
+              .transform((value) => value ?? null),
             src: z
               .string()
               .regex(
@@ -60,6 +66,7 @@ export const lotSchema = z
     status: statusSchema,
     sortOrder: z.number().int().nonnegative(),
     curationNote: nullableText,
+    producerStory: nullableText,
     profile: nullableText,
     notes: z
       .array(text)
@@ -152,6 +159,14 @@ export const contentSchema = z
     for (const offer of data.offers)
       if (!data.lots.some((x) => x.id === offer.lotId))
         issue(`Oferta ${offer.id}: lote inexistente`);
+    for (const coffee of data.coffees)
+      if (
+        coffee.media?.lotId &&
+        !data.lots.some(
+          (lot) => lot.id === coffee.media?.lotId && lot.coffeeId === coffee.id,
+        )
+      )
+        issue(`Café ${coffee.id}: lote da imagem inválido`);
     for (const coffee of data.coffees)
       if (
         coffee.primaryLotId &&

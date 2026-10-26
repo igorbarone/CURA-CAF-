@@ -3,7 +3,7 @@
     "eyebrow": "CURADORIA DE CAFÉS BRASILEIROS",
     "line1": "Da roça",
     "line2": "à cidade.",
-    "description": "Não precisa entender de café. A Cura aproxima você dos produtores e dos perfis da origem brasileira, com critérios claros e explicações sem complicação.",
+    "description": "Não precisa entender de café para começar. A Cura aproxima o café especial da sua rotina com linguagem clara, conhecimento compartilhado e respeito a quem produz.",
     "primaryCta": "Encontre o seu café",
     "secondaryCta": "Descubra seu café",
     "artLabel": "O produtor assina o café. A Cura assina a escolha."
@@ -12,7 +12,7 @@
     "eyebrow": "O NOSSO PONTO DE ESCOLHA",
     "title": "Escolher muito bem.",
     "emphasis": "Explicar de um jeito simples.",
-    "intro": "Menos complicação. Mais atenção à origem, a quem produz e ao que chega à sua xícara.",
+    "intro": "Quem produz tem nome. Quem escolhe merece entender. Da origem ao preparo, compartilhamos o conhecimento para aproximar mais gente do café especial.",
     "steps": [
       {
         "title": "Encontramos.",
@@ -36,9 +36,10 @@
     "eyebrow": "NOSSA HISTÓRIA",
     "title": "Uma ponte entre",
     "emphasis": "a origem e você.",
-    "intro": "A Cura nasce de uma ideia: escolher com cuidado e compartilhar a escolha com clareza.",
+    "intro": "Escolher com cuidado, compartilhar conhecimento e aproximar pessoas: é assim que a Cura quer abrir o café especial a mais gente.",
     "paragraphs": [
       "Da roça à cidade é o caminho que queremos aproximar. De um lado, o trabalho de quem produz. Do outro, as pausas, conversas e pequenos rituais de quem prepara.",
+      "Democratizar o café especial começa por uma conversa compreensível. Queremos tornar a linguagem, o conhecimento e a experiência mais acessíveis, para que cada pessoa possa descobrir seu gosto. Isso não depende de uma promessa de preço.",
       "Nossa assinatura está na curadoria. Apresentamos quem produz, explicamos os perfis e distinguimos o que está confirmado do que ainda precisa ser conhecido.",
       "Encontrado. Escolhido. Explicado. É assim que queremos construir uma relação mais próxima com o café brasileiro.",
       "O símbolo oficial desdobra o C da Cura em três curvas de nível que terminam em retas paralelas para a direita. Origem, escolha e cidade se encontram na mesma direção."
@@ -73,5 +74,55 @@
   "footer": {
     "tagline": "Escolher muito bem. Explicar de um jeito simples.",
     "notice": "Curadoria brasileira · Compra online em breve"
+  },
+  "access": {
+    "eyebrow": "CAFÉ ESPECIAL, CONVERSA ABERTA",
+    "title": "Mais gente à mesa.",
+    "emphasis": "Menos distância do café.",
+    "intro": "Democratizar é abrir a conversa: tornar o café de qualidade mais acessível na linguagem, no conhecimento e na experiência. Você não precisa dominar termos técnicos para descobrir o que gosta.",
+    "pillars": [
+      {
+        "title": "Linguagem que aproxima.",
+        "text": "Doce, cítrico, cremoso: partimos de sensações conhecidas. Explicamos os termos para que você possa fazer suas próprias escolhas."
+      },
+      {
+        "title": "Conhecimento compartilhado.",
+        "text": "Notas, torra e pontuação aparecem com contexto. Informação para conhecer o café, sem transformar a ficha técnica em uma barreira."
+      },
+      {
+        "title": "Experiência pelo seu gosto.",
+        "text": "O seu paladar é o ponto de partida. Explore os perfis e o quiz para encontrar um caminho entre os cafés publicados."
+      }
+    ]
+  },
+  "producers": {
+    "eyebrow": "QUEM ASSINA A ORIGEM",
+    "title": "Antes da xícara,",
+    "emphasis": "há pessoas.",
+    "intro": "Nossa seleção começa por quem produz. Queremos dar espaço aos pequenos produtores brasileiros e aproximar suas histórias de quem bebe, publicando somente o que foi confirmado."
+  },
+  "business": {
+    "eyebrow": "CURA CAFÉ · PARA EMPRESAS",
+    "title": "Café que aproxima.",
+    "emphasis": "Também no seu negócio.",
+    "intro": "A mesma curadoria brasileira, pensada para conversas entre empresas. Queremos aproximar o trabalho de quem produz das pessoas que encontram o café em outros espaços.",
+    "segmentsTitle": "Diferentes espaços. A mesma atenção.",
+    "segmentsIntro": "Estes são contextos para construir a proposta B2B. O atendimento comercial está em preparação; não representam clientes, serviços ou condições já contratáveis.",
+    "segments": [
+      {
+        "title": "Cafeterias e restaurantes",
+        "text": "Uma conversa sobre o papel do café no cardápio e na experiência de quem chega à mesa."
+      },
+      {
+        "title": "Escritórios e espaços de trabalho",
+        "text": "O café nos encontros e nas pausas da equipe, com informação clara sobre o que vai à xícara."
+      },
+      {
+        "title": "Hotelaria e hospitalidade",
+        "text": "A origem brasileira como ponto de partida para pensar a experiência de receber."
+      }
+    ],
+    "nextTitle": "Uma próxima conversa.",
+    "nextText": "O canal para interessados está em preparação. Ainda não recebemos solicitações por este site. Quando estiver disponível, você poderá conhecer a proposta e compartilhar o contexto da sua empresa. Condições comerciais serão apresentadas após definição."
   }
 }

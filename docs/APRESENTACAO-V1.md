@@ -60,3 +60,11 @@ Capturas e auditorias automatizadas não substituem testes em aparelhos físicos
 ## Atualização de identidade — Missão 05
 
 Usar as capturas atuais de marrom/creme/ocre, os rótulos vetoriais e o símbolo oficial. A comparação histórica está em [missao05/README.md](missao05/README.md). Ordenação por nome/pontuação e cinco cores de perfil foram adicionadas ao catálogo sem introduzir ofertas. O CMS diferencia arte de fotografia e permite uma nota confirmada de curadoria por lote. A frase sobre não precisar entender de café foi incorporada; promessas de preço/economia dos flyers não estão ativadas.
+
+## Refinamento: empresas, conhecimento e pessoas
+
+Na Home, mostrar **Mais gente à mesa** e **Antes da xícara, há pessoas**. Explicar democratização como acesso à linguagem, ao conhecimento e à experiência, sem prometer menor preço. Nomes e origens são dados confirmados; histórias novas só entram após validação editorial.
+
+No catálogo, selecionar **Torra → Clara**: SALSA mantém **86 pontos SCA**, **CURA-26-02** e os dados de Décio José Lemos. Trocar para **Média**: SAMBA mantém **84 pontos**, **CURA-26-01**, Mauricio Lemos e Diego Campos. Combinar perfil/torra incompatíveis deve exibir estado vazio; limpar restaura a seleção.
+
+Abrir **Para empresas** pelo menu. Os segmentos são uma proposta em construção, sem comprovação de atendimento atual. A seção da próxima conversa não recebe dados nem envia solicitações. Não demonstrar uma contratação ou captação inexistente. Ver [decisões e futura operação B2B](EMPRESAS-E-REFINAMENTO.md).

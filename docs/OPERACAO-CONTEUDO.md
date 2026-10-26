@@ -88,3 +88,13 @@ Consultar [APRESENTACAO-V1.md](APRESENTACAO-V1.md) para roteiro e pendências e 
 Cores de perfil disponíveis: Rapadura, Anil, Amora, Ipê e Cacau, além de Marrom Cura neutro. Títulos usam Archivo Expanded 125% e a marca/símbolo vêm dos vetores originais. O campo **Natureza da imagem** diferencia arte de fotografia; os rótulos oficiais SVG ficam em `public/media/rotulo-*.svg`. Para trocar imagens raster, mantém-se o upload normal; SVGs editoriais devem seguir esse padrão e são verificados contra conteúdo ativo/externo no build.
 
 O campo de lote **Por que escolhemos** só deve receber uma nota real confirmada; vazio não gera texto fictício. Nenhum campo entre colchetes dos adesivos vira dado automaticamente. [Fontes e auditoria](MISSAO05.md).
+
+## Democratização, produtores e empresas
+
+Em **Conteúdo editorial V1**, os grupos **Democratização do café especial**, **Protagonismo de quem produz na Home** e **Para empresas — proposta B2B** controlam os novos títulos, textos, tópicos e segmentos. A seção de produtores usa a seleção de **Destaques da Home** e os dados do lote principal publicado; nomes e origem continuam no cadastro de lotes. Um destaque sem produtores confirmados não gera um perfil de pessoa.
+
+Em **Lotes → História de quem produz**, inserir somente texto confirmado e autorizado; vazio omite a história. Não atribuir porte de propriedade, trajetória, certificação ou visitas sem fonte. Os lotes existentes não receberam biografias novas. Fotos/rótulos oficiais e todos os dados comerciais seguem as regras anteriores.
+
+Os segmentos B2B são contextos em preparação. Atualizar texto editorial não ativa formulário nem atendimento. [Preparação do canal e correção dos filtros](EMPRESAS-E-REFINAMENTO.md).
+
+No objeto de imagem do café, **Lote representado** vincula rótulos/fotos específicos ao lote correto. Selecionar um lote do mesmo café. As artes oficiais atuais já têm vínculo. Alterar o lote principal não reassocia uma arte antiga automaticamente. Uma foto geral pode deixar o vínculo vazio; arte sem vínculo usa placeholder identificado até a associação ser confirmada.

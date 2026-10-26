@@ -62,6 +62,7 @@ export function projectCoffee(entry: CatalogEntry, selectedLotId?: string) {
     profile: lot?.profile ?? "Perfil a confirmar",
     notes: lot?.notes.join(" e ") || "Notas a confirmar",
     curationNote: lot?.curationNote ?? null,
+    producerStory: lot?.producerStory ?? null,
     acidity: lot?.acidity ?? null,
     body: lot?.body ?? null,
     origin: lot?.origin ?? "Origem a confirmar.",
@@ -73,6 +74,14 @@ export function projectCoffee(entry: CatalogEntry, selectedLotId?: string) {
   };
 }
 export type CoffeeView = ReturnType<typeof projectCoffee>;
+export function mediaForLot(coffee: CoffeeView) {
+  const media = coffee.media;
+  if (!media) return null;
+  return (media.lotId && media.lotId === coffee.lotId) ||
+    (!media.lotId && media.kind === "photograph")
+    ? media
+    : null;
+}
 export function catalogFilters(entries: CatalogEntry[]) {
   const unique = (values: (string | null)[]) =>
     [
@@ -95,18 +104,18 @@ export function filterCatalog(
   },
 ) {
   const query = filters.query.trim().toLocaleLowerCase("pt-BR");
-  return entries.filter((entry) => {
+  return entries.flatMap((entry) => {
     const matchesCoffee = `${entry.coffee.name} ${entry.coffee.description}`
       .toLocaleLowerCase("pt-BR")
       .includes(query);
     if (!entry.lots.length)
-      return (
-        !filters.profile &&
+      return !filters.profile &&
         !filters.roast &&
         !filters.preparation &&
         matchesCoffee
-      );
-    return entry.lots.some(
+        ? [entry]
+        : [];
+    const lots = entry.lots.filter(
       (lot) =>
         (!filters.profile || lot.profile === filters.profile) &&
         (!filters.roast || lot.roast === filters.roast) &&
@@ -117,7 +126,27 @@ export function filterCatalog(
             .toLocaleLowerCase("pt-BR")
             .includes(query)),
     );
+    // Narrow the projection as well as the result set: every displayed attribute
+    // and offer must belong to a lot satisfying ALL active filters.
+    return lots.length
+      ? [
+          {
+            ...entry,
+            lots,
+            offers: entry.offers.filter((offer) =>
+              lots.some((lot) => lot.id === offer.lotId),
+            ),
+          },
+        ]
+      : [];
   });
+}
+
+export function coffeePath(coffee: CoffeeView) {
+  const path = `/cafes/${coffee.slug}/`;
+  return coffee.lotId && coffee.lotId !== coffee.primaryLotId
+    ? `${path}?lote=${encodeURIComponent(coffee.lotId)}`
+    : path;
 }
 
 // Next 15's static export rejects an empty generateStaticParams result. This
@@ -138,8 +167,7 @@ export function sortCatalog(entries: CatalogEntry[], order: CatalogOrder) {
       : order === "name-desc"
         ? b.coffee.name.localeCompare(a.coffee.name, "pt-BR")
         : order === "score-desc"
-          ? Math.max(-1, ...b.lots.map((lot) => lot.score ?? -1)) -
-            Math.max(-1, ...a.lots.map((lot) => lot.score ?? -1))
+          ? (projectCoffee(b).score ?? -1) - (projectCoffee(a).score ?? -1)
           : 0,
   );
 }

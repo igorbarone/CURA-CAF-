@@ -1,7 +1,7 @@
 import { Arrow } from "./arrow";
 import Link from "next/link";
 import { CoffeeArt } from "./coffee-art";
-import type { CoffeeView } from "../lib/catalog-model";
+import { coffeePath, type CoffeeView } from "../lib/catalog-model";
 export function CoffeeCard({ coffee }: { coffee: CoffeeView }) {
   return (
     <article
@@ -10,12 +10,22 @@ export function CoffeeCard({ coffee }: { coffee: CoffeeView }) {
     >
       <CoffeeArt coffee={coffee} />
       <div className="coffee-info">
-        <p className="eyebrow">
-          {coffee.lot} <span>Torra {coffee.roast.toLowerCase()}</span>
-        </p>
+        <p className="eyebrow">{coffee.lot}</p>
         <h3 id={`cafe-${coffee.id}`}>
-          <Link href={`/cafes/${coffee.slug}/`}>{coffee.name}</Link>
+          <Link href={coffeePath(coffee)}>{coffee.name}</Link>
         </h3>
+        <dl className="lot-facts">
+          <div>
+            <dt>Torra</dt>
+            <dd>{coffee.roast}</dd>
+          </div>
+          <div>
+            <dt>Pontuação SCA</dt>
+            <dd>
+              {coffee.score !== null ? `${coffee.score} pontos` : "A confirmar"}
+            </dd>
+          </div>
+        </dl>
         <p className="profile-tag">{coffee.profile}</p>
         <p className="coffee-notes">{coffee.notes}</p>
         <p className="body-copy">{coffee.description}</p>
@@ -29,7 +39,7 @@ export function CoffeeCard({ coffee }: { coffee: CoffeeView }) {
             <dd>{coffee.preparation}</dd>
           </div>
         </dl>
-        <Link className="text-link" href={`/cafes/${coffee.slug}/`}>
+        <Link className="text-link" href={coffeePath(coffee)}>
           Conheça {coffee.name}{" "}
           <span aria-hidden="true">
             <Arrow />

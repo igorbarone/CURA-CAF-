@@ -70,6 +70,10 @@ export function ProductDetail({
             <p className="product-roast mono">
               TORRA {coffee.roast.toUpperCase()} · {coffee.preparation}
             </p>
+            <a className="producer-byline" href="#origem">
+              <span className="eyebrow">QUEM ASSINA ESTE LOTE</span>
+              <span>{coffee.producers}</span>
+            </a>
             <CommerceStatus
               offers={entry.offers.filter(
                 (offer) => offer.lotId === coffee.lotId,
@@ -129,6 +133,7 @@ export function ProductDetail({
         </section>
         <section
           className="product-details origin-details"
+          id="origem"
           aria-labelledby="origin-title"
         >
           <div>
@@ -140,6 +145,10 @@ export function ProductDetail({
             </h2>
           </div>
           <div>
+            <p className="producer-name">{coffee.producers}</p>
+            {coffee.producerStory && (
+              <p className="producer-story">{coffee.producerStory}</p>
+            )}
             <dl className="fact-grid">
               <div>
                 <dt>Produtores</dt>

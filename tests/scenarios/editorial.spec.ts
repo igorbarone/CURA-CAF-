@@ -135,3 +135,66 @@ test("published offers can be reviewed locally without orders, totals or checkou
     "Em breve.",
   );
 });
+
+test("sensory and roast filters show the matching lot and carry it into the product route", async ({
+  page,
+}) => {
+  await page.goto("cafes/");
+  await page
+    .getByRole("button", { name: "Perfil técnico A", exact: true })
+    .click();
+  await page.getByLabel("Torra", { exact: true }).selectOption("Clara");
+  const card = page.locator(".coffee-card");
+  await expect(card).toHaveCount(1);
+  await expect(card.locator(".coffee-info > .eyebrow")).toHaveText(
+    "TEST-ONLY-A",
+  );
+  await expect(card.locator(".lot-facts")).toContainText("86 pontos");
+  await expect(card.locator(".lot-facts")).toContainText("Clara");
+  await expect(card.locator(".coffee-info")).toContainText(
+    "Produtor técnico A",
+  );
+  await expect(card.locator(".coffee-notes")).toHaveText("Nota técnica A");
+  await card
+    .getByRole("link", { name: "CAFÉ TÉCNICO DE TESTE", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\?lote=fixture-a$/);
+  await expect(page.getByLabel("Escolha o lote para conhecer")).toHaveValue(
+    "fixture-a",
+  );
+  await expect(page.locator(".product-summary > .eyebrow")).toContainText(
+    "86 PONTOS SCA",
+  );
+  await expect(page.locator(".origin-details .producer-story")).toHaveText(
+    "História técnica confirmada apenas para o lote A.",
+  );
+  await expect(page.locator(".origin-details .fact-grid")).toContainText(
+    "Origem técnica A",
+  );
+  await page
+    .getByLabel("Escolha o lote para conhecer")
+    .selectOption("fixture-b");
+  await expect(page.locator(".product-summary > .eyebrow")).toContainText(
+    "84 PONTOS SCA",
+  );
+  await expect(page.locator(".origin-details .producer-story")).toHaveCount(0);
+  await page.goto("cafes/");
+  await page
+    .getByRole("button", { name: "Perfil técnico A", exact: true })
+    .click();
+  await page.getByLabel("Torra", { exact: true }).selectOption("Média");
+  await expect(page.locator(".coffee-card")).toHaveCount(0);
+  await page.getByRole("button", { name: "Limpar filtros" }).click();
+  const restored = page
+    .locator(".coffee-card")
+    .filter({
+      has: page.getByRole("heading", {
+        name: "CAFÉ TÉCNICO DE TESTE",
+        exact: true,
+      }),
+    });
+  await expect(restored.locator(".coffee-info > .eyebrow")).toHaveText(
+    "TEST-ONLY-B",
+  );
+  await expect(restored.locator(".lot-facts")).toContainText("84 pontos");
+});

@@ -102,6 +102,13 @@ content:
                   label: Fotografia autorizada
                 - name: artwork
                   label: Arte oficial (não é fotografia)
+          - name: lotId
+            label: Lote representado (vincular rótulos; vazio apenas para foto geral)
+            type: reference
+            options:
+              collection: lots
+              value: "{fields.id}"
+              label: "{fields.code}"
           - name: src
             label: Imagem
             type: image
@@ -207,6 +214,9 @@ content:
       - name: score
         label: Pontuação confirmada (0–100)
         type: number
+      - name: producerStory
+        label: História de quem produz (somente texto confirmado e autorizado; opcional)
+        type: text
       - name: curationNote
         label: Por que escolhemos (publicar somente motivo confirmado)
         type: text
@@ -473,6 +483,113 @@ content:
             required: true
           - name: noMatch
             label: Mensagem sem correspondência
+            type: text
+            required: true
+      - name: access
+        label: Democratização do café especial
+        type: object
+        required: true
+        fields:
+          - name: eyebrow
+            label: Chamada
+            type: string
+            required: true
+          - name: title
+            label: Título
+            type: string
+            required: true
+          - name: emphasis
+            label: Complemento em itálico
+            type: string
+            required: true
+          - name: intro
+            label: Introdução
+            type: text
+            required: true
+          - name: pillars
+            label: Pontos da proposta
+            type: object
+            required: true
+            list: true
+            fields:
+              - name: title
+                label: Título
+                type: string
+                required: true
+              - name: text
+                label: Texto
+                type: text
+                required: true
+      - name: producers
+        label: Protagonismo de quem produz na Home
+        type: object
+        required: true
+        fields:
+          - name: eyebrow
+            label: Chamada
+            type: string
+            required: true
+          - name: title
+            label: Título
+            type: string
+            required: true
+          - name: emphasis
+            label: Complemento em itálico
+            type: string
+            required: true
+          - name: intro
+            label: Introdução
+            type: text
+            required: true
+      - name: business
+        label: Para empresas — proposta B2B
+        type: object
+        required: true
+        fields:
+          - name: eyebrow
+            label: Chamada
+            type: string
+            required: true
+          - name: title
+            label: Título
+            type: string
+            required: true
+          - name: emphasis
+            label: Complemento em itálico
+            type: string
+            required: true
+          - name: intro
+            label: Introdução
+            type: text
+            required: true
+          - name: segmentsTitle
+            label: Título dos segmentos
+            type: string
+            required: true
+          - name: segmentsIntro
+            label: Contexto e estado do atendimento
+            type: text
+            required: true
+          - name: segments
+            label: Segmentos em preparação
+            type: object
+            required: true
+            list: true
+            fields:
+              - name: title
+                label: Título
+                type: string
+                required: true
+              - name: text
+                label: Texto
+                type: text
+                required: true
+          - name: nextTitle
+            label: Título da próxima conversa
+            type: string
+            required: true
+          - name: nextText
+            label: Texto e estado do canal futuro
             type: text
             required: true
       - name: footer

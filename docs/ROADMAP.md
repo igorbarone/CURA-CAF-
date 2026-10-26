@@ -37,7 +37,7 @@ Build sem erros, navegação mobile, contraste legível, sem dados fictícios tr
 - [x] SEO por rota, sitemap e robots estáticos
 - [x] Edição editorial direta na main preservada; código em branch/PR
 - [x] Capturas e roteiro de apresentação documentados
-- [ ] Fotos reais por café/lote, logo isolado e embalagens finais aprovadas
+- [ ] Fotos reais por café/lote e embalagens finais aprovadas
 - [ ] Dados comerciais, operação transacional e termos de assinatura definidos
 
 ## Missão 05
@@ -45,3 +45,11 @@ Build sem erros, navegação mobile, contraste legível, sem dados fictícios tr
 - [x] Vetores de marca, símbolo, favicon e rótulos extraídos dos originais
 - [x] Cinco cores de perfil, ordenação e nota de curadoria preparados no CMS
 - [x] Antes/depois, proveniência dos vetores e pendências reais documentados
+
+## Refinamento após a Missão 05
+- [x] `/empresas/` editorial, navegação e estrutura visual para captação futura
+- [x] Filtros projetam somente lotes correspondentes; pontuação explícita e ordenação coerente
+- [x] Democratização por linguagem, conhecimento e experiência, sem promessa de preço
+- [x] Produtores em destaque na Home e na ficha; histórias confirmadas opcionais no CMS
+- [x] Hierarquia editorial e responsividade dos novos blocos
+- [ ] Confirmar operação B2B e ativar canal real de captação

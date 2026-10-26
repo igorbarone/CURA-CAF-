@@ -71,3 +71,7 @@ Novas rotas: `/descubra/`, `/clube/` e `/historia/`. Quiz baseado exclusivamente
 Manual de 26/10/2026 aplicado: marrom/creme/ocre, cinco cores de perfil, Archivo Expanded real no eixo 125%, vetores oficiais de marca/símbolo/favicon e rótulos de SAMBA/SALSA. Os rótulos são artes identificadas com campos provisórios; não são fotografia ou oferta confirmada. Catálogo ganhou ordenação por curadoria, nome e pontuação, sem ordenação por preço ausente. O CMS ganhou natureza da imagem e nota confirmada de curadoria por lote, sem limites a dois cafés.
 
 [Auditoria, fontes e pendências da Missão 05](docs/MISSAO05.md) · [Comparação antes/depois](docs/missao05/README.md). Edição editorial direta na main e publicação Pages preservadas.
+
+## Refinamento editorial e empresas
+
+Página B2B `/empresas/`, democratização em linguagem/conhecimento/experiência e protagonismo dos produtores. Filtros e ordenação exibem os atributos do mesmo lote, com pontuação textual e links para a ficha correspondente. [Diagnóstico, operação do CMS e futura captação](docs/EMPRESAS-E-REFINAMENTO.md).

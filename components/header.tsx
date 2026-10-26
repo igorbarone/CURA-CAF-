@@ -9,6 +9,7 @@ const links = [
   ["/descubra/", "Descubra seu café"],
   ["/clube/", "Clube Cura"],
   ["/historia/", "Nossa história"],
+  ["/empresas/", "Para empresas"],
 ] as const;
 export function Header() {
   const { ids } = useSelection();
