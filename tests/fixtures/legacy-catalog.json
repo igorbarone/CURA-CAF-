@@ -1,0 +1,36 @@
+[
+  {
+    "name": "SAMBA",
+    "slug": "samba",
+    "profile": "Doce e cremoso",
+    "acidity": "Média",
+    "body": "Cremoso",
+    "origin": "Origem exata a confirmar.",
+    "variety": null,
+    "lot": "CURA-26-01",
+    "score": 84,
+    "roast": "Média",
+    "notes": "Rapadura e melaço",
+    "description": "Doçura que abraça. Corpo cremoso, acidez média e um convite para ir com calma.",
+    "producers": "Mauricio Lemos e Diego Campos",
+    "preparation": "Coado · Espresso",
+    "tone": "rapadura"
+  },
+  {
+    "name": "SALSA",
+    "slug": "salsa",
+    "profile": "Frutado e cítrico",
+    "acidity": "Cítrica",
+    "body": null,
+    "origin": "Fazenda Serrinha. Município e UF a confirmar.",
+    "variety": "Arara",
+    "lot": "CURA-26-02",
+    "score": 86,
+    "roast": "Clara",
+    "notes": "Laranja e tangerina",
+    "description": "Uma escolha vibrante. Notas de frutas e acidez cítrica para descobrir outro lado do café.",
+    "producers": "Décio José Lemos",
+    "preparation": "Coado · Gelado",
+    "tone": "anil"
+  }
+]

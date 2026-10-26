@@ -4,7 +4,8 @@ import { Footer } from "../components/footer";
 import { Journey } from "../components/brand";
 import { Header } from "../components/header";
 import { CoffeeCard } from "../components/coffee-card";
-import { coffees } from "../lib/coffees";
+import { getHomeSelection } from "../lib/coffees";
+import { projectCoffee } from "../lib/catalog-model";
 const steps = [
   {
     title: "Encontrado.",
@@ -20,6 +21,7 @@ const steps = [
   },
 ];
 export default function Home() {
+  const { settings, entries } = getHomeSelection();
   return (
     <div id="inicio">
       <Header />
@@ -84,23 +86,26 @@ export default function Home() {
         >
           <div className="section-heading">
             <div>
-              <p className="eyebrow">01 / A NOSSA SELEÇÃO</p>
+              <p className="eyebrow">{settings.eyebrow}</p>
               <h2 id="cafes-title">
-                Dois cafés.
+                {settings.title}
                 <br />
-                <em>Dois jeitos de sentir.</em>
+                <em>{settings.emphasis}</em>
               </h2>
             </div>
-            <p className="section-intro">
-              Conheça SAMBA e SALSA. Lotes reais, personalidades próprias e
-              informação clara para acompanhar cada escolha.
-            </p>
+            <p className="section-intro">{settings.intro}</p>
           </div>
           <div className="coffee-grid">
-            {coffees.map((coffee) => (
-              <CoffeeCard key={coffee.lot} coffee={coffee} />
+            {entries.map((entry) => (
+              <CoffeeCard key={entry.coffee.id} coffee={projectCoffee(entry)} />
             ))}
           </div>
+          {!entries.length && (
+            <p className="body-copy">
+              Estamos preparando a próxima seleção.{" "}
+              <Link href="/cafes/">Explore o catálogo.</Link>
+            </p>
+          )}
           <p className="catalog-note mono">
             A origem detalhada será publicada após confirmação. Sem venda online
             nesta fase.

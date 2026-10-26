@@ -1,3 +1,4 @@
+import { getCatalog } from "../../lib/coffees";
 import type { Metadata } from "next";
 import { Header } from "../../components/header";
 import { Footer } from "../../components/footer";
@@ -6,7 +7,7 @@ import { Catalog } from "../../components/catalog";
 export const metadata: Metadata = {
   title: "Nossos cafés | Cura Café",
   description:
-    "Encontre SAMBA e SALSA por perfil sensorial. Cafés brasileiros, escolhidos com critério e explicados sem complicação.",
+    "Encontre seu café por perfil sensorial. Cafés brasileiros, escolhidos com critério e explicados sem complicação.",
 };
 export default function CoffeesPage() {
   return (
@@ -24,11 +25,11 @@ export default function CoffeesPage() {
             </h1>
           </div>
           <p className="section-intro">
-            Do doce e cremoso ao frutado e cítrico. Explore a seleção, conheça
-            quem produz e descubra o perfil que conversa com você.
+            Explore a seleção, conheça quem produz e descubra o perfil que
+            conversa com você.
           </p>
         </div>
-        <Catalog />
+        <Catalog entries={getCatalog()} />
         <p className="catalog-note mono">
           Preço e disponibilidade a confirmar. Sem venda online nesta fase.
         </p>

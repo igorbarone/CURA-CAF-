@@ -1,0 +1,293 @@
+# Configuração preparada para Pages CMS; requer conexão/autorização externa.
+media:
+  input: public/media
+  output: /media
+  rename: safe
+  extensions:
+    - jpg
+    - jpeg
+    - png
+    - webp
+    - avif
+content:
+  - name: coffees
+    label: Cafés
+    type: collection
+    path: content/coffees
+    format: json
+    filename:
+      template: "{fields.id}.json"
+      field: false
+    subfolders: false
+    exclude:
+      - .gitkeep
+    view:
+      primary: name
+    operations:
+      create: true
+      rename: false
+      delete: false
+    fields:
+      - name: id
+        label: Identificador permanente (letras minúsculas, números e hífen)
+        type: string
+        required: true
+      - name: slug
+        label: Endereço permanente (não alterar após publicar)
+        type: string
+        required: true
+      - name: name
+        label: Nome do café
+        type: string
+        required: true
+      - name: description
+        label: Apresentação
+        type: text
+        required: true
+      - name: status
+        label: Estado editorial
+        type: select
+        required: true
+        default: draft
+        options:
+          values:
+            - name: draft
+              label: Rascunho
+            - name: published
+              label: Publicado
+            - name: archived
+              label: Arquivado
+      - name: sortOrder
+        label: Ordem de exibição
+        type: number
+        required: true
+        default: 0
+      - name: primaryLotId
+        label: Lote principal (opcional)
+        type: reference
+        options:
+          collection: lots
+          value: "{fields.id}"
+          label: "{fields.code}"
+      - name: tone
+        label: Cor editorial
+        type: select
+        required: true
+        default: cura
+        options:
+          values:
+            - cura
+            - rapadura
+            - anil
+      - name: media
+        label: Foto autorizada (opcional)
+        type: object
+        fields:
+          - name: src
+            label: Imagem
+            type: image
+            options:
+              extensions:
+                - jpg
+                - jpeg
+                - png
+                - webp
+                - avif
+            required: true
+          - name: alt
+            label: Descrição acessível
+            type: string
+            required: true
+          - name: credit
+            label: Crédito / autoria
+            type: string
+            required: true
+  - name: lots
+    label: Lotes
+    type: collection
+    path: content/lots
+    format: json
+    filename:
+      template: "{fields.id}.json"
+      field: false
+    subfolders: false
+    exclude:
+      - .gitkeep
+    view:
+      primary: code
+    operations:
+      create: true
+      rename: false
+      delete: false
+    fields:
+      - name: id
+        label: Identificador permanente (letras minúsculas, números e hífen)
+        type: string
+        required: true
+      - name: coffeeId
+        label: Café
+        type: reference
+        options:
+          collection: coffees
+          value: "{fields.id}"
+          label: "{fields.name}"
+        required: true
+      - name: code
+        label: Código de rastreabilidade
+        type: string
+        required: true
+      - name: status
+        label: Estado editorial
+        type: select
+        required: true
+        default: draft
+        options:
+          values:
+            - name: draft
+              label: Rascunho
+            - name: published
+              label: Publicado
+            - name: archived
+              label: Arquivado
+      - name: sortOrder
+        label: Ordem de exibição
+        type: number
+        required: true
+        default: 0
+      - name: profile
+        label: Perfil sensorial
+        type: string
+      - name: notes
+        label: Notas sensoriais
+        type: string
+        list: true
+      - name: producers
+        label: Quem produz
+        type: string
+        list: true
+      - name: preparations
+        label: Preparos sugeridos
+        type: string
+        list: true
+      - name: acidity
+        label: Acidez
+        type: string
+      - name: body
+        label: Corpo
+        type: string
+      - name: origin
+        label: Origem confirmada
+        type: string
+      - name: variety
+        label: Variedade
+        type: string
+      - name: roast
+        label: Torra
+        type: string
+      - name: score
+        label: Pontuação confirmada (0–100)
+        type: number
+  - name: offers
+    label: Ofertas editoriais (sem venda)
+    type: collection
+    path: content/offers
+    format: json
+    filename:
+      template: "{fields.id}.json"
+      field: false
+    subfolders: false
+    exclude:
+      - .gitkeep
+    view:
+      primary: sku
+    operations:
+      create: true
+      rename: false
+      delete: false
+    fields:
+      - name: id
+        label: Identificador permanente (letras minúsculas, números e hífen)
+        type: string
+        required: true
+      - name: lotId
+        label: Lote
+        type: reference
+        options:
+          collection: lots
+          value: "{fields.id}"
+          label: "{fields.code}"
+        required: true
+      - name: status
+        label: Estado editorial
+        type: select
+        required: true
+        default: draft
+        options:
+          values:
+            - name: draft
+              label: Rascunho
+            - name: published
+              label: Publicado
+            - name: archived
+              label: Arquivado
+      - name: sku
+        label: SKU confirmado
+        type: string
+        required: true
+      - name: currency
+        label: Moeda
+        type: select
+        default: BRL
+        required: true
+        options:
+          values:
+            - BRL
+      - name: unitPriceInCents
+        label: Preço confirmado em centavos (vazio = desconhecido)
+        type: number
+      - name: availableQuantity
+        label: Estoque confirmado (vazio = desconhecido)
+        type: number
+      - name: weightInGrams
+        label: Peso confirmado em gramas
+        type: number
+      - name: grind
+        label: Moagem confirmada
+        type: string
+  - name: home
+    label: Destaques da Home
+    type: file
+    path: content/home.json
+    format: json
+    fields:
+      - name: eyebrow
+        label: Chamada
+        type: string
+        required: true
+      - name: title
+        label: Título
+        type: string
+        required: true
+      - name: emphasis
+        label: Complemento em itálico
+        type: string
+        required: true
+      - name: intro
+        label: Introdução
+        type: text
+        required: true
+      - name: featuredCoffeeIds
+        label: Cafés em destaque (na ordem desejada)
+        type: reference
+        options:
+          collection: coffees
+          value: "{fields.id}"
+          label: "{fields.name}"
+          multiple: true
+settings:
+  content:
+    merge: true
+  commit:
+    templates:
+      create: "content: criar {path}"
+      update: "content: atualizar {path}"

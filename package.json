@@ -7,8 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "playwright test",
-    "test:build": "GITHUB_PAGES=true npm run build && npm test"
+    "test": "npm run test:unit && playwright test",
+    "test:build": "GITHUB_PAGES=true npm run build && npm test",
+    "validate:content": "tsx scripts/validate-content.ts",
+    "prebuild": "npm run validate:content",
+    "test:unit": "tsx --test tests/unit/*.test.ts",
+    "test:scenarios": "tsx scripts/test-editorial-scenarios.ts",
+    "postbuild": "tsx scripts/finalize-export.ts"
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.3.0",
@@ -16,7 +21,8 @@
     "@fontsource/dm-mono": "^5.3.0",
     "next": "^15.5.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
@@ -31,6 +37,8 @@
     "postcss": "^8.4.0",
     "prettier": "^3.9.10",
     "tailwindcss": "^3.4.0",
-    "typescript": "^5.0.0"
+    "tsx": "^4.23.15",
+    "typescript": "^5.0.0",
+    "yaml": "^2.9.1"
   }
 }

@@ -1,0 +1,17 @@
+{
+  "profile": "Doce e cremoso",
+  "acidity": "Média",
+  "body": "Cremoso",
+  "origin": "Origem exata a confirmar.",
+  "variety": null,
+  "score": 84,
+  "roast": "Média",
+  "id": "cura-26-01",
+  "coffeeId": "samba",
+  "code": "CURA-26-01",
+  "status": "published",
+  "sortOrder": 0,
+  "notes": ["Rapadura", "melaço"],
+  "producers": ["Mauricio Lemos", "Diego Campos"],
+  "preparations": ["Coado", "Espresso"]
+}

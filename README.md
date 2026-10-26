@@ -1,64 +1,61 @@
 # Cura Café — da roça à cidade
 
-Site oficial da Cura Café, desenvolvido com Next.js, TypeScript e Tailwind CSS.
-
-## Objetivo
-Construir uma experiência de e-commerce de cafés especiais centrada em curadoria, origem e explicação simples. Referência funcional: coffeemais.com, sem copiar identidade, textos ou ativos de terceiros.
-
-## Estado
-Fundação do projeto. O catálogo começa com SAMBA e SALSA. **Não há checkout, pagamentos nem pedidos reais nesta fase.**
+Site oficial da Cura Café: experiência editorial de curadoria brasileira em Next.js App Router, TypeScript e Tailwind CSS, com exportação estática para GitHub Pages. Não há checkout, pagamentos, reservas ou pedidos reais nesta fase.
 
 ## Desenvolvimento
+
+Use Node.js 22:
+
 ```bash
-npm install
+npm ci
 npm run dev
-npm run build
 ```
 
-## Publicação
-Next.js configurado para exportação estática (GitHub Pages). Ativar **Settings > Pages > Build and deployment > Source: GitHub Actions**. Para e-commerce transacional será necessário integrar serviço externo de checkout/commerce; nunca colocar segredos no frontend.
+No desenvolvimento, não definir `GITHUB_PAGES`. Não executar dev e build simultaneamente: compartilham `.next`. As fontes Archivo, DM Mono e Newsreader itálica são hospedadas localmente via Fontsource. A identidade usa creme, verde Cura e ocre, com o percurso gráfico da curva à reta e animações que respeitam movimento reduzido.
 
-## Documentação
-- [Orientações para Codex](AGENTS.md)
-- [Identidade e conteúdo](docs/IDENTIDADE.md)
-- [Roadmap e critérios de aceite](docs/ROADMAP.md)
+Rotas: `/`, `/cafes/`, `/cafes/{slug}/` e `/carrinho/`. As URLs atuais de SAMBA e SALSA foram preservadas. Header/menu mobile, footer, cartões, arte, breadcrumbs e estado comercial são reutilizáveis. O carrinho é uma página informativa “Em breve”, sem transação simulada.
 
-## Materiais originais
-Os mockups e PDFs de identidade foram fornecidos na conversa e ainda precisam ser adicionados como assets autorizados ao repositório. Não reconstruir o logotipo digitando CURA em uma fonte.
+## Conteúdo e CMS
 
-## Home V2
+Café (identidade/URL/foto), lote (origem e sensorial) e oferta (referência comercial) são entidades separadas. Os JSON ficam em `content/coffees/`, `content/lots/` e `content/offers/`; `content/home.json` controla textos e ordem dos destaques. O build valida dados, relações e arquivos de mídia com Zod. Usar `npm run build` preserva os passos de validação e finalização da exportação, inclusive a compatibilidade do catálogo vazio com Next 15. O conjunto real de ofertas está vazio, sem preços ou estoque fictícios.
 
-A Home apresenta a seleção SAMBA/SALSA, a curadoria e o propósito da marca. Componentes de header, assinatura, percurso e cartões de café são reutilizáveis; os dados dos lotes ficam em `lib/coffees.ts`. A curva que vira reta conecta origem, escolha e cidade, usando as cores da identidade V2. Archivo, DM Mono e Newsreader itálica são hospedadas localmente via Fontsource.
+Perfil, torra e preparo são filtros derivados de todos os lotes publicados. A ficha permite selecionar lotes; cafés sem lotes têm estados pendentes. Rascunhos não são emitidos no export; cafés arquivados mantêm a URL com aviso e `noindex`. Os componentes não dependem de nomes ou quantidades fixos.
 
-Sem os assets originais, a marca textual é identificada como provisória. As embalagens são estudos gráficos em CSS, explicitamente identificados, e não reproduções de arte final. Não há fotografias de produtores, preços ou disponibilidade presumidos, checkout ou biografia inventada. A história apresenta apenas o propósito documentado da marca.
+A proposta inicial é Pages CMS sobre Git, com formulários em `.pages.yml` para cadastrar/editar, mudar o estado editorial e trocar fotos sem editar código. **O serviço, a GitHub App, as permissões e os usuários ainda precisam ser conectados e validados**. Não existe painel simulado no site. Consulte:
 
-### Instalação e validação
+- [Arquitetura, entidades e validação](docs/ARQUITETURA-CATALOGO.md)
+- [Decisão de CMS: Git versus API, custos e segurança](docs/CMS-DECISAO.md)
+- [Operação editorial, migração e reversão](docs/OPERACAO-CONTEUDO.md)
 
-Use Node.js 22 e `npm ci`. O lockfile versionado fixa a resolução das dependências. Execute:
+O logo textual é identificado como provisório até a entrega da arte autorizada. As embalagens em CSS são estudos gráficos identificados. Fotos reais autorizadas podem ser cadastradas em `public/media/`, com alt e crédito obrigatórios, substituindo o estudo gráfico. Não há fotografias sintéticas apresentadas como registro de origem, nem dados de origem, preço ou disponibilidade presumidos.
+
+## Validação
 
 ```bash
+npm run validate:content
 npm run lint
-GITHUB_PAGES=true npm run build
 npx playwright install --with-deps chromium
+npm run test:scenarios
 npm test
 ```
 
-Os testes Playwright verificam a exportação real em `/CURA-CAF-/`, em desktop e mobile: cafés e estados comerciais, navegação, menu mobile, ausência de overflow horizontal, fontes locais, recursos sem erros HTTP/JavaScript, acessibilidade com axe e preferência de movimento reduzido. Capturas são geradas em `test-results/`. Se já houver Chromium instalado, use `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm test` em vez de baixar o navegador. `npm run test:build` reúne build Pages e testes.
+`test:scenarios` faz um export com conteúdo técnico isolado, verifica foto, seleção de lotes, múltiplas ofertas sem valores, Home configurável, café sem lote, arquivamento e isolamento de drafts. Também faz um build e regressões com o catálogo completamente vazio. Remove a imagem técnica e reconstrói o export real ao terminar, inclusive após falha dos cenários. Não executar em paralelo com outros comandos que leem/escrevem `.next` ou `out`.
 
-Para desenvolvimento, execute `npm run dev` sem `GITHUB_PAGES`. Não rode dev e build simultaneamente, pois compartilham `.next`. A saída é estática (`out/`); `npm start` não serve esse modo de exportação. O CI valida pull requests e executa lint, build e testes antes da publicação no GitHub Pages. Não há alteração no caminho público ou dependência de servidor em produção.
+`npm test` executa unidades e regressões Playwright sobre o export real. As regressões leem as seleções/dados publicados em vez de exigir exatamente dois cafés, e continuam úteis após edições pelo CMS. A migração original é conferida separadamente pelo snapshot `tests/fixtures/legacy-catalog.json` e adaptador de migração em `scripts/lib/migrate-legacy.ts`, sem congelar o catálogo vivo. Há cobertura desktop/mobile, navegação, filtros, recursos HTTP/JS, fontes, overflow, axe e movimento reduzido. Auditoria automatizada não substitui avaliação humana completa de acessibilidade.
 
-Animações são curtas e respeitam `prefers-reduced-motion`. A navegação inclui link para pular ao conteúdo, estados de foco e menu nativo acessível sem JavaScript de aplicação. Catálogo e páginas individuais seguem como próximos itens do roadmap.
+Para um build real independente: `GITHUB_PAGES=true npm run build`. Para apenas testes de domínio: `npm run test:unit`. Com Chromium já instalado, usar `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium` nos comandos que abrem navegador. `CURA_CONTENT_ROOT` existe exclusivamente como entrada de teste/adaptação build-time e não deve ser fixada em produção.
 
-Validação local da Home V2: lint sem avisos; build estático Pages concluído; seis testes Playwright aprovados em Chromium (desktop 1280 px e mobile 390 px), incluindo axe sem violações nos critérios automatizados WCAG A/AA. Capturas desktop/mobile inspecionadas. Os assets originais de marca continuam pendentes; auditoria automatizada não substitui avaliação humana completa de acessibilidade.
+## Publicação
 
-## Catálogo e páginas de produto
+Em GitHub **Settings → Pages → Build and deployment**, selecionar **GitHub Actions**. O CI verifica lint, conteúdo, unidades, cenários e regressões antes de publicar o export real em `out/`, preservando `/CURA-CAF-/`. A produção é estática; `npm start` não serve esse modo de exportação. Status editorial, merge e deploy são etapas distintas.
 
-Rotas estáticas: `/cafes/`, `/cafes/samba/`, `/cafes/salsa/` e `/carrinho/`. A home e a navegação levam ao catálogo; cartões levam às fichas e breadcrumbs permitem retornar. `next/link` respeita o `basePath` do GitHub Pages inclusive entre páginas e âncoras da home.
+Para comércio real, escolher provedor e validar preço, estoque, variantes, frete, pagamento e pedidos. O CMS não é uma fonte autoritativa de estoque transacional, e publicar uma oferta editorial não habilita compra.
 
-O catálogo permite busca por nome, lote, nota sensorial ou produtor e filtro pelos dois perfis documentados, com contagem acessível e recuperação de resultado vazio. As fichas apresentam notas, acidez, corpo quando confirmado, torra, pontos, preparo, produtor, variedade e origem documentados, sem escalas sensoriais inventadas. Metadados próprios e geração estática com `generateStaticParams` preservam SEO e acesso direto às páginas.
+## Orientações
 
-Header, footer, breadcrumbs, arte dos cafés e estado comercial são compartilhados. `lib/coffees.ts` centraliza os dados editoriais. `lib/commerce.ts` define um contrato futuro de oferta e linha de carrinho, separado do editorial. Não há ofertas ativas: preço, estoque, peso e moagem aguardam confirmação. O carrinho é apenas uma página informativa “Em breve”; não adiciona itens, calcula totais, recebe pedidos nem simula checkout.
+- [Instruções para Codex](AGENTS.md)
+- [Identidade e dados confirmados](docs/IDENTIDADE.md)
+- [Roadmap](docs/ROADMAP.md)
+- [Benchmark funcional Coffee++ e diferenciação da Cura](docs/BENCHMARK-ECOMMERCE.md)
 
-O benchmark solicitado, suas limitações de acesso, as decisões funcionais e a diferenciação da Cura estão em [docs/BENCHMARK-ECOMMERCE.md](docs/BENCHMARK-ECOMMERCE.md). Após a liberação de rede, foram estudados a home, a listagem, o produto Arara e o carrinho vazio da Coffee++ em desktop/mobile. A adaptação prioriza descoberta por perfil, fichas claras e continuidade da navegação, sem copiar ativos ou implementar comércio sem dados reais. O checkout transacional da referência não foi exercitado.
-
-A suíte passa a conter 16 testes em desktop/mobile, cobrindo também busca, filtros, resultado vazio, fichas de ambos os cafés, origem confirmada/pendente, compra desabilitada, jornada entre páginas, recarga direta, carrinho sem checkout, links com o prefixo Pages, rota inexistente e axe nas novas rotas. O servidor de testes reproduz arquivos RSC como texto e o redirecionamento de diretórios para barra final, conforme a hospedagem estática.
+O benchmark informou descoberta por atributos, fichas claras e continuidade da navegação. Nenhum código, texto ou ativo da Coffee++ foi incorporado. A Cura mantém seu recorte de curadoria, autoria do produtor e estética editorial própria.

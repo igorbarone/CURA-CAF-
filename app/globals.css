@@ -1177,3 +1177,84 @@ input:focus-visible {
   vertical-align: middle;
   flex-shrink: 0;
 }
+.catalog-tools select,
+.lot-selector select {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: var(--light);
+  border: 1px solid #17352a70;
+  color: var(--green);
+  font-size: 16px;
+}
+.lot-selector {
+  max-width: 540px;
+  margin: 20px 0 35px;
+}
+.lot-selector label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.lot-selector p {
+  font-size: 11px;
+  margin-top: 12px;
+}
+select:focus-visible {
+  outline: 3px solid var(--ochre);
+  outline-offset: 4px;
+}
+.coffee-photo {
+  margin: 0;
+}
+.coffee-photo img {
+  object-fit: contain;
+  padding: 25px 15px 50px;
+}
+.coffee-photo figcaption {
+  position: absolute;
+  bottom: 15px;
+  left: 15px;
+  right: 15px;
+  font-size: 11px;
+  background: var(--light);
+  padding: 8px;
+  color: var(--green);
+}
+.offer-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+.offer-list li {
+  padding-block: 15px;
+  border-top: 1px solid #17352a40;
+}
+.offer-list .mono {
+  font-size: 10px;
+}
+.offer-list dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 12px;
+}
+.offer-list dt {
+  font-size: 10px;
+}
+.offer-list dd {
+  margin: 8px 0 0;
+  font-size: 12px;
+}
+.cura .coffee-art {
+  background: #d1d9ce;
+}
+.cura .pack-label {
+  background: var(--green);
+}
+.coffee-pack strong {
+  overflow-wrap: anywhere;
+}
+.coffee-pack .pack-label {
+  max-height: 210px;
+  overflow: hidden;
+}
