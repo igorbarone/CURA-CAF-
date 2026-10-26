@@ -1,2 +1,203 @@
-const cafes = [{nome:'SAMBA', lote:'CURA-26-01', perfil:'Doce, lembra rapadura e melaço. Corpo cremoso e acidez média.', cor:'#8E521C', torra:'Média', pontos:84},{nome:'SALSA', lote:'CURA-26-02', perfil:'Frutado e intenso, lembra laranja e tangerina. Acidez cítrica.', cor:'#2D5B7B', torra:'Clara', pontos:86}];
-export default function Home(){return <main><header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6"><div><strong className="text-xl tracking-wide">CURA CAFÉ</strong><p className="text-xs">da roça à cidade.</p></div><nav aria-label="Principal" className="flex gap-5 text-sm"><a href="#cafes">Nossos cafés</a><a href="#curadoria">Nossa escolha</a></nav></header><section className="bg-cura px-6 py-24 text-creme"><div className="mx-auto max-w-6xl"><p className="mb-5 text-xs uppercase tracking-[.2em] text-ocre">Encontrado · Escolhido · Explicado</p><h1 className="max-w-3xl text-5xl font-bold leading-tight md:text-7xl">Fomos até a roça.<br/>Escolhemos estes.</h1><p className="mt-7 max-w-xl text-lg">Cafés de origem brasileira, escolhidos com critério e explicados sem complicação.</p><a href="#cafes" className="mt-9 inline-block rounded bg-creme px-6 py-3 font-semibold text-cura">Conheça os cafés</a></div></section><section id="cafes" className="mx-auto max-w-6xl px-6 py-20"><p className="text-sm uppercase tracking-widest">A nossa curadoria</p><h2 className="mt-3 text-4xl font-bold">Os cafés que encontramos</h2><p className="mt-3 text-stone-600">Lotes reais. Informações de preço e disponibilidade em breve.</p><div className="mt-10 grid gap-6 md:grid-cols-2">{cafes.map(c=><article key={c.lote} className="overflow-hidden rounded-xl bg-[#F7F3EA] shadow-sm"><div className="p-10 text-creme" style={{background:c.cor}}><p className="text-xs tracking-widest">ESCOLHIDO PELA CURA · {c.lote}</p><h3 className="mt-8 text-5xl font-bold">{c.nome}</h3><p className="mt-4 text-sm">{c.pontos} pontos · Torra {c.torra.toLowerCase()}</p></div><div className="p-7"><p className="min-h-16">{c.perfil}</p><span className="mt-4 inline-block text-sm font-semibold">Disponibilidade em breve</span></div></article>)}</div></section><section id="curadoria" className="bg-[#F7F3EA] px-6 py-20"><div className="mx-auto max-w-6xl"><p className="text-xs uppercase tracking-widest">Nossa maneira de escolher</p><h2 className="mt-4 max-w-2xl text-4xl font-bold">Escolher muito bem. Explicar de um jeito simples.</h2><p className="mt-6 max-w-2xl text-lg">O produtor assina o café. A Cura assina a escolha.</p></div></section><footer className="bg-cura px-6 py-10 text-creme"><div className="mx-auto max-w-6xl"><strong>CURA CAFÉ</strong><p className="mt-2 text-sm">da roça à cidade. · Site em desenvolvimento</p></div></footer></main>}
+import { Brand, Journey } from "../components/brand";
+import { Header } from "../components/header";
+import { CoffeeCard } from "../components/coffee-card";
+import { coffees } from "../lib/coffees";
+const steps = [
+  {
+    title: "Encontrado.",
+    text: "O começo é a origem brasileira. Cada café tem quem planta, cuida e produz. É de lá que parte a nossa escolha.",
+  },
+  {
+    title: "Escolhido.",
+    text: "A curadoria aproxima você de perfis diferentes. Do doce e cremoso ao frutado e cítrico: há mais de um jeito de gostar de café.",
+  },
+  {
+    title: "Explicado.",
+    text: "Notas, torra e preparo em uma linguagem simples. Para você entender a escolha e encontrar o seu jeito de beber.",
+  },
+];
+export default function Home() {
+  return (
+    <div id="inicio">
+      <Header />
+      <main id="conteudo">
+        <section className="hero wrap" aria-labelledby="hero-title">
+          <div className="hero-copy">
+            <p className="eyebrow">
+              <span className="choice-dot" /> CAFÉS DE ORIGEM BRASILEIRA
+            </p>
+            <h1 id="hero-title">
+              Da roça
+              <br />à <em>cidade.</em>
+            </h1>
+            <p className="hero-description">
+              Escolher muito bem.
+              <br />
+              Explicar de um jeito simples.
+            </p>
+            <a className="button" href="#cafes">
+              Encontre o seu café <span aria-hidden="true">↗</span>
+            </a>
+            <p className="hero-footnote mono">
+              ENCONTRADO. ESCOLHIDO. EXPLICADO.
+            </p>
+          </div>
+          <div className="hero-art">
+            <Journey />
+            <p className="origin-label mono">01 / ORIGEM</p>
+            <div className="editorial-note">
+              <span className="eyebrow">O PONTO DE ESCOLHA</span>
+              <p>
+                Entre a origem
+                <br />e a sua xícara,
+                <br />
+                <em>uma boa escolha.</em>
+              </p>
+            </div>
+            <p className="city-label mono">
+              02 / SEU DIA A DIA <span aria-hidden="true">↗</span>
+            </p>
+            <span className="art-legend mono">
+              UMA CURVA. UM ENCONTRO. UM NOVO CAMINHO.
+            </span>
+          </div>
+        </section>
+        <div className="manifesto-strip">
+          <p>
+            O produtor assina o café. <em>A Cura assina a escolha.</em>
+          </p>
+          <span aria-hidden="true">✳</span>
+        </div>
+        <section
+          className="section wrap"
+          id="cafes"
+          aria-labelledby="cafes-title"
+        >
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">01 / A NOSSA SELEÇÃO</p>
+              <h2 id="cafes-title">
+                Dois cafés.
+                <br />
+                <em>Dois jeitos de sentir.</em>
+              </h2>
+            </div>
+            <p className="section-intro">
+              Conheça SAMBA e SALSA. Lotes reais, personalidades próprias e
+              informação clara para acompanhar cada escolha.
+            </p>
+          </div>
+          <div className="coffee-grid">
+            {coffees.map((coffee) => (
+              <CoffeeCard key={coffee.lot} coffee={coffee} />
+            ))}
+          </div>
+          <p className="catalog-note mono">
+            A origem detalhada será publicada após confirmação. Sem venda online
+            nesta fase.
+          </p>
+        </section>
+        <section
+          className="curation"
+          id="curadoria"
+          aria-labelledby="curation-title"
+        >
+          <div className="wrap">
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">02 / NOSSA MANEIRA DE ESCOLHER</p>
+                <h2 id="curation-title">
+                  Café bom não precisa
+                  <br />
+                  de <em>complicação.</em>
+                </h2>
+              </div>
+              <p className="section-intro">
+                Curadoria é dar atenção ao que importa — e dividir essa escolha
+                com você.
+              </p>
+            </div>
+            <div className="steps">
+              {steps.map((step, index) => (
+                <article key={step.title}>
+                  <span className="step-number mono">
+                    0{index + 1} <span aria-hidden="true">↗</span>
+                  </span>
+                  <h3>{step.title}</h3>
+                  <p>{step.text}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+        <section
+          className="story section wrap"
+          id="historia"
+          aria-labelledby="story-title"
+        >
+          <div className="story-drawing">
+            <Journey />
+            <p>
+              O caminho muda.
+              <br />
+              <em>A origem importa.</em>
+            </p>
+            <span className="mono">DA ROÇA À CIDADE.</span>
+          </div>
+          <div className="story-copy">
+            <p className="eyebrow">03 / A CURA CAFÉ</p>
+            <h2 id="story-title">
+              Uma ponte entre
+              <br />a origem e <em>você.</em>
+            </h2>
+            <p>
+              A Cura Café existe para aproximar cafés de origem brasileira da
+              vida na cidade. Nosso ponto de partida é uma ideia simples:
+              escolher com critério e compartilhar o que torna cada café
+              especial.
+            </p>
+            <p>
+              Quem produz tem sua assinatura. A nossa está na escolha e no
+              cuidado de explicar, sem complicar a sua relação com a xícara.
+            </p>
+            <a className="text-link" href="#cafes">
+              Conheça a nossa seleção <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </section>
+        <section className="closing wrap" aria-label="Assinatura da marca">
+          <p>
+            Da origem, o café.
+            <br />
+            Da escolha, <em>o encontro.</em>
+          </p>
+          <a href="#inicio" aria-label="Voltar ao início">
+            ↑
+          </a>
+        </section>
+      </main>
+      <footer className="site-footer">
+        <div className="wrap footer-top">
+          <div>
+            <Brand />
+            <p>da roça à cidade.</p>
+          </div>
+          <nav aria-label="Rodapé">
+            <a href="#cafes">Nossos cafés</a>
+            <a href="#curadoria">A curadoria</a>
+            <a href="#historia">Nossa história</a>
+          </nav>
+          <p className="footer-note">
+            Escolher muito bem.
+            <br />
+            Explicar de um jeito simples.
+          </p>
+        </div>
+        <div className="wrap footer-bottom mono">
+          <span>CURA CAFÉ · SITE EM DESENVOLVIMENTO</span>
+          <span>SEM CHECKOUT OU PEDIDOS NESTA FASE</span>
+        </div>
+      </footer>
+    </div>
+  );
+}
