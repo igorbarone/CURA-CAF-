@@ -7,5 +7,9 @@
   "status": "published",
   "sortOrder": 0,
   "primaryLotId": "cura-26-01",
-  "media": null
+  "media": {
+    "src": "/media/cura-cafe-adesivo-samba-arte-300dpi.png",
+    "alt": "84 Pontos SCA",
+    "credit": "Direto da Fazenda"
+  }
 }
