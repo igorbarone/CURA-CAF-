@@ -151,7 +151,9 @@ test("home to catalog to product to cart, and back to the editorial home", async
     .click();
   await expect(page).toHaveURL(/\/CURA-CAF-\/#curadoria$/);
   await expect(
-    page.getByRole("heading", { name: `${getEditorial().curation.title} ${getEditorial().curation.emphasis}` }),
+    page.getByRole("heading", {
+      name: `${getEditorial().curation.title} ${getEditorial().curation.emphasis}`,
+    }),
   ).toBeVisible();
 });
 test("catalog and cart pass accessibility checks and contain no broken internal links", async ({
@@ -165,7 +167,9 @@ test("catalog and cart pass accessibility checks and contain no broken internal 
     expect(result.violations).toEqual([]);
     const links = await page
       .locator("a")
-      .evaluateAll((anchors) => [...new Set(anchors.map((a) => a.href))]);
+      .evaluateAll((anchors) => [
+        ...new Set(anchors.map((a) => (a as HTMLAnchorElement).href)),
+      ]);
     for (const href of links) {
       const url = new URL(href);
       expect(url.pathname).toMatch(/^\/CURA-CAF-\//);

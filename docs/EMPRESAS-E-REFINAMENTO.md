@@ -1,5 +1,7 @@
 # Empresas, democratização e consistência dos lotes
 
+> Registro da entrega do PR #7. A evolução da comunicação e dos segmentos B2B está em [Posicionamento e Food Service](POSICIONAMENTO-FOOD-SERVICE.md); o foco atual é gastronômico. O diagnóstico técnico dos filtros abaixo permanece válido.
+
 ## O que muda
 
 A página `/empresas/` entra no menu desktop/mobile, rodapé e sitemap. Usa a identidade oficial, componentes editoriais compartilhados e conteúdo de `content/site.json`, editável em **Conteúdo editorial V1 → Para empresas** no Pages CMS.

@@ -23,6 +23,18 @@ test("Pages CMS config is valid YAML, covers every content field and stores stab
     home: homeSchema,
     site: editorialSchema,
   };
+  const site = config.content.find(
+    (item: { name: string }) => item.name === "site",
+  );
+  for (const name of ["hero", "business"] as const) {
+    const fields = site.fields.find(
+      (field: { name: string }) => field.name === name,
+    ).fields;
+    assert.deepEqual(
+      fields.map((field: { name: string }) => field.name).sort(),
+      Object.keys(editorialSchema.shape[name].shape).sort(),
+    );
+  }
   for (const [name, schema] of Object.entries(schemas)) {
     const collection = config.content.find(
       (item: { name: string }) => item.name === name,

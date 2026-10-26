@@ -15,6 +15,7 @@ export const editorialSchema = z
         primaryCta: text,
         secondaryCta: text,
         artLabel: text,
+        originSignature: text,
       })
       .strict(),
     curation: z
@@ -62,9 +63,20 @@ export const editorialSchema = z
     business: z
       .object({
         ...section,
+        ctaLabel: text,
         segmentsTitle: text,
         segmentsIntro: text,
         segments: z.array(article).min(1),
+        benefitsTitle: text,
+        benefitsIntro: text,
+        benefits: z.array(article).min(1),
+        coffeesTitle: text,
+        coffeesIntro: text,
+        coffeesEmpty: text,
+        purposeTitle: text,
+        purposeText: text,
+        intakeTitle: text,
+        intakeItems: z.array(text).min(1),
         nextTitle: text,
         nextText: text,
       })

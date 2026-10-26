@@ -53,3 +53,11 @@ Build sem erros, navegação mobile, contraste legível, sem dados fictícios tr
 - [x] Produtores em destaque na Home e na ficha; histórias confirmadas opcionais no CMS
 - [x] Hierarquia editorial e responsividade dos novos blocos
 - [ ] Confirmar operação B2B e ativar canal real de captação
+
+## Posicionamento e Food Service
+- [x] Slogan prioritário na Home, assinatura de origem e método com hierarquia própria
+- [x] História e metadados alinhados ao propósito de democratizar café especial
+- [x] Food Service com quatro segmentos gastronômicos e diferenciais sem serviços fictícios
+- [x] Catálogo compartilhado na página B2B, com estado vazio
+- [x] Jornada de parceria com informações previstas e ausência explícita de captação ativa
+- [ ] Definir destino real, responsável comercial e condições antes de ativar captação/fornecimento

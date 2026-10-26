@@ -2642,3 +2642,110 @@ h3 em {
     font-size: 14px;
   }
 }
+
+/* O propósito orienta a Home; a assinatura de origem acompanha a marca. */
+.home-v1 .hero h1 {
+  font-size: clamp(46px, 4.9vw, 70px);
+  line-height: 1.08;
+  letter-spacing: -0.055em;
+}
+.hero-editorial-note .origin-signature {
+  font-size: clamp(32px, 3.3vw, 45px);
+  max-width: 16ch;
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+.business-hero h1 {
+  font-size: clamp(44px, 5.2vw, 72px);
+  max-width: 24ch;
+  line-height: 1.08;
+}
+.business-hero .button {
+  margin-top: 28px;
+}
+.business-channel-note {
+  font:
+    400 11px/1.7 "DM Mono",
+    monospace;
+  margin-top: 14px;
+}
+.business-segments .editorial-topics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.business-section {
+  border-top: 1px solid var(--rule);
+  padding-block: 70px;
+}
+.business-section h2,
+.business-purpose h2 {
+  font-size: clamp(32px, 3.8vw, 48px);
+  line-height: 1.13;
+}
+.business-benefits .editorial-topics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.business-benefits .editorial-topics article:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+.business-benefits .editorial-topics p {
+  max-width: 60ch;
+}
+.business-purpose {
+  padding: clamp(28px, 5vw, 65px);
+  margin-block: 0 70px;
+  background: var(--brand);
+  color: var(--cream);
+}
+.business-purpose h2 {
+  margin-block: 22px;
+  max-width: 25ch;
+}
+.business-purpose > p:last-child {
+  font-size: 17px;
+  line-height: 1.9;
+  max-width: 68ch;
+}
+.business-intake {
+  border-block: 1px solid var(--rule);
+  margin-block: 24px;
+  padding-block: 18px;
+  font-size: 14px;
+  line-height: 1.8;
+}
+.business-intake summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.business-intake ul {
+  margin-bottom: 0;
+  padding-left: 20px;
+}
+.business-intake li + li {
+  margin-top: 8px;
+}
+@media (min-width: 641px) and (max-width: 1100px) {
+  .home-v1 .hero h1 {
+    font-size: clamp(38px, 4.8vw, 53px);
+  }
+}
+@media (max-width: 640px) {
+  .home-v1 .hero h1 {
+    font-size: clamp(36px, 10.6vw, 58px);
+  }
+  .business-hero h1 {
+    font-size: clamp(35px, 9.5vw, 46px);
+  }
+  .business-segments .editorial-topics,
+  .business-benefits .editorial-topics {
+    grid-template-columns: 1fr;
+  }
+  .business-section {
+    padding-block: 50px;
+  }
+  .business-purpose {
+    margin-bottom: 50px;
+  }
+  .business-purpose > p:last-child {
+    font-size: 16px;
+  }
+}
