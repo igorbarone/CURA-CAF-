@@ -3,7 +3,7 @@
 ## Fase 1 — Fundação
 - [x] Documentação e estrutura técnica
 - [ ] Incorporar assets originais e logotipo vetorial autorizado
-- [ ] Validar visual da home em desktop e mobile
+- [x] Validar visual da home em desktop e mobile (Home V2; capturas Playwright em 1280 px e 390 px)
 
 ## Fase 2 — Catálogo
 - [ ] Página /cafes com SAMBA e SALSA
