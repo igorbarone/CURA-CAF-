@@ -1,9 +1,10 @@
 // Test the actual Pages export, including the repository base path.
 import { createServer } from "node:http";
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { resolve, extname, sep } from "node:path";
 const root = resolve("out");
 const types = {
+  ".txt": "text/plain; charset=utf-8",
   ".html": "text/html; charset=utf-8",
   ".css": "text/css",
   ".js": "text/javascript",
@@ -28,6 +29,10 @@ createServer(async (req, res) => {
     return;
   }
   try {
+    if ((await stat(file)).isDirectory()) {
+      res.writeHead(301, { Location: pathname + "/" }).end();
+      return;
+    }
     const content = await readFile(file);
     res.writeHead(200, {
       "Content-Type": types[extname(file)] || "application/octet-stream",

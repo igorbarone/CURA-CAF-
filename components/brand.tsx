@@ -1,11 +1,12 @@
+import Link from "next/link";
 export function Brand() {
   return (
-    <a className="brand" href="#inicio" aria-label="Cura Café — início">
+    <Link className="brand" href="/#inicio" aria-label="Cura Café — início">
       <span>
         CURA CAFÉ<span className="brand-dot">.</span>
       </span>
       <small>Identificação provisória · logo em breve</small>
-    </a>
+    </Link>
   );
 }
 

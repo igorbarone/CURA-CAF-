@@ -6,9 +6,9 @@
 - [x] Validar visual da home em desktop e mobile (Home V2; capturas Playwright em 1280 px e 390 px)
 
 ## Fase 2 — Catálogo
-- [ ] Página /cafes com SAMBA e SALSA
-- [ ] Páginas individuais com notas sensoriais e origem
-- [ ] Estados claros para preço/estoque ainda não definidos
+- [x] Página /cafes com SAMBA e SALSA, busca e filtro por perfil
+- [x] Páginas individuais com notas sensoriais e origem confirmada; lacunas identificadas
+- [x] Estados claros para preço/estoque ainda não definidos
 
 ## Fase 3 — Descoberta
 - [ ] Quiz de preferência e recomendações baseadas em regras
