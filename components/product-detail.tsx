@@ -7,12 +7,15 @@ import { CoffeeArt } from "./coffee-art";
 import { CoffeeCard } from "./coffee-card";
 import { CommerceStatus } from "./commerce-status";
 import { projectCoffee, type CatalogEntry } from "../lib/catalog-model";
+import type { ContactLink } from "../lib/contact";
 export function ProductDetail({
   entry,
   related,
+  contactByLot = {},
 }: {
   entry: CatalogEntry;
   related: CatalogEntry[];
+  contactByLot?: Record<string, ContactLink[]>;
 }) {
   const [selectedLotId, setSelectedLotId] = useState(
     entry.coffee.primaryLotId ?? "",
@@ -78,6 +81,7 @@ export function ProductDetail({
               offers={entry.offers.filter(
                 (offer) => offer.lotId === coffee.lotId,
               )}
+              contact={contactByLot[coffee.lotId ?? ""] ?? []}
             />
           </div>
         </section>

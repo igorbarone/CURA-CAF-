@@ -1,4 +1,5 @@
 import { editorialSchema } from "../../lib/editorial";
+import { contactSchema } from "../../lib/contact";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { readFileSync } from "node:fs";
@@ -22,6 +23,7 @@ test("Pages CMS config is valid YAML, covers every content field and stores stab
     offers: offerSchema,
     home: homeSchema,
     site: editorialSchema,
+    contact: contactSchema,
   };
   const site = config.content.find(
     (item: { name: string }) => item.name === "site",
@@ -44,7 +46,7 @@ test("Pages CMS config is valid YAML, covers every content field and stores stab
       collection.fields.map((field: { name: string }) => field.name).sort(),
       Object.keys(schema.shape).sort(),
     );
-    if (name !== "home" && name !== "site") {
+    if (!["home", "site", "contact"].includes(name)) {
       assert.equal(collection.format, "json");
       assert.equal(collection.filename.template, "{fields.id}.json");
       assert.equal(collection.operations.delete, false);

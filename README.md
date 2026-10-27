@@ -79,3 +79,7 @@ Página B2B `/empresas/`, democratização em linguagem/conhecimento/experiênci
 ## Posicionamento e Food Service
 
 **Democratizar café especial.** lidera a Home; **Da roça à cidade.** assina a origem e os três verbos explicam o método. `/empresas/` prioriza estabelecimentos gastronômicos e usa o mesmo catálogo publicado. [Comunicação, CMS, jornada de parceria e pendências comerciais](docs/POSICIONAMENTO-FOOD-SERVICE.md).
+
+## Canais de contato comercial
+
+`content/contact.json` (Pages CMS → **Canais de contato comercial**) guarda WhatsApp, e-mail e Instagram reais da equipe. Vazio, nada é exibido e o site mantém os estados “em preparação”. Preenchido, aparecem links na ficha de cada café (mensagem com nome e lote), na seção de parceria de `/empresas/` e no rodapé. São links externos (`wa.me`, `mailto:`, Instagram): o site não coleta dados, não tem formulário e não cria pedido, reserva ou contrato; o texto ao lado dos links diz isso. Formatos inválidos falham na validação do build. Decisão: é a forma de abrir conversa comercial sem servidor, sem segredos no cliente e sem checkout falso.

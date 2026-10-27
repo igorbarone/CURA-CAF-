@@ -198,3 +198,38 @@ test("sensory and roast filters show the matching lot and carry it into the prod
   );
   await expect(restored.locator(".lot-facts")).toContainText("84 pontos");
 });
+test("configured contact channels appear on product, Food Service and footer with context", async ({
+  page,
+}) => {
+  await page.goto("cafes/samba/");
+  const commerce = page.getByRole("complementary", {
+    name: "Informações comerciais",
+  });
+  const whatsapp = commerce.getByRole("link", {
+    name: /Conversar no WhatsApp/,
+  });
+  await expect(whatsapp).toHaveAttribute(
+    "href",
+    `https://wa.me/5500000000000?text=${encodeURIComponent("Olá, Cura Café! Quero saber mais sobre o SAMBA (lote CURA-26-01).")}`,
+  );
+  await expect(whatsapp).toHaveAttribute("rel", "noopener noreferrer");
+  await expect(
+    commerce.getByRole("button", { name: "Compra online · Em breve" }),
+  ).toBeDisabled();
+  await page.goto("empresas/");
+  await expect(page.getByText("Canal de parceria em preparação.")).toHaveCount(
+    0,
+  );
+  const partner = page.locator("#proxima-conversa");
+  await expect(
+    partner.getByRole("link", { name: "Enviar e-mail" }),
+  ).toHaveAttribute("href", /^mailto:teste@example\.com\?subject=/);
+  await expect(
+    page.getByRole("list", { name: "Fale com a Cura" }).getByRole("link"),
+  ).toHaveCount(2);
+  await expect(page.locator("form, input, textarea")).toHaveCount(0);
+  const audit = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+    .analyze();
+  expect(audit.violations).toEqual([]);
+});

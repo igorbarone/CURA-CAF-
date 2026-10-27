@@ -8,6 +8,7 @@ import { ProductDetail } from "../../../components/product-detail";
 import { Header } from "../../../components/header";
 import { Footer } from "../../../components/footer";
 import { Breadcrumbs } from "../../../components/breadcrumbs";
+import { contactLinks, getContact } from "../../../lib/contact";
 export const dynamicParams = false;
 export function generateStaticParams() {
   return getProductRoutes();
@@ -57,10 +58,25 @@ export default async function ProductPage({ params }: Props) {
   const related = getCatalog().filter(
     (item) => item.coffee.id !== entry.coffee.id,
   );
+  const contact = getContact();
+  const contactByLot = Object.fromEntries(
+    entry.lots.map((lot) => [
+      lot.id,
+      contactLinks(
+        contact,
+        `Olá, Cura Café! Quero saber mais sobre o ${entry.coffee.name} (lote ${lot.code}).`,
+      ),
+    ]),
+  );
   return (
     <>
       <Header />
-      <ProductDetail key={entry.coffee.id} entry={entry} related={related} />
+      <ProductDetail
+        key={entry.coffee.id}
+        entry={entry}
+        related={related}
+        contactByLot={contactByLot}
+      />
       <Footer />
     </>
   );
