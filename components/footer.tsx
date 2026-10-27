@@ -17,6 +17,7 @@ export function Footer() {
           <Link href="/#curadoria">A curadoria</Link>
           <Link href="/historia/">Nossa história</Link>
           <Link href="/descubra/">Descubra seu café</Link>
+          <Link href="/comparar/">Compare cafés</Link>
           <Link href="/clube/">Clube Cura</Link>
           <Link href="/empresas/">Para empresas</Link>
         </nav>

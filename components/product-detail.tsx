@@ -4,7 +4,9 @@ import { Arrow } from "./arrow";
 import Link from "next/link";
 import { Breadcrumbs } from "./breadcrumbs";
 import { CoffeeArt } from "./coffee-art";
-import { CoffeeCard } from "./coffee-card";
+import { CoffeeCard, SensoryChips } from "./coffee-card";
+import { CompareLink, CompareToggle } from "./compare-toggle";
+import { RoastMeter } from "./roast-meter";
 import { CommerceStatus } from "./commerce-status";
 import { projectCoffee, type CatalogEntry } from "../lib/catalog-model";
 import type { ContactLink } from "../lib/contact";
@@ -70,8 +72,34 @@ export function ProductDetail({
             </h1>
             <p className="coffee-notes">{coffee.notes}</p>
             <p className="body-copy">{coffee.description}</p>
-            <p className="product-roast mono">
-              TORRA {coffee.roast.toUpperCase()} · {coffee.preparation}
+            <dl className="quick-facts">
+              {coffee.score !== null && (
+                <div>
+                  <dt>Pontuação SCA</dt>
+                  <dd className="score-badge">
+                    {coffee.score} <small>pontos</small>
+                  </dd>
+                </div>
+              )}
+              <div>
+                <dt>Torra</dt>
+                <dd>
+                  <RoastMeter roast={coffee.roast} />
+                </dd>
+              </div>
+              <div>
+                <dt>Bom para</dt>
+                <dd>{coffee.preparation}</dd>
+              </div>
+            </dl>
+            <SensoryChips acidity={coffee.acidity} body={coffee.body} />
+            <p className="product-compare">
+              <CompareToggle
+                slug={coffee.slug}
+                name={coffee.name}
+                showLink={false}
+              />
+              <CompareLink />
             </p>
             <a className="producer-byline" href="#origem">
               <span className="eyebrow">QUEM ASSINA ESTE LOTE</span>

@@ -1,4 +1,5 @@
 import { SelectionProvider } from "../components/selection-provider";
+import { CompareProvider } from "../components/compare-provider";
 import { getCatalog } from "../lib/coffees";
 import type { Metadata } from "next";
 import "@fontsource-variable/archivo/standard.css";
@@ -19,7 +20,10 @@ export const metadata: Metadata = {
     description:
       "Democratizar café especial. Curadoria brasileira para aproximar o pequeno produtor de quem bebe.",
   },
-  twitter: { card: "summary", title: "Cura Café | Democratizar café especial." },
+  twitter: {
+    card: "summary",
+    title: "Cura Café | Democratizar café especial.",
+  },
   title: "Cura Café | Democratizar café especial.",
   description:
     "Democratizar café especial: conhecimento, escolha e experiência. Curadoria brasileira, da roça à cidade.",
@@ -37,7 +41,11 @@ export default function RootLayout({
             entry.offers.map((offer) => offer.id),
           )}
         >
-          {children}
+          <CompareProvider
+            validSlugs={getCatalog().map((entry) => entry.coffee.slug)}
+          >
+            {children}
+          </CompareProvider>
         </SelectionProvider>
       </body>
     </html>

@@ -7,6 +7,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "",
     "cafes/",
     "descubra/",
+    "comparar/",
     "clube/",
     "historia/",
     "empresas/",

@@ -83,3 +83,7 @@ Página B2B `/empresas/`, democratização em linguagem/conhecimento/experiênci
 ## Canais de contato comercial
 
 `content/contact.json` (Pages CMS → **Canais de contato comercial**) guarda WhatsApp, e-mail e Instagram reais da equipe. Vazio, nada é exibido e o site mantém os estados “em preparação”. Preenchido, aparecem links na ficha de cada café (mensagem com nome e lote), na seção de parceria de `/empresas/` e no rodapé. São links externos (`wa.me`, `mailto:`, Instagram): o site não coleta dados, não tem formulário e não cria pedido, reserva ou contrato; o texto ao lado dos links diz isso. Formatos inválidos falham na validação do build. Decisão: é a forma de abrir conversa comercial sem servidor, sem segredos no cliente e sem checkout falso.
+
+## Vitrine e comparador
+
+Cartões e ficha do café mostram pontuação SCA em destaque, medidor de torra na mesma escala de quatro passos dos rótulos oficiais (clara = 1, média = 2; torras sem correspondência aparecem só em texto), acidez/corpo como etiquetas quando publicados e botão principal para a ficha. `/comparar/` coloca até três cafés lado a lado com os dados do lote principal publicado; preço e disponibilidade seguem “a confirmar”. A escolha é feita pelo botão “Comparar” nos cartões e na ficha, guardada só na sessão do navegador, e o link `?cafes=samba,salsa` é compartilhável (slugs desconhecidos são ignorados). Sem cadastro, coleta ou dado inventado. Decisão: comparar pelos atributos já estruturados prepara o catálogo de microlotes e uma futura assistência de escolha (ver roadmap).
