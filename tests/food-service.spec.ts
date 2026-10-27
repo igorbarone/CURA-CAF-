@@ -8,7 +8,7 @@ test("official slogan leads Home while origin and method keep their own place", 
 }) => {
   await page.goto("./");
   await expect(page.locator("#hero-title")).toHaveText(
-    "Democratizarcafé especial.",
+    "Democratizandocafé especial.",
   );
   await expect(page.locator(".hero .origin-signature")).toHaveText(
     "Da roça à cidade.",
@@ -18,11 +18,11 @@ test("official slogan leads Home while origin and method keep their own place", 
   );
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
     "content",
-    "Cura Café | Democratizar café especial.",
+    "Cura Café | Democratizando café especial.",
   );
   await page.goto("historia/");
   await expect(page.locator(".editorial-lead")).toContainText(
-    "Democratizar café especial.",
+    "Democratizando café especial.",
   );
 });
 
@@ -56,11 +56,9 @@ test("Food Service uses the published catalog and an honest partnership path", a
   );
   for (const entry of catalog) {
     const coffee = projectCoffee(entry);
-    const card = page
-      .locator(".business-coffees .coffee-card")
-      .filter({
-        has: page.getByRole("heading", { name: coffee.name, exact: true }),
-      });
+    const card = page.locator(".business-coffees .coffee-card").filter({
+      has: page.getByRole("heading", { name: coffee.name, exact: true }),
+    });
     for (const text of [
       coffee.profile,
       coffee.producers,

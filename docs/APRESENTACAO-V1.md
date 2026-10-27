@@ -6,7 +6,7 @@ Uma única branch/PR reúne Home editorial, catálogo escalável, fichas dos caf
 
 ## Roteiro de 8–10 minutos
 
-1. **Home**: apresentar a marca oficial fornecida, o slogan principal “Democratizar café especial”, a assinatura “Da roça à cidade” e os três verbos do método. Mostrar a seleção e o protagonismo de quem produz. Ressaltar que os rótulos são artes oficiais, não fotografias de embalagens finais, e que campos entre colchetes continuam provisórios.
+1. **Home**: apresentar a marca oficial fornecida, o slogan principal “Democratizando café especial”, a assinatura “Da roça à cidade” e os três verbos do método. Mostrar a seleção e o protagonismo de quem produz. Ressaltar que os rótulos são artes oficiais, não fotografias de embalagens finais, e que campos entre colchetes continuam provisórios.
 2. **Catálogo**: buscar por nota/produtor; filtrar por perfil, torra e preparo. Mostrar que filtros e quantidade vêm do conteúdo publicado, sem nomes de produtos fixos no componente.
 3. **SAMBA e SALSA**: abrir as duas páginas, conferir breadcrumbs, notas, produtores, pontuação e origem. No estado atual há um lote publicado por café; o seletor aparece quando há vários lotes publicados. A origem detalhada de SAMBA e município/UF de SALSA continuam pendentes.
 4. **Descubra seu café**: escolher “Doce e cremoso”, avançar com preparo/torra sem preferência e abrir a recomendação explicada. Recomeçar com “Frutado e cítrico”. Para mostrar ausência de correspondência, combinar “Doce e cremoso” com “Gelado”: a interface sugere ajustar respostas, sem inventar um resultado.
@@ -71,4 +71,4 @@ Abrir **Para empresas** pelo menu. Os segmentos são uma proposta em construçã
 
 ## Atualização de posicionamento e Food Service
 
-A Home abre com **Democratizar café especial.**; a assinatura de origem e o método continuam em apoio. Em `/empresas/`, apresentar o foco em restaurantes, cafeterias, padarias artesanais e hospitalidade. Percorrer os diferenciais, os mesmos cafés do catálogo e a conexão “Democratizar também é servir”. O CTA **Quero servir Cura Café** leva ao estado honesto do canal em preparação. A lista de informações futuras é somente orientação; não recebe dados. [Escopo e condições para ativação real](POSICIONAMENTO-FOOD-SERVICE.md).
+A Home abre com **Democratizando café especial.**; a assinatura de origem e o método continuam em apoio. Em `/empresas/`, apresentar o foco em restaurantes, cafeterias, padarias artesanais e hospitalidade. Percorrer os diferenciais, os mesmos cafés do catálogo e a conexão “Democratizar também é servir”. O CTA **Quero servir Cura Café** leva ao estado honesto do canal em preparação. A lista de informações futuras é somente orientação; não recebe dados. [Escopo e condições para ativação real](POSICIONAMENTO-FOOD-SERVICE.md).

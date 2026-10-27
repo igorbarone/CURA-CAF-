@@ -16,17 +16,17 @@ export const metadata: Metadata = {
     siteName: "Cura Café",
     locale: "pt_BR",
     type: "website",
-    title: "Cura Café | Democratizar café especial.",
+    title: "Cura Café | Democratizando café especial.",
     description:
-      "Democratizar café especial. Curadoria brasileira para aproximar o pequeno produtor de quem bebe.",
+      "Democratizando café especial. Curadoria brasileira para aproximar o pequeno produtor de quem bebe.",
   },
   twitter: {
     card: "summary",
-    title: "Cura Café | Democratizar café especial.",
+    title: "Cura Café | Democratizando café especial.",
   },
-  title: "Cura Café | Democratizar café especial.",
+  title: "Cura Café | Democratizando café especial.",
   description:
-    "Democratizar café especial: conhecimento, escolha e experiência. Curadoria brasileira, da roça à cidade.",
+    "Democratizando café especial: conhecimento, escolha e experiência. Curadoria brasileira, da roça à cidade.",
 };
 export default function RootLayout({
   children,

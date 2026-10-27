@@ -3204,3 +3204,20 @@ h3 em {
   margin-top: 0;
   border-bottom-color: currentColor;
 }
+/* "Democratizando" é uma palavra longa: o título nunca passa da coluna. */
+.home-v1 .hero-copy {
+  container-type: inline-size;
+}
+.home-v1 .hero h1 {
+  font-size: min(clamp(46px, 4.9vw, 70px), 10.4cqi);
+}
+@media (min-width: 641px) and (max-width: 1100px) {
+  .home-v1 .hero h1 {
+    font-size: min(clamp(38px, 4.8vw, 53px), 10.4cqi);
+  }
+}
+@media (max-width: 640px) {
+  .home-v1 .hero h1 {
+    font-size: min(clamp(28px, 10.6vw, 58px), 10.4cqi);
+  }
+}

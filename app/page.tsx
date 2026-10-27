@@ -12,7 +12,7 @@ import { getHomeSelection } from "../lib/coffees";
 import { getEditorial } from "../lib/editorial";
 import { projectCoffee } from "../lib/catalog-model";
 export const metadata: Metadata = metadataFor(
-  "Cura Café | Democratizar café especial.",
+  "Cura Café | Democratizando café especial.",
   getEditorial().hero.description,
   "",
 );
