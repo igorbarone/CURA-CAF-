@@ -81,6 +81,18 @@ Analisamos a `main` após os PRs #6, #7 e #8: identidade definitiva, `/empresas/
 - Catálogo vazio mostra um estado editorial.
 - Sitemap e rodapé incluem `/comparar/`. O menu do header não foi alterado, porque já está no limite em desktop.
 
+### 2.4 Cartão compacto (ajuste posterior ao PR #9)
+
+O cartão ocupava quase uma tela, com o rótulo a ~450 px e descrição longa. Agora segue padrão de loja:
+- Grade `auto-fill` com mínimo de 290 px: até 3 colunas no desktop, 1 no celular.
+- Imagem de 300 px no desktop e 250 px no celular.
+- Produtor em uma linha (`.card-producers`), perfil e notas juntos (`.card-taste`).
+- `.lot-facts` com três colunas: pontuação, torra e "Bom para".
+- Preço "a confirmar" e botões Conheça e Comparar.
+- A descrição e as etiquetas de acidez/corpo saíram do cartão e continuam na ficha.
+
+Na Home, o espaço livre da grade recebe o bloco `.choice-help` ("Em dúvida?"), que leva a `/comparar/` e `/descubra/`. Ele só aparece quando há cafés publicados.
+
 ## 3. Validação executada
 
 - `npm run lint`, `npx tsc --noEmit`, `npm run validate:content` (que agora informa também o número de canais de contato) e Prettier nos arquivos tocados.
