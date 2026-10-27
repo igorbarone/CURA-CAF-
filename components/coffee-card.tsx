@@ -5,6 +5,7 @@ import { CompareToggle } from "./compare-toggle";
 import { RoastMeter } from "./roast-meter";
 import { coffeePath, type CoffeeView } from "../lib/catalog-model";
 export function CoffeeCard({ coffee }: { coffee: CoffeeView }) {
+  // Compact shop card: the full story, chips and description live on the ficha.
   return (
     <article
       className={`coffee-card ${coffee.tone}`}
@@ -16,7 +17,18 @@ export function CoffeeCard({ coffee }: { coffee: CoffeeView }) {
         <h3 id={`cafe-${coffee.id}`}>
           <Link href={coffeePath(coffee)}>{coffee.name}</Link>
         </h3>
+        <p className="card-producers">de {coffee.producers}</p>
+        <p className="card-taste">
+          <span className="profile-tag">{coffee.profile}</span>
+          <span className="coffee-notes">{coffee.notes}</span>
+        </p>
         <dl className="lot-facts">
+          <div>
+            <dt>Pontuação SCA</dt>
+            <dd className="score-value">
+              {coffee.score !== null ? `${coffee.score} pontos` : "A confirmar"}
+            </dd>
+          </div>
           <div>
             <dt>Torra</dt>
             <dd>
@@ -24,26 +36,11 @@ export function CoffeeCard({ coffee }: { coffee: CoffeeView }) {
             </dd>
           </div>
           <div>
-            <dt>Pontuação SCA</dt>
-            <dd className="score-value">
-              {coffee.score !== null ? `${coffee.score} pontos` : "A confirmar"}
-            </dd>
-          </div>
-        </dl>
-        <p className="profile-tag">{coffee.profile}</p>
-        <p className="coffee-notes">{coffee.notes}</p>
-        <SensoryChips acidity={coffee.acidity} body={coffee.body} />
-        <p className="body-copy">{coffee.description}</p>
-        <dl>
-          <div>
-            <dt>Quem produz</dt>
-            <dd>{coffee.producers}</dd>
-          </div>
-          <div>
-            <dt>Na sua xícara</dt>
+            <dt>Bom para</dt>
             <dd>{coffee.preparation}</dd>
           </div>
         </dl>
+        <p className="availability">Preço e disponibilidade a confirmar.</p>
         <div className="card-actions">
           <Link className="button" href={coffeePath(coffee)}>
             Conheça {coffee.name}{" "}
@@ -53,7 +50,6 @@ export function CoffeeCard({ coffee }: { coffee: CoffeeView }) {
           </Link>
           <CompareToggle slug={coffee.slug} name={coffee.name} />
         </div>
-        <p className="availability">Preço e disponibilidade a confirmar.</p>
       </div>
     </article>
   );

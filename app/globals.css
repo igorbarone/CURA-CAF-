@@ -3073,3 +3073,134 @@ h3 em {
 .compare-table tfoot .button {
   gap: 18px;
 }
+/* Cartão compacto: vitrine de loja que escala para muitos microlotes. */
+.coffee-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
+  gap: 24px;
+}
+.coffee-card .official-label,
+.coffee-card .coffee-art {
+  height: 300px;
+}
+.coffee-card .official-label img {
+  padding: 14px 18px 46px;
+}
+.coffee-card .coffee-photo figcaption {
+  font-size: 9px;
+  line-height: 1.45;
+  padding: 4px;
+  bottom: 6px;
+}
+.coffee-card .coffee-info {
+  padding: 20px 20px 22px;
+}
+.coffee-card .coffee-info h3 {
+  font-size: 26px;
+  margin: 10px 0 2px;
+}
+.card-producers {
+  font:
+    italic 16px/1.4 "Newsreader Variable",
+    serif;
+  color: var(--muted-ink);
+}
+.card-taste {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-top: 12px;
+}
+.card-taste .profile-tag {
+  margin: 0;
+}
+.coffee-card .card-taste .coffee-notes {
+  font-size: 19px;
+}
+.coffee-card .coffee-info .lot-facts {
+  grid-template-columns: auto auto 1fr;
+  gap: 14px;
+  padding-block: 12px;
+  margin-block: 14px 10px;
+}
+.coffee-card .coffee-info .lot-facts dt {
+  font-size: 9px;
+  margin-bottom: 6px;
+}
+.coffee-card .coffee-info .lot-facts dd,
+.coffee-card .coffee-info .lot-facts dl > div:first-child dd {
+  font:
+    400 13px/1.4 "Archivo Variable",
+    sans-serif;
+}
+.coffee-card .coffee-info .lot-facts .score-value {
+  font:
+    500 15px/1.4 "DM Mono",
+    monospace;
+}
+.coffee-card .roast-meter {
+  gap: 6px;
+}
+.coffee-card .roast-steps span {
+  width: 10px;
+  height: 7px;
+}
+.coffee-card .card-actions {
+  margin-top: 16px;
+  gap: 10px;
+}
+.coffee-card .card-actions .button {
+  padding: 13px 16px;
+  flex: 1 1 auto;
+  justify-content: space-between;
+}
+.coffee-card .compare-toggle button {
+  padding: 12px 14px;
+}
+@media (max-width: 640px) {
+  .coffee-card .official-label,
+  .coffee-card .coffee-art {
+    height: 250px;
+  }
+}
+.choice-help {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 32px 28px;
+  background: var(--brand);
+  color: var(--light);
+}
+.choice-help .eyebrow {
+  color: var(--ochre);
+}
+.choice-help h3 {
+  font-size: 28px;
+  line-height: 1.15;
+}
+.choice-help h3 em {
+  font:
+    italic 400 28px "Newsreader Variable",
+    serif;
+}
+.choice-help p:not(.eyebrow) {
+  font-size: 14px;
+  line-height: 1.75;
+}
+.choice-help .button {
+  margin-top: auto;
+  background: var(--ochre);
+  color: var(--breu);
+  gap: 18px;
+}
+.choice-help .button:hover {
+  background: var(--cream);
+}
+.choice-help .text-link {
+  color: var(--light);
+}
+.choice-help .text-link {
+  margin-top: 0;
+  border-bottom-color: currentColor;
+}

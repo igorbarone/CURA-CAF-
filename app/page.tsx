@@ -102,6 +102,29 @@ export default function Home() {
             {entries.map((entry) => (
               <CoffeeCard key={entry.coffee.id} coffee={projectCoffee(entry)} />
             ))}
+            {entries.length > 0 && (
+              <aside
+                className="choice-help"
+                aria-labelledby="choice-help-title"
+              >
+                <p className="eyebrow">EM DÚVIDA?</p>
+                <h3 id="choice-help-title">
+                  Compare lado a lado
+                  <br />
+                  <em>ou siga o seu paladar.</em>
+                </h3>
+                <p>
+                  Veja notas, torra e pontuação juntas, ou responda três
+                  perguntas e receba uma sugestão explicada.
+                </p>
+                <Link className="button" href="/comparar/">
+                  Comparar cafés <Arrow />
+                </Link>
+                <Link className="text-link" href="/descubra/">
+                  Descubra seu café <Arrow />
+                </Link>
+              </aside>
+            )}
           </div>
           {!entries.length && (
             <p className="body-copy">
