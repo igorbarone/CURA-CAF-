@@ -317,6 +317,21 @@ content:
           value: "{fields.id}"
           label: "{fields.name}"
           multiple: true
+  - name: contact
+    label: Canais de contato comercial
+    type: file
+    path: content/contact.json
+    format: json
+    fields:
+      - name: whatsapp
+        label: WhatsApp comercial (55 + DDD + número, só dígitos; vazio = oculto)
+        type: string
+      - name: email
+        label: E-mail comercial (vazio = oculto)
+        type: string
+      - name: instagram
+        label: Usuário do Instagram, sem @ (vazio = oculto)
+        type: string
   - name: site
     label: Conteúdo editorial V1
     type: file

@@ -129,6 +129,15 @@ for (const name of ["coffees", "lots", "offers"]) {
 }
 mkdirSync(join(root, "public/media"), { recursive: true });
 writeFileSync(join(root, "content/home.json"), JSON.stringify(content.home));
+// Test-only channels; removed before the empty-catalog run, which expects none.
+writeFileSync(
+  join(root, "content/contact.json"),
+  JSON.stringify({
+    whatsapp: "5500000000000",
+    email: "teste@example.com",
+    instagram: "",
+  }),
+);
 const png = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=",
   "base64",
@@ -175,6 +184,7 @@ try {
     ],
     cleanEnv,
   );
+  rmSync(join(root, "content/contact.json"));
   // Exercise a genuinely empty editorial catalog, not just a filtered list.
   for (const name of ["coffees", "lots", "offers"]) {
     for (const file of readdirSync(join(root, "content", name)))

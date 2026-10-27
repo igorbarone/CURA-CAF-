@@ -12,7 +12,7 @@
 
 ## Fase 3 — Descoberta
 - [x] Quiz de preferência e recomendações explicáveis pelos lotes publicados
-- [ ] Comparador de até três cafés (quando houver catálogo suficiente)
+- [x] Comparador de até três cafés, com link compartilhável e seleção nos cartões/ficha
 - [x] Conteúdo de origem e curadoria, com página de história sem fatos inventados
 
 ## Fase 4 — Comércio
@@ -61,3 +61,9 @@ Build sem erros, navegação mobile, contraste legível, sem dados fictícios tr
 - [x] Catálogo compartilhado na página B2B, com estado vazio
 - [x] Jornada de parceria com informações previstas e ausência explícita de captação ativa
 - [ ] Definir destino real, responsável comercial e condições antes de ativar captação/fornecimento
+
+## Vitrine comercial e assistência de escolha
+- [x] Pontuação, medidor de torra e etiquetas sensoriais nos cartões e na ficha
+- [x] Comparador `/comparar/` sobre os mesmos dados publicados dos lotes
+- [ ] Preço de referência e peso por oferta, quando confirmados no CMS
+- [ ] Assistente de escolha com IA: exige serviço externo (o export estático não guarda chaves), respostas restritas ao catálogo publicado, aviso de IA, sem coleta oculta e com revisão de privacidade antes de ativar

@@ -8,6 +8,8 @@ import { EditorialShell } from "../../components/editorial-shell";
 import { EditorialTopics } from "../../components/editorial-topics";
 import { getEditorial } from "../../lib/editorial";
 import { metadataFor } from "../../lib/seo";
+import { ContactLinks } from "../../components/contact-links";
+import { contactLinks, getContact } from "../../lib/contact";
 
 export const metadata: Metadata = metadataFor(
   "Para empresas — Food Service | Cura Café",
@@ -18,6 +20,10 @@ export const metadata: Metadata = metadataFor(
 export default function BusinessPage() {
   const { business } = getEditorial();
   const coffees = getCatalog();
+  const contact = contactLinks(
+    getContact(),
+    "Olá, Cura Café! Quero conversar sobre servir Cura Café no meu estabelecimento.",
+  );
   return (
     <EditorialShell current="Para empresas">
       <section
@@ -39,7 +45,9 @@ export default function BusinessPage() {
           {business.ctaLabel} <Arrow />
         </a>
         <p id="business-channel-state" className="business-channel-note">
-          Canal de parceria em preparação.
+          {contact.length
+            ? "Conversa comercial direta com a equipe Cura."
+            : "Canal de parceria em preparação."}
         </p>
       </section>
       <section className="business-segments" aria-labelledby="segments-title">
@@ -100,13 +108,32 @@ export default function BusinessPage() {
         aria-labelledby="next-title"
       >
         <div>
-          <p className="eyebrow">CANAL EM PREPARAÇÃO</p>
+          <p className="eyebrow">
+            {contact.length ? "VAMOS CONVERSAR" : "CANAL EM PREPARAÇÃO"}
+          </p>
           <h2 id="next-title">{business.nextTitle}</h2>
         </div>
         <div>
-          <p>{business.nextText}</p>
+          {contact.length ? (
+            <>
+              <p>
+                Conte sobre o seu estabelecimento e o que procura no café. As
+                condições são definidas na conversa comercial.
+              </p>
+              <ContactLinks
+                links={contact}
+                note="O contato abre um canal externo. Não cria pedido, reserva ou contrato."
+              />
+            </>
+          ) : (
+            <p>{business.nextText}</p>
+          )}
           <details className="business-intake">
-            <summary>{business.intakeTitle}</summary>
+            <summary>
+              {contact.length
+                ? "O que ajuda na primeira conversa"
+                : business.intakeTitle}
+            </summary>
             <ul>
               {business.intakeItems.map((item) => (
                 <li key={item}>{item}</li>

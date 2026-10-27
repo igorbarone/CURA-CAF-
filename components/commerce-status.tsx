@@ -3,7 +3,15 @@ import { Arrow } from "./arrow";
 import { useSelection } from "./selection-provider";
 import Link from "next/link";
 import type { Offer } from "../lib/content-schema";
-export function CommerceStatus({ offers = [] }: { offers?: Offer[] }) {
+import type { ContactLink } from "../lib/contact";
+import { ContactLinks } from "./contact-links";
+export function CommerceStatus({
+  offers = [],
+  contact = [],
+}: {
+  offers?: Offer[];
+  contact?: ContactLink[];
+}) {
   const { add, message } = useSelection();
   return (
     <aside className="commerce-status" aria-label="Informações comerciais">
@@ -68,6 +76,17 @@ export function CommerceStatus({ offers = [] }: { offers?: Offer[] }) {
             Revisar seleção demonstrativa <Arrow />
           </Link>
         </>
+      )}
+      {contact.length > 0 && (
+        <div className="commerce-contact">
+          <p className="commerce-contact-title">
+            Quer conhecer este café? Fale com a Cura.
+          </p>
+          <ContactLinks
+            links={contact}
+            note="Tire dúvidas sobre o café. A conversa não cria pedido, reserva ou cobrança."
+          />
+        </div>
       )}
       <button type="button" disabled>
         Compra online · Em breve

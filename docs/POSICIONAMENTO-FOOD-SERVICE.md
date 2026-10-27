@@ -39,6 +39,10 @@ A seção recolhível apresenta os sete grupos de informações previstos, sem c
 
 Para ativar, a equipe precisa definir responsável comercial, destino real de envio e retorno, finalidade/tratamento dos dados e operação comercial. Depois, implementar integração com serviço externo compatível com o export estático, validação de campos no cliente e serviço, proteção contra spam e estados acessíveis. Exibir sucesso somente após o serviço confirmar recebimento. Segredos ficam no serviço, nunca no cliente ou CMS. Captação não cria pedido, reserva ou contrato.
 
+### Canal direto configurável
+
+Antes de um formulário, a equipe pode ativar um canal direto preenchendo `content/contact.json` no CMS. Com WhatsApp ou e-mail preenchido, a seção de parceria troca “canal em preparação” por links externos com mensagem pré-preenchida, e a lista acima passa a orientar a primeira conversa. Nenhum dado é coletado pelo site. Preencher somente com canais reais, com responsável definido para responder.
+
 ## Operação no Pages CMS
 
 - **Hero da Home**: as duas linhas do título representam o slogan prioritário; **Assinatura de origem** administra a frase ao lado do símbolo.

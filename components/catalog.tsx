@@ -9,6 +9,7 @@ import {
   type CatalogEntry,
 } from "../lib/catalog-model";
 import { CoffeeCard } from "./coffee-card";
+import { CompareBar } from "./compare-bar";
 export function Catalog({ entries }: { entries: CatalogEntry[] }) {
   const [query, setQuery] = useState("");
   const [profile, setProfile] = useState("");
@@ -130,6 +131,7 @@ export function Catalog({ entries }: { entries: CatalogEntry[] }) {
           </button>
         </div>
       )}
+      <CompareBar />
     </>
   );
 }
