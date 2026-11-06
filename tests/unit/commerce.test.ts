@@ -573,3 +573,30 @@ test("a webhook that fails while saving is processed again on the provider's ret
     outcome: "refunded",
   });
 });
+test("replayed notifications never move a shipped order backwards", async () => {
+  const order = await createCheckout(deps, checkout());
+  payments.set("1000", { status: "approved" });
+  await notify("1000");
+  assert.equal(
+    await markShipped(deps, order!.id, { code: "BR1", carrier: "Correios" }),
+    true,
+  );
+  for (const next of ["approved", "pending", "cancelled", "rejected"]) {
+    payments.set("1000", { status: next });
+    assert.deepEqual(await notify("1000"), { processed: true, outcome: null });
+    assert.equal(await status(order!.id), "shipped");
+  }
+  assert.equal(
+    await markShipped(deps, order!.id, { code: "BR2", carrier: "Correios" }),
+    false,
+  );
+  assert.equal(await stock("A-250"), 3);
+  payments.set("1000", { status: "refunded" });
+  assert.deepEqual(await notify("1000"), {
+    processed: true,
+    outcome: "refunded",
+  });
+  payments.set("1000", { status: "approved" });
+  assert.deepEqual(await notify("1000"), { processed: true, outcome: null });
+  assert.equal(await status(order!.id), "refunded");
+});

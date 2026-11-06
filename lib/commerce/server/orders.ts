@@ -475,6 +475,14 @@ async function transition(
             ? "refunded"
             : null;
   if (!target || order.status === target) return null;
+  // Fulfilment and refunds move forward only: a replayed "approved" never
+  // takes a shipped, delivered or refunded order back to "paid", and only a
+  // refund changes an order that already left.
+  if (
+    ["shipped", "delivered", "refunded"].includes(order.status) &&
+    target !== "refunded"
+  )
+    return null;
   if (target === "paid") {
     if (payment.amountCents !== order.total_cents) {
       await event(tx, order.id, "payment.amount_mismatch", {
@@ -490,11 +498,6 @@ async function transition(
         from: order.status,
       });
     }
-  } else if (
-    ["shipped", "delivered"].includes(order.status) &&
-    target !== "refunded"
-  ) {
-    return null;
   }
   if (target === "payment_failed" || target === "cancelled")
     await release(tx, order);
