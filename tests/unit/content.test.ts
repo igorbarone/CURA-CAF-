@@ -73,6 +73,7 @@ const content = (
   coffees,
   lots,
   offers,
+  bundles: [],
   home: { ...current.home, featuredCoffeeIds: [] },
 });
 const filters = { query: "", profile: "", roast: "", preparation: "" };
