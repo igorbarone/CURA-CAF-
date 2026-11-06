@@ -1,6 +1,9 @@
 import { SelectionProvider } from "../components/selection-provider";
 import { CompareProvider } from "../components/compare-provider";
-import { getCatalog } from "../lib/coffees";
+import { CartProvider } from "../components/commerce/cart-provider";
+import { commerceEnabled } from "../lib/commerce/client";
+import { getCommerceRules } from "../lib/commerce/rules";
+import { getCatalog, getPriceBook } from "../lib/coffees";
 import type { Metadata } from "next";
 import "@fontsource-variable/archivo/standard.css";
 import "@fontsource/dm-mono/400.css";
@@ -16,17 +19,17 @@ export const metadata: Metadata = {
     siteName: "Cura Café",
     locale: "pt_BR",
     type: "website",
-    title: "Cura Café | Democratizar café especial.",
+    title: "Cura Café | Democratizando café especial.",
     description:
-      "Democratizar café especial. Curadoria brasileira para aproximar o pequeno produtor de quem bebe.",
+      "Democratizando café especial. Curadoria brasileira para aproximar o pequeno produtor de quem bebe.",
   },
   twitter: {
     card: "summary",
-    title: "Cura Café | Democratizar café especial.",
+    title: "Cura Café | Democratizando café especial.",
   },
-  title: "Cura Café | Democratizar café especial.",
+  title: "Cura Café | Democratizando café especial.",
   description:
-    "Democratizar café especial: conhecimento, escolha e experiência. Curadoria brasileira, da roça à cidade.",
+    "Democratizando café especial: conhecimento, escolha e experiência. Curadoria brasileira, da roça à cidade.",
 };
 export default function RootLayout({
   children,
@@ -44,7 +47,13 @@ export default function RootLayout({
           <CompareProvider
             validSlugs={getCatalog().map((entry) => entry.coffee.slug)}
           >
-            {children}
+            {commerceEnabled ? (
+              <CartProvider book={getPriceBook()} rules={getCommerceRules()}>
+                {children}
+              </CartProvider>
+            ) : (
+              children
+            )}
           </CompareProvider>
         </SelectionProvider>
       </body>

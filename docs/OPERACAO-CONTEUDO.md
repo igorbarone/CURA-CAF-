@@ -101,6 +101,6 @@ No objeto de imagem do café, **Lote representado** vincula rótulos/fotos espec
 
 ## Slogan oficial e Food Service
 
-O slogan principal é **Democratizar café especial.**; usar as duas linhas do Hero da Home para preservá-lo em destaque. **Assinatura de origem** mantém “Da roça à cidade.” junto ao símbolo. Nossa História reforça o propósito sem biografias inventadas.
+O slogan principal é **Democratizando café especial.**; usar as duas linhas do Hero da Home para preservá-lo em destaque. **Assinatura de origem** mantém “Da roça à cidade.” junto ao símbolo. Nossa História reforça o propósito sem biografias inventadas.
 
 Em **Para empresas — Food Service**, a equipe pode editar CTA, segmentos gastronômicos, diferenciais, textos do catálogo compartilhado, propósito e estado da parceria. O CTA aponta para a seção da futura conversa, sem envio. As informações previstas são conteúdo, não um formulário ativo. [Detalhamento e pendências de ativação](POSICIONAMENTO-FOOD-SERVICE.md).

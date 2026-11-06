@@ -5,6 +5,8 @@ import { Header } from "../../components/header";
 import { Footer } from "../../components/footer";
 import { Breadcrumbs } from "../../components/breadcrumbs";
 import { Catalog } from "../../components/catalog";
+import { KitShelf } from "../../components/commerce/kit-shelf";
+import { commerceEnabled } from "../../lib/commerce/client";
 export const metadata: Metadata = metadataFor(
   "Nossos cafés | Cura Café",
   "Cafés brasileiros por perfil sensorial, torra e preparo. Conheça os lotes e quem produz.",
@@ -32,9 +34,13 @@ export default function CoffeesPage() {
           </p>
         </div>
         <Catalog entries={getCatalog()} />
-        <p className="catalog-note mono">
-          Preço e disponibilidade a confirmar. Sem venda online nesta fase.
-        </p>
+        {commerceEnabled ? (
+          <KitShelf />
+        ) : (
+          <p className="catalog-note mono">
+            Preço e disponibilidade a confirmar. Sem venda online nesta fase.
+          </p>
+        )}
       </main>
       <Footer />
     </>

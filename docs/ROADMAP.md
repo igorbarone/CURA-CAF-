@@ -17,8 +17,10 @@
 
 ## Fase 4 — Comércio
 - [x] Seleção demonstrativa por oferta publicada, sem pedido ou checkout
-- [ ] Escolher plataforma de commerce e pagamentos
-- [ ] Integração real de estoque, frete, checkout e pedidos
+- [x] Arquitetura de commerce: Next.js em modo servidor, PostgreSQL, Mercado Pago e Melhor Envio (docs/COMMERCE-ARQUITETURA.md)
+- [x] Carrinho, checkout Pix/cartão, pedidos, estoque, webhooks e frete funcionando no ambiente de testes
+- [ ] Homologação com sandbox real (credenciais de teste) e dados comerciais reais (docs/COMMERCE-ATIVACAO.md)
+- [ ] Produção: domínio, dados legais, política de privacidade e decisão explícita de cobrar
 - [ ] Assinaturas somente após definir operador de cobrança recorrente
 
 ## Critérios de aceite
@@ -67,3 +69,12 @@ Build sem erros, navegação mobile, contraste legível, sem dados fictícios tr
 - [x] Comparador `/comparar/` sobre os mesmos dados publicados dos lotes
 - [ ] Preço de referência e peso por oferta, quando confirmados no CMS
 - [ ] Assistente de escolha com IA: exige serviço externo (o export estático não guarda chaves), respostas restritas ao catálogo publicado, aviso de IA, sem coleta oculta e com revisão de privacidade antes de ativar
+
+## Missão 06 — Cura Commerce
+- [x] Auditoria, arquitetura, custos, migração e rollback documentados
+- [x] Ficha com galeria, embalagem, quantidade, preço por 100 g e disponibilidade
+- [x] Kits e sugestões sem invenção; incentivos desligados até aprovação
+- [x] Carrinho persistente, frete por CEP, checkout transparente e página do pedido com recompra
+- [x] Webhook assinado e idempotente, estoque atômico, logs sem dados pessoais, eventos do funil
+- [x] Testes de compra de ponta a ponta com simuladores no CI
+- [ ] Painel administrativo, etiqueta automática, cupons, consentimento de analytics

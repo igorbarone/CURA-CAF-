@@ -2,7 +2,7 @@
 
 ## Hierarquia da comunicação
 
-O pedido editorial da equipe define **Democratizar café especial.** como slogan principal. **Da roça à cidade.** continua como assinatura de origem e **Encontrado. Escolhido. Explicado.** como método de curadoria. Isso atualiza a hierarquia da comunicação, preservando os vetores proprietários, a identidade marrom/creme/ocre e as fontes do manual de 26/10/2026.
+O pedido editorial da equipe define **Democratizando café especial.** como slogan principal. **Da roça à cidade.** continua como assinatura de origem e **Encontrado. Escolhido. Explicado.** como método de curadoria. Isso atualiza a hierarquia da comunicação, preservando os vetores proprietários, a identidade marrom/creme/ocre e as fontes do manual de 26/10/2026.
 
 O slogan ocupa o H1 da Home. A assinatura de origem acompanha o símbolo oficial; o método mantém seu espaço de apoio. A narrativa de Nossa História e os metadados da Home/institucionais refletem o propósito. A seção explicativa da democratização continua detalhando linguagem, conhecimento e experiência. Não há promessa de preço baixo, acesso universal ou vantagem comercial.
 

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSelection } from "./selection-provider";
+import { useOptionalCart } from "./commerce/cart-provider";
 import { Brand } from "./brand";
 const links = [
   ["/cafes/", "Nossos cafés"],
@@ -13,6 +14,7 @@ const links = [
 ] as const;
 export function Header() {
   const { ids } = useSelection();
+  const cart = useOptionalCart();
   return (
     <>
       <a className="skip-link" href="#conteudo">
@@ -30,9 +32,13 @@ export function Header() {
         <Link className="header-cart" href="/carrinho/">
           Carrinho{" "}
           <span className="mono">
-            {ids.length
-              ? `${ids.length} na seleção · demonstração`
-              : "Em breve"}
+            {cart
+              ? cart.itemCount
+                ? `${cart.itemCount} ${cart.itemCount === 1 ? "item" : "itens"}`
+                : "vazio"
+              : ids.length
+                ? `${ids.length} na seleção · demonstração`
+                : "Em breve"}
           </span>
         </Link>
         <details

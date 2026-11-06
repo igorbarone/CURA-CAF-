@@ -129,6 +129,41 @@ content:
             label: Crédito / autoria
             type: string
             required: true
+      - name: gallery
+        label: Galeria de fotos do produto (opcional; somente imagens autorizadas)
+        type: object
+        list: true
+        fields:
+          - name: kind
+            label: Natureza da imagem
+            type: select
+            default: photograph
+            options:
+              values:
+                - name: photograph
+                  label: Fotografia autorizada
+                - name: artwork
+                  label: Arte oficial (não é fotografia)
+          - name: src
+            label: Imagem
+            type: image
+            options:
+              extensions:
+                - jpg
+                - jpeg
+                - png
+                - webp
+                - avif
+                - svg
+            required: true
+          - name: alt
+            label: Descrição acessível
+            type: string
+            required: true
+          - name: credit
+            label: Crédito / autoria
+            type: string
+            required: true
   - name: lots
     label: Lotes
     type: collection
@@ -221,7 +256,7 @@ content:
         label: Por que escolhemos (publicar somente motivo confirmado)
         type: text
   - name: offers
-    label: Ofertas editoriais (sem venda)
+    label: Ofertas (embalagens à venda; preço confirmado em centavos)
     type: collection
     path: content/offers
     format: json
@@ -279,7 +314,7 @@ content:
         label: Preço confirmado em centavos (vazio = desconhecido)
         type: number
       - name: availableQuantity
-        label: Estoque confirmado (vazio = desconhecido)
+        label: Estoque editorial (referência; o estoque de venda é controlado no banco da loja)
         type: number
       - name: weightInGrams
         label: Peso confirmado em gramas
@@ -287,6 +322,95 @@ content:
       - name: grind
         label: Moagem confirmada
         type: string
+  - name: bundles
+    label: Kits (ex. Kit descoberta)
+    type: collection
+    path: content/bundles
+    format: json
+    filename:
+      template: "{fields.id}.json"
+      field: false
+    subfolders: false
+    exclude:
+      - .gitkeep
+    view:
+      primary: name
+    operations:
+      create: true
+      rename: false
+      delete: false
+    fields:
+      - name: id
+        label: Identificador permanente (letras minúsculas, números e hífen)
+        type: string
+        required: true
+      - name: name
+        label: Nome do kit
+        type: string
+        required: true
+      - name: description
+        label: Descrição
+        type: text
+        required: true
+      - name: status
+        label: Estado editorial
+        type: select
+        required: true
+        default: draft
+        options:
+          values:
+            - name: draft
+              label: Rascunho
+            - name: published
+              label: Publicado
+            - name: archived
+              label: Arquivado
+      - name: sortOrder
+        label: Ordem de exibição
+        type: number
+        required: true
+        default: 0
+      - name: priceInCents
+        label: Preço aprovado do kit em centavos (vazio = kit não é vendido)
+        type: number
+      - name: items
+        label: Itens do kit
+        type: object
+        list: true
+        required: true
+        fields:
+          - name: offerId
+            label: Oferta
+            type: reference
+            required: true
+            options:
+              collection: offers
+              value: "{fields.id}"
+              label: "{fields.sku}"
+          - name: quantity
+            label: Quantidade
+            type: number
+            required: true
+            default: 1
+  - name: commerce
+    label: Regras comerciais da loja
+    type: file
+    path: content/commerce.json
+    format: json
+    fields:
+      - name: freeShippingFromCents
+        label: Frete grátis a partir de (centavos; vazio = sem frete grátis aprovado)
+        type: number
+      - name: maxQuantityPerLine
+        label: Quantidade máxima por item no carrinho
+        type: number
+        required: true
+        default: 10
+      - name: pixExpirationMinutes
+        label: Validade do Pix em minutos
+        type: number
+        required: true
+        default: 30
   - name: home
     label: Destaques da Home
     type: file

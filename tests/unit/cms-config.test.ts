@@ -1,5 +1,6 @@
 import { editorialSchema } from "../../lib/editorial";
 import { contactSchema } from "../../lib/contact";
+import { commerceRulesSchema } from "../../lib/commerce/rules";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { readFileSync } from "node:fs";
@@ -9,6 +10,7 @@ import {
   lotSchema,
   offerSchema,
   homeSchema,
+  bundleSchema,
 } from "../../lib/content-schema";
 test("Pages CMS config is valid YAML, covers every content field and stores stable reference IDs", () => {
   const doc = parseDocument(readFileSync(".pages.yml", "utf8"));
@@ -24,6 +26,8 @@ test("Pages CMS config is valid YAML, covers every content field and stores stab
     home: homeSchema,
     site: editorialSchema,
     contact: contactSchema,
+    bundles: bundleSchema,
+    commerce: commerceRulesSchema,
   };
   const site = config.content.find(
     (item: { name: string }) => item.name === "site",
@@ -46,7 +50,7 @@ test("Pages CMS config is valid YAML, covers every content field and stores stab
       collection.fields.map((field: { name: string }) => field.name).sort(),
       Object.keys(schema.shape).sort(),
     );
-    if (!["home", "site", "contact"].includes(name)) {
+    if (!["home", "site", "contact", "commerce"].includes(name)) {
       assert.equal(collection.format, "json");
       assert.equal(collection.filename.template, "{fields.id}.json");
       assert.equal(collection.operations.delete, false);

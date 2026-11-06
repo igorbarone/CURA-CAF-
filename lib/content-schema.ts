@@ -11,6 +11,20 @@ const nullableNumber = (schema: z.ZodNumber) =>
     .preprocess((value) => (value === "" ? null : value), schema.nullish())
     .transform((value) => value ?? null);
 const id = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+const mediaSrc = z
+  .string()
+  .regex(
+    /^(?:\/media\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.(?:jpg|jpeg|png|webp|avif)|\/media\/rotulo-[a-z0-9-]+\.svg)$/,
+  );
+// Extra product photos. Each one needs alt text and a credit, like `media`.
+const galleryItem = z
+  .object({
+    kind: z.enum(["photograph", "artwork"]).default("photograph"),
+    src: mediaSrc,
+    alt: text,
+    credit: text,
+  })
+  .strict();
 export const statusSchema = z.enum(["draft", "published", "archived"]);
 export const coffeeSchema = z
   .object({
@@ -44,11 +58,7 @@ export const coffeeSchema = z
                 id.nullish(),
               )
               .transform((value) => value ?? null),
-            src: z
-              .string()
-              .regex(
-                /^(?:\/media\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.(?:jpg|jpeg|png|webp|avif)|\/media\/rotulo-[a-z0-9-]+\.svg)$/,
-              ),
+            src: mediaSrc,
             alt: text,
             credit: text,
           })
@@ -56,6 +66,10 @@ export const coffeeSchema = z
           .nullish(),
       )
       .transform((value) => value ?? null),
+    gallery: z
+      .array(galleryItem)
+      .nullish()
+      .transform((value) => value ?? []),
   })
   .strict();
 export const lotSchema = z
@@ -101,6 +115,24 @@ export const offerSchema = z
     grind: nullableText,
   })
   .strict();
+// A kit is sold only with a price approved by the team; null keeps it hidden.
+export const bundleSchema = z
+  .object({
+    id,
+    name: text,
+    description: text,
+    status: statusSchema,
+    sortOrder: z.number().int().nonnegative(),
+    priceInCents: nullableNumber(z.number().int().safe().positive()),
+    items: z
+      .array(
+        z
+          .object({ offerId: id, quantity: z.number().int().min(1).max(10) })
+          .strict(),
+      )
+      .min(2),
+  })
+  .strict();
 export const homeSchema = z
   .object({
     eyebrow: text,
@@ -118,6 +150,7 @@ export const contentSchema = z
     coffees: z.array(coffeeSchema),
     lots: z.array(lotSchema),
     offers: z.array(offerSchema),
+    bundles: z.array(bundleSchema).default([]),
     home: homeSchema,
   })
   .strict()
@@ -152,7 +185,20 @@ export const contentSchema = z
       data.offers.map((x) => x.sku),
       "offer.sku",
     );
+    unique(
+      data.bundles.map((x) => x.id),
+      "bundle.id",
+    );
     unique(data.home.featuredCoffeeIds, "home.featuredCoffeeIds");
+    for (const bundle of data.bundles) {
+      unique(
+        bundle.items.map((item) => item.offerId),
+        `Kit ${bundle.id}: ofertas`,
+      );
+      for (const item of bundle.items)
+        if (!data.offers.some((offer) => offer.id === item.offerId))
+          issue(`Kit ${bundle.id}: oferta ${item.offerId} inexistente`);
+    }
     for (const lot of data.lots)
       if (!data.coffees.some((x) => x.id === lot.coffeeId))
         issue(`Lote ${lot.id}: café inexistente`);
@@ -182,4 +228,5 @@ export const contentSchema = z
 export type CoffeeEntity = z.infer<typeof coffeeSchema>;
 export type Lot = z.infer<typeof lotSchema>;
 export type Offer = z.infer<typeof offerSchema>;
+export type Bundle = z.infer<typeof bundleSchema>;
 export type Content = z.infer<typeof contentSchema>;

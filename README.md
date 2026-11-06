@@ -78,7 +78,7 @@ Página B2B `/empresas/`, democratização em linguagem/conhecimento/experiênci
 
 ## Posicionamento e Food Service
 
-**Democratizar café especial.** lidera a Home; **Da roça à cidade.** assina a origem e os três verbos explicam o método. `/empresas/` prioriza estabelecimentos gastronômicos e usa o mesmo catálogo publicado. [Comunicação, CMS, jornada de parceria e pendências comerciais](docs/POSICIONAMENTO-FOOD-SERVICE.md).
+**Democratizando café especial.** lidera a Home; **Da roça à cidade.** assina a origem e os três verbos explicam o método. `/empresas/` prioriza estabelecimentos gastronômicos e usa o mesmo catálogo publicado. [Comunicação, CMS, jornada de parceria e pendências comerciais](docs/POSICIONAMENTO-FOOD-SERVICE.md).
 
 ## Canais de contato comercial
 
@@ -87,3 +87,23 @@ Página B2B `/empresas/`, democratização em linguagem/conhecimento/experiênci
 ## Vitrine e comparador
 
 Os cartões são compactos, em padrão de loja (grade de até 3 colunas, imagem de 300 px, produtor em uma linha, perfil e notas, faixa com pontuação, torra e preparo, preço “a confirmar” e botões Conheça/Comparar); descrição longa e etiquetas de acidez/corpo ficam na ficha. Na Home, um bloco “Em dúvida?” leva ao comparador e ao quiz. Cartões e ficha do café mostram pontuação SCA em destaque, medidor de torra na mesma escala de quatro passos dos rótulos oficiais (clara = 1, média = 2; torras sem correspondência aparecem só em texto), acidez/corpo como etiquetas quando publicados e botão principal para a ficha. `/comparar/` coloca até três cafés lado a lado com os dados do lote principal publicado; preço e disponibilidade seguem “a confirmar”. A escolha é feita pelo botão “Comparar” nos cartões e na ficha, guardada só na sessão do navegador, e o link `?cafes=samba,salsa` é compartilhável (slugs desconhecidos são ignorados). Sem cadastro, coleta ou dado inventado. Decisão: comparar pelos atributos já estruturados prepara o catálogo de microlotes e uma futura assistência de escolha (ver roadmap). [Relatório da entrega](docs/RELATORIO-VITRINE-COMPARADOR.md).
+
+## Cura Commerce (Missão 06)
+
+A loja roda no **alvo de servidor** (`npm run build:server` + `npm run start:server`). O export do GitHub Pages continua sem runtime e com "Compra online em breve". Estão prontos para homologação:
+- ficha com embalagens, quantidade, preço por 100 g e estoque ao vivo;
+- carrinho persistente e frete pelo Melhor Envio;
+- checkout transparente do Mercado Pago (Pix e cartão via Card Payment Brick);
+- pedidos com estoque reservado atomicamente;
+- webhook assinado e idempotente;
+- e-mails transacionais, recompra e eventos de funil.
+
+Decisões principais:
+- Preço, frete e status de pagamento são decididos só no servidor.
+- A cobrança real exige `MP_ENVIRONMENT=production` **e** `CURA_ALLOW_LIVE_PAYMENTS=true`.
+- Os dados editoriais seguem no Pages CMS, que ganhou Kits, Regras comerciais e galeria do produto.
+- Não há preço real cadastrado: nada aparece à venda até a equipe publicar ofertas.
+
+Para testar a loja localmente: `npm run test:commerce`. O comando monta um ambiente isolado com catálogo fictício, PGlite e simuladores do Mercado Pago, Melhor Envio e Resend. Para operar: `npm run ops`.
+
+Mais detalhes em [Arquitetura, custos, migração e rollback](docs/COMMERCE-ARQUITETURA.md) e em [Dependências e roteiro de ativação](docs/COMMERCE-ATIVACAO.md).

@@ -8,6 +8,7 @@ const config = [
   {
     ignores: [
       ".next/**",
+      ".next-server/**",
       "out/**",
       "node_modules/**",
       "playwright-report/**",

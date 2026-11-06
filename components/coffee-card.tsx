@@ -3,6 +3,8 @@ import Link from "next/link";
 import { CoffeeArt } from "./coffee-art";
 import { CompareToggle } from "./compare-toggle";
 import { RoastMeter } from "./roast-meter";
+import { formatBRL } from "../lib/commerce/catalog";
+import { commerceEnabled } from "../lib/commerce/client";
 import { coffeePath, type CoffeeView } from "../lib/catalog-model";
 export function CoffeeCard({ coffee }: { coffee: CoffeeView }) {
   // Compact shop card: the full story, chips and description live on the ficha.
@@ -40,10 +42,19 @@ export function CoffeeCard({ coffee }: { coffee: CoffeeView }) {
             <dd>{coffee.preparation}</dd>
           </div>
         </dl>
-        <p className="availability">Preço e disponibilidade a confirmar.</p>
+        {coffee.fromPriceCents !== null ? (
+          <p className="card-price">
+            <span className="mono">A PARTIR DE</span>{" "}
+            {formatBRL(coffee.fromPriceCents)}
+          </p>
+        ) : (
+          <p className="availability">Preço e disponibilidade a confirmar.</p>
+        )}
         <div className="card-actions">
           <Link className="button" href={coffeePath(coffee)}>
-            Conheça {coffee.name}{" "}
+            {commerceEnabled && coffee.fromPriceCents !== null
+              ? `Comprar ${coffee.name}`
+              : `Conheça ${coffee.name}`}{" "}
             <span aria-hidden="true">
               <Arrow />
             </span>
