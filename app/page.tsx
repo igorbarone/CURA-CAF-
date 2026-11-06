@@ -9,6 +9,8 @@ import { EditorialTopics } from "../components/editorial-topics";
 import { ProducerFeature } from "../components/producer-feature";
 import { CoffeeCard } from "../components/coffee-card";
 import { getHomeSelection } from "../lib/coffees";
+import { KitShelf } from "../components/commerce/kit-shelf";
+import { commerceEnabled } from "../lib/commerce/client";
 import { getEditorial } from "../lib/editorial";
 import { projectCoffee } from "../lib/catalog-model";
 export const metadata: Metadata = metadataFor(
@@ -132,9 +134,13 @@ export default function Home() {
               <Link href="/cafes/">Explore o catálogo.</Link>
             </p>
           )}
-          <p className="catalog-note mono">
-            Dados comerciais em confirmação · Sem venda online nesta fase.
-          </p>
+          {commerceEnabled ? (
+            <KitShelf />
+          ) : (
+            <p className="catalog-note mono">
+              Dados comerciais em confirmação · Sem venda online nesta fase.
+            </p>
+          )}
         </section>
         <section
           className="access-section section wrap"

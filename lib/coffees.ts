@@ -1,4 +1,5 @@
 import { loadContent } from "./content-loader";
+import { buildPriceBook } from "./commerce/catalog";
 import {
   featuredCatalog,
   publicProduct,
@@ -18,4 +19,7 @@ export function getHomeSelection() {
 }
 export function getProductRoutes() {
   return publicProductRoutes(loadContent());
+}
+export function getPriceBook() {
+  return buildPriceBook(loadContent());
 }

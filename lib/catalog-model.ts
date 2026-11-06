@@ -71,6 +71,18 @@ export function projectCoffee(entry: CatalogEntry, selectedLotId?: string) {
     roast: lot?.roast ?? "A confirmar",
     producers: lot?.producers.join(" e ") || "Informação a confirmar",
     preparation: lot?.preparations.join(" · ") || "Preparo a confirmar",
+    // Lowest confirmed package price of the shown lot (both price and weight
+    // known); null keeps the "a confirmar" message.
+    fromPriceCents:
+      entry.offers
+        .filter(
+          (offer) =>
+            offer.lotId === lot?.id &&
+            offer.unitPriceInCents !== null &&
+            offer.weightInGrams !== null,
+        )
+        .map((offer) => offer.unitPriceInCents as number)
+        .sort((a, b) => a - b)[0] ?? null,
   };
 }
 export type CoffeeView = ReturnType<typeof projectCoffee>;

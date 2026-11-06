@@ -3,7 +3,10 @@ import { useEffect, useState } from "react";
 import { Arrow } from "./arrow";
 import Link from "next/link";
 import { Breadcrumbs } from "./breadcrumbs";
-import { CoffeeArt } from "./coffee-art";
+import { ProductGallery } from "./product-gallery";
+import { PurchasePanel } from "./commerce/purchase-panel";
+import { ContactLinks } from "./contact-links";
+import { commerceEnabled } from "../lib/commerce/client";
 import { CoffeeCard, SensoryChips } from "./coffee-card";
 import { CompareLink, CompareToggle } from "./compare-toggle";
 import { RoastMeter } from "./roast-meter";
@@ -60,7 +63,7 @@ export function ProductDetail({
           className={`product-hero ${coffee.tone}`}
           aria-labelledby="product-name"
         >
-          <CoffeeArt coffee={coffee} />
+          <ProductGallery coffee={coffee} />
           <div className="product-summary">
             <p className="eyebrow">
               {coffee.lot}
@@ -105,12 +108,26 @@ export function ProductDetail({
               <span className="eyebrow">QUEM ASSINA ESTE LOTE</span>
               <span>{coffee.producers}</span>
             </a>
-            <CommerceStatus
-              offers={entry.offers.filter(
-                (offer) => offer.lotId === coffee.lotId,
-              )}
-              contact={contactByLot[coffee.lotId ?? ""] ?? []}
-            />
+            {commerceEnabled ? (
+              <>
+                <PurchasePanel
+                  coffeeName={coffee.name}
+                  coffeeSlug={coffee.slug}
+                  lotId={coffee.lotId}
+                />
+                <ContactLinks
+                  links={contactByLot[coffee.lotId ?? ""] ?? []}
+                  note="Dúvidas sobre o café? Fale com a equipe antes de comprar."
+                />
+              </>
+            ) : (
+              <CommerceStatus
+                offers={entry.offers.filter(
+                  (offer) => offer.lotId === coffee.lotId,
+                )}
+                contact={contactByLot[coffee.lotId ?? ""] ?? []}
+              />
+            )}
           </div>
         </section>
         {coffee.curationNote && (

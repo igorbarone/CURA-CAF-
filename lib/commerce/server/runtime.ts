@@ -76,7 +76,10 @@ export async function handle(
     request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
     request.headers.get("x-real-ip") ||
     "local";
-  if (!rateLimit(`${name}:${ip}`, limit, 60_000))
+  // CURA_RATE_LIMIT_SCALE only exists for automated tests that run many
+  // purchases from one address; production keeps the limits below.
+  const scale = Number(process.env.CURA_RATE_LIMIT_SCALE ?? 1) || 1;
+  if (!rateLimit(`${name}:${ip}`, limit * scale, 60_000))
     return json({ error: "rate_limited" }, 429);
   if (Number(request.headers.get("content-length") ?? 0) > 32_000)
     return json({ error: "payload_too_large" }, 413);

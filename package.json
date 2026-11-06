@@ -17,8 +17,9 @@
     "screenshots": "tsx scripts/capture-presentation.ts",
     "present": "node scripts/serve-export.mjs",
     "ops": "tsx scripts/ops.ts",
-    "build:server": "CURA_TARGET=server next build",
-    "start:server": "CURA_TARGET=server next start"
+    "build:server": "npm run validate:content && CURA_TARGET=server next build",
+    "start:server": "CURA_TARGET=server next start",
+    "test:commerce": "tsx scripts/test-commerce.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.3.16",

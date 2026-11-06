@@ -1,6 +1,9 @@
 import { SelectionProvider } from "../components/selection-provider";
 import { CompareProvider } from "../components/compare-provider";
-import { getCatalog } from "../lib/coffees";
+import { CartProvider } from "../components/commerce/cart-provider";
+import { commerceEnabled } from "../lib/commerce/client";
+import { getCommerceRules } from "../lib/commerce/rules";
+import { getCatalog, getPriceBook } from "../lib/coffees";
 import type { Metadata } from "next";
 import "@fontsource-variable/archivo/standard.css";
 import "@fontsource/dm-mono/400.css";
@@ -44,7 +47,13 @@ export default function RootLayout({
           <CompareProvider
             validSlugs={getCatalog().map((entry) => entry.coffee.slug)}
           >
-            {children}
+            {commerceEnabled ? (
+              <CartProvider book={getPriceBook()} rules={getCommerceRules()}>
+                {children}
+              </CartProvider>
+            ) : (
+              children
+            )}
           </CompareProvider>
         </SelectionProvider>
       </body>

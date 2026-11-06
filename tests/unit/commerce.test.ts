@@ -22,6 +22,7 @@ import {
   type Deps,
 } from "../../lib/commerce/server/orders";
 import {
+  rateLimit,
   isValidCpf,
   signMercadoPagoNotification,
   verifyMercadoPagoSignature,
@@ -536,4 +537,13 @@ test("live charges need an explicit opt-in; logs never carry personal data", () 
     brasiliaIso(new Date("2026-11-06T15:00:00.000Z")),
     "2026-11-06T12:00:00.000-03:00",
   );
+});
+test("rate limit blocks bursts per key and resets after the window", () => {
+  const key = `teste-${randomUUID()}`;
+  const results = Array.from({ length: 4 }, () =>
+    rateLimit(key, 3, 60_000, 1000),
+  );
+  assert.deepEqual(results, [true, true, true, false]);
+  assert.equal(rateLimit(key, 3, 60_000, 61_001), true);
+  assert.equal(rateLimit(`outra-${key}`, 3, 60_000, 1000), true);
 });

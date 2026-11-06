@@ -1,6 +1,7 @@
 import { getEditorial } from "../lib/editorial";
 import Link from "next/link";
 import { Brand } from "./brand";
+import { commerceEnabled } from "../lib/commerce/client";
 import { contactLinks, getContact } from "../lib/contact";
 export function Footer() {
   const { footer } = getEditorial();
@@ -34,7 +35,11 @@ export function Footer() {
       </div>
       <div className="wrap footer-bottom mono">
         <span>CURA CAFÉ · DA ROÇA À CIDADE</span>
-        <span>{footer.notice}</span>
+        <span>
+          {commerceEnabled
+            ? "Curadoria brasileira · Compra online com Pix e cartão"
+            : footer.notice}
+        </span>
       </div>
     </footer>
   );

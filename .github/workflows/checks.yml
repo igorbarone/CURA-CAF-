@@ -19,3 +19,5 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:scenarios
       - run: npm test
+      # Store (server build) against simulated providers; no real credentials.
+      - run: npm run test:commerce
