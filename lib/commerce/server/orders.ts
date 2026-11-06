@@ -407,12 +407,22 @@ async function latestPayment(db: Queryable, orderId: string) {
 
 // Saves the provider's state and moves the order. Safe to call repeatedly
 // with the same payment: unchanged states do nothing.
+// With `webhookId`, the delivery is marked as handled in the same
+// transaction, so a failure anywhere leaves it free for the provider's retry.
 async function recordPayment(
   deps: Deps,
   orderId: string,
   payment: ProviderPayment,
+  webhookId?: string,
 ) {
   const outcome = await deps.db.transaction(async (tx) => {
+    if (webhookId) {
+      const fresh = await tx.query(
+        "INSERT INTO webhook_events (id, provider, resource_id) VALUES ($1, 'mercadopago', $2) ON CONFLICT (id) DO NOTHING RETURNING id",
+        [webhookId, payment.id],
+      );
+      if (!fresh.length) return "duplicate" as const;
+    }
     await tx.query(
       `INSERT INTO payments (provider_payment_id, order_id, method, status, status_detail, amount_cents,
          pix_qr_code, pix_qr_code_base64, pix_ticket_url, expires_at)
@@ -440,6 +450,7 @@ async function recordPayment(
     )[0];
     return transition(tx, order, payment);
   });
+  if (outcome === "duplicate") return outcome;
   if (outcome === "paid") await notifyOrder(deps, orderId, "payment_confirmed");
   if (outcome === "payment_failed")
     await notifyOrder(deps, orderId, "payment_failed");
@@ -464,6 +475,14 @@ async function transition(
             ? "refunded"
             : null;
   if (!target || order.status === target) return null;
+  // Fulfilment and refunds move forward only: a replayed "approved" never
+  // takes a shipped, delivered or refunded order back to "paid", and only a
+  // refund changes an order that already left.
+  if (
+    ["shipped", "delivered", "refunded"].includes(order.status) &&
+    target !== "refunded"
+  )
+    return null;
   if (target === "paid") {
     if (payment.amountCents !== order.total_cents) {
       await event(tx, order.id, "payment.amount_mismatch", {
@@ -479,11 +498,6 @@ async function transition(
         from: order.status,
       });
     }
-  } else if (
-    ["shipped", "delivered"].includes(order.status) &&
-    target !== "refunded"
-  ) {
-    return null;
   }
   if (target === "payment_failed" || target === "cancelled")
     await release(tx, order);
@@ -508,23 +522,16 @@ export async function handleMercadoPagoNotification(
 ) {
   if (input.type !== "payment")
     return { processed: false, reason: "ignored_type" };
-  const fresh = await deps.db.query(
-    "INSERT INTO webhook_events (id, provider, resource_id) VALUES ($1, 'mercadopago', $2) ON CONFLICT (id) DO NOTHING RETURNING id",
-    [input.requestId, input.dataId],
+  // Known delivery: skip it without calling the provider again.
+  const seen = await deps.db.query(
+    "SELECT 1 FROM webhook_events WHERE id = $1",
+    [input.requestId],
   );
-  if (!fresh.length) return { processed: false, reason: "duplicate" };
-  let payment: ProviderPayment;
-  try {
-    // The notification only says "something changed": the state is read
-    // from Mercado Pago itself, never taken from the notification body.
-    payment = await deps.payments.get(input.dataId);
-  } catch (error) {
-    // Forget the delivery so Mercado Pago's retry is processed.
-    await deps.db.query("DELETE FROM webhook_events WHERE id = $1", [
-      input.requestId,
-    ]);
-    throw error;
-  }
+  if (seen.length) return { processed: false, reason: "duplicate" };
+  // The notification only says "something changed": the state is read from
+  // Mercado Pago itself, never taken from the notification body. A failure
+  // here or below throws before anything is marked, so the retry is processed.
+  const payment = await deps.payments.get(input.dataId);
   const order = (
     await deps.db.query<OrderRow>("SELECT id FROM orders WHERE id::text = $1", [
       payment.externalReference ?? "",
@@ -534,8 +541,10 @@ export async function handleMercadoPagoNotification(
     log("webhook.unknown_order", { paymentId: payment.id });
     return { processed: false, reason: "unknown_order" };
   }
-  const outcome = await recordPayment(deps, order.id, payment);
-  return { processed: true, outcome };
+  const outcome = await recordPayment(deps, order.id, payment, input.requestId);
+  return outcome === "duplicate"
+    ? { processed: false, reason: "duplicate" }
+    : { processed: true, outcome };
 }
 
 // Re-reads pending payments and releases stock of orders left unpaid (e.g. a
@@ -716,4 +725,23 @@ export async function availability(
       ),
     ]),
   );
+}
+
+// Homologation convenience: creates stock rows from the CMS "estoque
+// editorial" for SKUs that have none yet. Existing rows are never touched, so
+// the store's own stock (sales, ops) always wins.
+export async function seedStockFromContent(
+  db: Queryable,
+  offers: { sku: string; availableQuantity: number | null }[],
+) {
+  const seeded: string[] = [];
+  for (const offer of offers)
+    if (offer.availableQuantity !== null) {
+      const rows = await db.query(
+        "INSERT INTO inventory (sku, available) VALUES ($1, $2) ON CONFLICT (sku) DO NOTHING RETURNING sku",
+        [offer.sku, offer.availableQuantity],
+      );
+      if (rows.length) seeded.push(offer.sku);
+    }
+  return seeded;
 }

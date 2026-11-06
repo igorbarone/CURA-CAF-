@@ -132,6 +132,9 @@ test("full Pix purchase: product → cart → checkout → server-confirmed paym
     "Kit técnico A + B",
   );
   await shot(page, "loja-carrinho");
+  // A second, different item: the order (and the reorder) has two lines.
+  await page.getByRole("button", { name: "Adicionar CAFÉ TÉCNICO B" }).click();
+  await expect(page.locator(".header-cart")).toContainText("3 itens");
   await axe(page);
   expect(await noOverflow(page)).toBe(true);
   await page.getByRole("link", { name: "Finalizar compra" }).click();
@@ -141,14 +144,15 @@ test("full Pix purchase: product → cart → checkout → server-confirmed paym
   ).toBeVisible();
   await expect(page.getByLabel("Cartão de crédito")).toHaveCount(0);
   await fillCheckout(page);
-  // 2 × R$ 80,00 + PAC for 1 kg + 150 g tare (18 + 1.15 × 4 = R$ 22,60).
+  // 2 × R$ 80,00 + R$ 52,00 + PAC for 1.25 kg + 150 g tare
+  // (18 + 1.4 × 4 = R$ 23,60).
   await expect(
-    page.getByRole("button", { name: "Gerar Pix de R$ 182,60" }),
+    page.getByRole("button", { name: "Gerar Pix de R$ 235,60" }),
   ).toBeVisible();
   await shot(page, "loja-checkout");
   await axe(page);
   expect(await noOverflow(page)).toBe(true);
-  await page.getByRole("button", { name: "Gerar Pix de R$ 182,60" }).click();
+  await page.getByRole("button", { name: "Gerar Pix de R$ 235,60" }).click();
 
   await expect(page).toHaveURL(/pedido\/\?id=[0-9a-f-]+&token=/);
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
@@ -211,7 +215,7 @@ test("full Pix purchase: product → cart → checkout → server-confirmed paym
   expect(subjects).toContain("Cura Café · Pagamento confirmado");
 
   await page.getByRole("button", { name: "Comprar novamente" }).click();
-  await expect(page.locator(".header-cart")).toContainText("2 itens");
+  await expect(page.locator(".header-cart")).toContainText("3 itens");
   const wrongToken = await page.request.get(
     `api/orders/${orderId}/?token=errado`,
   );

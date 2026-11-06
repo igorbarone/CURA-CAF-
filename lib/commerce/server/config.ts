@@ -34,12 +34,26 @@ const schema = z.object({
   RESEND_API_KEY: optional,
   EMAIL_FROM: optional,
   RESEND_API_BASE: z.string().url().default("https://api.resend.com"),
+  // Set by the Vercel platform and by its Postgres integrations.
+  VERCEL_PROJECT_PRODUCTION_URL: optional,
+  POSTGRES_URL: optional,
+  CURA_STOCK_FROM_CMS: optional,
 });
 export type CommerceConfig = ReturnType<typeof readConfig>;
 export function readConfig(
   env: Record<string, string | undefined> = process.env,
 ) {
-  const raw = schema.parse(env);
+  const parsed = schema.parse(env);
+  // On Vercel, fall back to the project's own address and database variable.
+  const raw = {
+    ...parsed,
+    SITE_URL:
+      parsed.SITE_URL ??
+      (parsed.VERCEL_PROJECT_PRODUCTION_URL
+        ? `https://${parsed.VERCEL_PROJECT_PRODUCTION_URL}`
+        : undefined),
+    DATABASE_URL: parsed.DATABASE_URL ?? parsed.POSTGRES_URL,
+  };
   const enabled =
     raw.CURA_COMMERCE === "enabled" &&
     !!raw.SITE_URL &&
@@ -69,6 +83,7 @@ export function readConfig(
     shipping,
     email: !!raw.RESEND_API_KEY && !!raw.EMAIL_FROM,
     environment: raw.MP_ENVIRONMENT,
+    stockFromCms: raw.CURA_STOCK_FROM_CMS === "true",
     siteUrl: raw.SITE_URL?.replace(/\/$/, "") ?? "",
     databaseUrl: raw.DATABASE_URL ?? "",
     orderTokenSecret: raw.ORDER_TOKEN_SECRET ?? "",
