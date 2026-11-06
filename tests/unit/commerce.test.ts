@@ -547,3 +547,29 @@ test("rate limit blocks bursts per key and resets after the window", () => {
   assert.equal(rateLimit(key, 3, 60_000, 61_001), true);
   assert.equal(rateLimit(`outra-${key}`, 3, 60_000, 1000), true);
 });
+test("a webhook that fails while saving is processed again on the provider's retry", async () => {
+  const order = await createCheckout(deps, checkout());
+  payments.set("1000", { status: "approved" });
+  const requestId = randomUUID();
+  // Break persistence after the provider read succeeds.
+  await db.query("ALTER TABLE payments RENAME TO payments_off");
+  await assert.rejects(notify("1000", requestId));
+  await db.query("ALTER TABLE payments_off RENAME TO payments");
+  assert.equal(await status(order!.id), "pending_payment");
+  assert.equal(
+    (await db.query("SELECT 1 FROM webhook_events WHERE id = $1", [requestId]))
+      .length,
+    0,
+  );
+  assert.deepEqual(await notify("1000", requestId), {
+    processed: true,
+    outcome: "paid",
+  });
+  assert.equal(await status(order!.id), "paid");
+  // A later refund still reaches a paid order through its own notification.
+  payments.set("1000", { status: "refunded" });
+  assert.deepEqual(await notify("1000"), {
+    processed: true,
+    outcome: "refunded",
+  });
+});

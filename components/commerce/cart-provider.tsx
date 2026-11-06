@@ -59,8 +59,10 @@ export function CartProvider({
     () => priceCart(lines, book, rules),
     [lines, book, rules],
   );
-  const update = (next: CartLine[]) =>
-    setLines(normalizeCart(next, book, rules).lines);
+  // Functional updates: several calls in one event (e.g. "Comprar
+  // novamente" with many items) all build on the latest cart.
+  const update = (next: (current: CartLine[]) => CartLine[]) =>
+    setLines((current) => normalizeCart(next(current), book, rules).lines);
   const value: Cart = {
     ...priced,
     ready,
@@ -69,7 +71,7 @@ export function CartProvider({
     add(id, quantity = 1) {
       const item = book[id];
       if (!item) return;
-      update([...lines, { id, quantity }]);
+      update((current) => [...current, { id, quantity }]);
       track("add_to_cart", {
         value: centsToValue(item.unitPriceCents * quantity),
         items: [
@@ -84,15 +86,15 @@ export function CartProvider({
       });
     },
     setQuantity(id, quantity) {
-      update(
+      update((current) =>
         quantity < 1
-          ? lines.filter((line) => line.id !== id)
-          : lines.map((line) => (line.id === id ? { id, quantity } : line)),
+          ? current.filter((line) => line.id !== id)
+          : current.map((line) => (line.id === id ? { id, quantity } : line)),
       );
     },
     remove(id) {
       const line = priced.lines.find((item) => item.id === id);
-      update(lines.filter((item) => item.id !== id));
+      update((current) => current.filter((item) => item.id !== id));
       if (line)
         track("remove_from_cart", {
           value: centsToValue(line.lineTotalCents),
