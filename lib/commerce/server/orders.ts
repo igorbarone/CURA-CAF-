@@ -726,3 +726,22 @@ export async function availability(
     ]),
   );
 }
+
+// Homologation convenience: creates stock rows from the CMS "estoque
+// editorial" for SKUs that have none yet. Existing rows are never touched, so
+// the store's own stock (sales, ops) always wins.
+export async function seedStockFromContent(
+  db: Queryable,
+  offers: { sku: string; availableQuantity: number | null }[],
+) {
+  const seeded: string[] = [];
+  for (const offer of offers)
+    if (offer.availableQuantity !== null) {
+      const rows = await db.query(
+        "INSERT INTO inventory (sku, available) VALUES ($1, $2) ON CONFLICT (sku) DO NOTHING RETURNING sku",
+        [offer.sku, offer.availableQuantity],
+      );
+      if (rows.length) seeded.push(offer.sku);
+    }
+  return seeded;
+}

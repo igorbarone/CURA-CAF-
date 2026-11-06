@@ -106,4 +106,4 @@ Decisões principais:
 
 Para testar a loja localmente: `npm run test:commerce`. O comando monta um ambiente isolado com catálogo fictício, PGlite e simuladores do Mercado Pago, Melhor Envio e Resend. Para operar: `npm run ops`.
 
-Mais detalhes em [Arquitetura, custos, migração e rollback](docs/COMMERCE-ARQUITETURA.md) e em [Dependências e roteiro de ativação](docs/COMMERCE-ATIVACAO.md).
+Mais detalhes em [Arquitetura, custos, migração e rollback](docs/COMMERCE-ARQUITETURA.md), em [Dependências e roteiro de ativação](docs/COMMERCE-ATIVACAO.md) e no [passo a passo da homologação na Vercel](docs/HOMOLOGACAO-VERCEL.md).

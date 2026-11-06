@@ -19,6 +19,7 @@ import {
   orderView,
   quoteShipping,
   reconcilePending,
+  seedStockFromContent,
   type Deps,
 } from "../../lib/commerce/server/orders";
 import {
@@ -599,4 +600,25 @@ test("replayed notifications never move a shipped order backwards", async () => 
   payments.set("1000", { status: "approved" });
   assert.deepEqual(await notify("1000"), { processed: true, outcome: null });
   assert.equal(await status(order!.id), "refunded");
+});
+test("CMS stock seeds only SKUs without a stock row; Vercel variables are understood", async () => {
+  await db.query("DELETE FROM inventory WHERE sku = 'B-250'");
+  const seeded = await seedStockFromContent(db, [
+    { sku: "A-250", availableQuantity: 99 },
+    { sku: "B-250", availableQuantity: 7 },
+    { sku: "X-1", availableQuantity: null },
+  ]);
+  assert.deepEqual(seeded, ["B-250"]);
+  assert.equal(await stock("A-250"), 5);
+  assert.equal(await stock("B-250"), 7);
+  const config = readConfig({
+    CURA_COMMERCE: "enabled",
+    VERCEL_PROJECT_PRODUCTION_URL: "cura-cafe.vercel.app",
+    POSTGRES_URL: "postgres://exemplo",
+    ORDER_TOKEN_SECRET: "x".repeat(40),
+  });
+  assert.equal(config.enabled, true);
+  assert.equal(config.siteUrl, "https://cura-cafe.vercel.app");
+  assert.equal(config.databaseUrl, "postgres://exemplo");
+  assert.equal(config.payments, false);
 });

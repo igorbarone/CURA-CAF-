@@ -6,7 +6,7 @@ import { migrate, openDb } from "./db";
 import { log } from "./log";
 import { mercadoPagoGateway } from "./mercadopago";
 import { resendNotifier, skippedNotifier } from "./notify";
-import { CheckoutError, type Deps } from "./orders";
+import { CheckoutError, seedStockFromContent, type Deps } from "./orders";
 import { rateLimit } from "./security";
 import { melhorEnvioGateway } from "./shipping";
 // One set of dependencies per server process, built from env + CMS content.
@@ -25,6 +25,10 @@ export function runtime() {
     )
       await migrate(db);
     const content = loadContent();
+    if (config.stockFromCms)
+      log("stock.seeded_from_cms", {
+        skus: await seedStockFromContent(db, content.offers),
+      });
     const unavailable = async () => {
       throw new Error("not configured");
     };
