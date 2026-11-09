@@ -10,3 +10,5 @@ playwright-report/
 test-results/
 .next-server
 .cura-data
+app/_api-static-build
+.vercel
