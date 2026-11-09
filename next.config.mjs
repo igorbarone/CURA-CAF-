@@ -5,7 +5,11 @@ const isPages = process.env.GITHUB_PAGES === "true";
 // - server (CURA_TARGET=server): Next.js runtime with commerce API routes.
 // Route handlers are named `route.server.ts`; only the server target lists the
 // `server.ts` extension, so the static export never sees them.
-const isServer = process.env.CURA_TARGET === "server";
+// On Vercel the platform reads this config by itself (without the npm
+// script's CURA_TARGET) and expects the default `.next` output, so a Vercel
+// build is always the server target.
+const onVercel = process.env.VERCEL === "1";
+const isServer = process.env.CURA_TARGET === "server" || onVercel;
 /** @type {import('next').NextConfig} */
 const nextConfig = isServer
   ? {
@@ -15,7 +19,7 @@ const nextConfig = isServer
         NEXT_PUBLIC_MP_PUBLIC_KEY: process.env.MP_PUBLIC_KEY ?? "",
       },
       // Separate output so the static export and the server build never mix.
-      distDir: ".next-server",
+      distDir: onVercel ? ".next" : ".next-server",
       pageExtensions: ["server.ts", "tsx", "ts"],
       images: { unoptimized: true },
       trailingSlash: true,
