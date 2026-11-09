@@ -19,6 +19,7 @@ import {
   orderView,
   quoteShipping,
   reconcilePending,
+  seedStockFromContent,
   type Deps,
 } from "../../lib/commerce/server/orders";
 import {
@@ -546,4 +547,78 @@ test("rate limit blocks bursts per key and resets after the window", () => {
   assert.deepEqual(results, [true, true, true, false]);
   assert.equal(rateLimit(key, 3, 60_000, 61_001), true);
   assert.equal(rateLimit(`outra-${key}`, 3, 60_000, 1000), true);
+});
+test("a webhook that fails while saving is processed again on the provider's retry", async () => {
+  const order = await createCheckout(deps, checkout());
+  payments.set("1000", { status: "approved" });
+  const requestId = randomUUID();
+  // Break persistence after the provider read succeeds.
+  await db.query("ALTER TABLE payments RENAME TO payments_off");
+  await assert.rejects(notify("1000", requestId));
+  await db.query("ALTER TABLE payments_off RENAME TO payments");
+  assert.equal(await status(order!.id), "pending_payment");
+  assert.equal(
+    (await db.query("SELECT 1 FROM webhook_events WHERE id = $1", [requestId]))
+      .length,
+    0,
+  );
+  assert.deepEqual(await notify("1000", requestId), {
+    processed: true,
+    outcome: "paid",
+  });
+  assert.equal(await status(order!.id), "paid");
+  // A later refund still reaches a paid order through its own notification.
+  payments.set("1000", { status: "refunded" });
+  assert.deepEqual(await notify("1000"), {
+    processed: true,
+    outcome: "refunded",
+  });
+});
+test("replayed notifications never move a shipped order backwards", async () => {
+  const order = await createCheckout(deps, checkout());
+  payments.set("1000", { status: "approved" });
+  await notify("1000");
+  assert.equal(
+    await markShipped(deps, order!.id, { code: "BR1", carrier: "Correios" }),
+    true,
+  );
+  for (const next of ["approved", "pending", "cancelled", "rejected"]) {
+    payments.set("1000", { status: next });
+    assert.deepEqual(await notify("1000"), { processed: true, outcome: null });
+    assert.equal(await status(order!.id), "shipped");
+  }
+  assert.equal(
+    await markShipped(deps, order!.id, { code: "BR2", carrier: "Correios" }),
+    false,
+  );
+  assert.equal(await stock("A-250"), 3);
+  payments.set("1000", { status: "refunded" });
+  assert.deepEqual(await notify("1000"), {
+    processed: true,
+    outcome: "refunded",
+  });
+  payments.set("1000", { status: "approved" });
+  assert.deepEqual(await notify("1000"), { processed: true, outcome: null });
+  assert.equal(await status(order!.id), "refunded");
+});
+test("CMS stock seeds only SKUs without a stock row; Vercel variables are understood", async () => {
+  await db.query("DELETE FROM inventory WHERE sku = 'B-250'");
+  const seeded = await seedStockFromContent(db, [
+    { sku: "A-250", availableQuantity: 99 },
+    { sku: "B-250", availableQuantity: 7 },
+    { sku: "X-1", availableQuantity: null },
+  ]);
+  assert.deepEqual(seeded, ["B-250"]);
+  assert.equal(await stock("A-250"), 5);
+  assert.equal(await stock("B-250"), 7);
+  const config = readConfig({
+    CURA_COMMERCE: "enabled",
+    VERCEL_PROJECT_PRODUCTION_URL: "cura-cafe.vercel.app",
+    POSTGRES_URL: "postgres://exemplo",
+    ORDER_TOKEN_SECRET: "x".repeat(40),
+  });
+  assert.equal(config.enabled, true);
+  assert.equal(config.siteUrl, "https://cura-cafe.vercel.app");
+  assert.equal(config.databaseUrl, "postgres://exemplo");
+  assert.equal(config.payments, false);
 });

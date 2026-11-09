@@ -10,6 +10,7 @@ import { resendNotifier, skippedNotifier } from "../lib/commerce/server/notify";
 import {
   markShipped,
   reconcilePending,
+  seedStockFromContent,
   type Deps,
 } from "../lib/commerce/server/orders";
 import { loadContent } from "../lib/content-loader";
@@ -18,6 +19,7 @@ const HELP = `Comandos:
   migrate                         aplica db/migrations
   stock:list                      estoque por SKU (com os SKUs vendáveis do CMS)
   stock:set <SKU> <quantidade>    define o estoque disponível de um SKU
+  stock:seed-cms                  cria o estoque dos SKUs sem registro a partir do estoque editorial do CMS
   orders:list [status]            últimos pedidos (sem dados pessoais)
   order:events <id>               histórico do pedido
   order:ship <id> <rastreio> [transportadora]   marca como enviado e avisa o cliente
@@ -88,6 +90,13 @@ async function main() {
         console.log(`${sku}: ${quantity} disponível(is).`);
         break;
       }
+      case "stock:seed-cms":
+        console.log(
+          "Criados:",
+          (await seedStockFromContent(db, content.offers)).join(", ") ||
+            "nenhum",
+        );
+        break;
       case "orders:list":
         console.table(
           await db.query(
