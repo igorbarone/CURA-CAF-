@@ -3,8 +3,8 @@ const isPages = process.env.GITHUB_PAGES === "true";
 // Two build targets share the same app:
 // - static (default): `output: "export"` for GitHub Pages, no runtime code.
 // - server (CURA_TARGET=server): Next.js runtime with commerce API routes.
-// Route handlers are named `route.server.ts`; only the server target lists the
-// `server.ts` extension, so the static export never sees them.
+// API route handlers are standard `route.ts` files in app/api; the static
+// build (scripts/build-static.ts) moves that folder aside while it exports.
 // On Vercel the platform reads this config by itself (without the npm
 // script's CURA_TARGET) and expects the default `.next` output, so a Vercel
 // build is always the server target.
@@ -20,7 +20,6 @@ const nextConfig = isServer
       },
       // Separate output so the static export and the server build never mix.
       distDir: onVercel ? ".next" : ".next-server",
-      pageExtensions: ["server.ts", "tsx", "ts"],
       images: { unoptimized: true },
       trailingSlash: true,
       outputFileTracingIncludes: {

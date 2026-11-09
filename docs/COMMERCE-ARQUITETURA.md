@@ -22,10 +22,10 @@ Um único app Next.js com **dois alvos de build**:
 | --- | --- | --- |
 | Comando | `GITHUB_PAGES=true npm run build` | `npm run build:server` (`CURA_TARGET=server`) |
 | Saída | `out/`, GitHub Pages | `.next-server/`, runtime Node.js |
-| Rotas de API | não existem | `app/api/**/route.server.ts` |
+| Rotas de API | não existem | `app/api/**/route.ts` |
 | Loja | desligada: checkout e pedido dizem "Compra online em breve" | ligada quando `CURA_COMMERCE=enabled` e as variáveis exigidas existem |
 
-As rotas de API usam a extensão `route.server.ts`. Só o alvo de servidor inclui `server.ts` em `pageExtensions`, então o export estático nunca as vê. O conteúdo continua vindo do mesmo JSON do Pages CMS nos dois alvos: a migração não toca nos dados editoriais.
+As rotas de API são arquivos `route.ts` padrão em `app/api`. O build estático (`npm run build`, via `scripts/build-static.ts`) move essa pasta para uma pasta privada enquanto exporta e a devolve no fim, então o export nunca as vê. Na Vercel (`VERCEL=1`) o alvo é sempre o de servidor, com saída em `.next`. O conteúdo continua vindo do mesmo JSON do Pages CMS nos dois alvos: a migração não toca nos dados editoriais.
 
 ### Fluxo de compra
 

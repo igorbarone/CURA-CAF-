@@ -6,7 +6,7 @@ Criar e evoluir o site oficial da Cura Café, com experiência editorial e comer
 ## Stack
 Next.js App Router + TypeScript + Tailwind CSS, com dois alvos de build (ver docs/COMMERCE-ARQUITETURA.md):
 - **Estático** (padrão, GitHub Pages): sem runtime; loja desligada, checkout e pedido dizem "Compra online em breve".
-- **Servidor** (`npm run build:server`): loja com API em `app/api/**/route.server.ts`, PostgreSQL, Mercado Pago e Melhor Envio.
+- **Servidor** (`npm run build:server`): loja com API em `app/api/**/route.ts`, PostgreSQL, Mercado Pago e Melhor Envio.
 - Preço, frete, estoque e status de pagamento são decididos só no servidor; nunca marcar pedido como pago pelo navegador.
 - Nunca habilitar cobrança real (`CURA_ALLOW_LIVE_PAYMENTS`) nem publicar credenciais sem aprovação explícita da equipe. Não criar checkout falso, preço, desconto, urgência ou benefício inventado.
 
