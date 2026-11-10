@@ -16,7 +16,10 @@ type Cart = ReturnType<typeof priceCart> & {
   ready: boolean;
   book: PriceBook;
   rules: CommerceRules;
-  add: (id: string, quantity?: number) => void;
+  add: (id: string, quantity?: number, options?: { silent?: boolean }) => void;
+  // Last item added, for the confirmation panel; null when dismissed.
+  notice: { id: string; quantity: number } | null;
+  dismissNotice: () => void;
   setQuantity: (id: string, quantity: number) => void;
   remove: (id: string) => void;
   clear: () => void;
@@ -33,6 +36,7 @@ export function CartProvider({
 }) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [ready, setReady] = useState(false);
+  const [notice, setNotice] = useState<Cart["notice"]>(null);
   useEffect(() => {
     try {
       setLines(
@@ -68,10 +72,13 @@ export function CartProvider({
     ready,
     book,
     rules,
-    add(id, quantity = 1) {
+    notice,
+    dismissNotice: () => setNotice(null),
+    add(id, quantity = 1, options = {}) {
       const item = book[id];
       if (!item) return;
       update((current) => [...current, { id, quantity }]);
+      if (!options.silent) setNotice({ id, quantity });
       track("add_to_cart", {
         value: centsToValue(item.unitPriceCents * quantity),
         items: [
@@ -108,7 +115,10 @@ export function CartProvider({
           ],
         });
     },
-    clear: () => setLines([]),
+    clear: () => {
+      setLines([]);
+      setNotice(null);
+    },
   };
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

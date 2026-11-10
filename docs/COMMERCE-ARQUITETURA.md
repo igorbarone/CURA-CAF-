@@ -108,6 +108,7 @@ Nenhuma delas vai para o repositório ou para o CMS. Use o painel de segredos do
 | `SHIPPING_BOX_CM` | sim | `altura x largura x comprimento`, ex. `12x16x24` (**a confirmar** com a embalagem real) |
 | `SHIPPING_TARE_GRAMS` | sim | peso da caixa e proteção, em gramas (**a confirmar**) |
 | `RESEND_API_KEY`, `EMAIL_FROM` | para e-mail | `Cura Café <pedidos@dominio>` |
+| `CEP_API_BASE` | não | padrão `https://viacep.com.br`; busca de endereço pelo CEP no checkout, feita pelo servidor (só o CEP é enviado) |
 
 `/api/commerce/status/` informa o que está ligado (`pix`, `card`, `shipping`) sem expor nenhum valor.
 

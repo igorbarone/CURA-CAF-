@@ -198,7 +198,8 @@ export function OrderStatus() {
             type="button"
             className="button"
             onClick={() => {
-              for (const item of stillSold) cart.add(item.id, item.quantity);
+              for (const item of stillSold)
+                cart.add(item.id, item.quantity, { silent: true });
               setReordered("Itens adicionados ao carrinho.");
             }}
           >

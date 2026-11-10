@@ -104,11 +104,15 @@ export function startMockProviders({
       const input = await body(request);
       shippingCalls.push(input);
       const weight = (input.package as { weight: number }).weight;
+      // A slow, pricier destination, to test that late answers are ignored.
+      const slow =
+        (input.to as { postal_code: string }).postal_code === "69900000";
+      if (slow) await new Promise((resolve) => setTimeout(resolve, 2500));
       return send(200, [
         {
           id: 1,
           name: "PAC",
-          price: (18 + weight * 4).toFixed(2),
+          price: (18 + weight * 4 + (slow ? 80 : 0)).toFixed(2),
           delivery_time: 7,
           company: { name: "Correios" },
         },
@@ -126,6 +130,20 @@ export function startMockProviders({
         },
       ]);
     }
+    const cep = url.pathname.match(/^\/ws\/(\d{8})\/json\/$/);
+    if (cep && request.method === "GET")
+      return send(
+        200,
+        cep[1] === "00000000"
+          ? { erro: "true" }
+          : {
+              cep: cep[1],
+              logradouro: "Avenida Paulista",
+              bairro: "Bela Vista",
+              localidade: "São Paulo",
+              uf: "SP",
+            },
+      );
     if (url.pathname === "/emails" && request.method === "POST") {
       emails.push((await body(request)) as { to: string[]; subject: string });
       return send(200, { id: randomUUID() });

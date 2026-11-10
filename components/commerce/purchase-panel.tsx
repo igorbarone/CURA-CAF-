@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   formatBRL,
   pricePer100g,
@@ -44,6 +44,27 @@ export function PurchasePanel({
   const [selectedId, setSelectedId] = useState(packages[0]?.id ?? "");
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState("");
+  // Mobile bar with price and "Adicionar" while the panel's own button is off
+  // screen (the visitor scrolled to the details or the producer).
+  const addButton = useRef<HTMLButtonElement>(null);
+  const [buttonVisible, setButtonVisible] = useState(true);
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 760px)");
+    const update = () => setNarrow(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+  useEffect(() => {
+    const button = addButton.current;
+    if (!button || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) =>
+      setButtonVisible(entry.isIntersecting),
+    );
+    observer.observe(button);
+    return () => observer.disconnect();
+  });
   const { units, failed } = useAvailability([
     ...packages.map((item) => item.id),
     ...kitIds,
@@ -143,6 +164,7 @@ export function PurchasePanel({
         </p>
       </div>
       <button
+        ref={addButton}
         type="button"
         className="button purchase-add"
         disabled={available === 0}
@@ -150,6 +172,25 @@ export function PurchasePanel({
       >
         Adicionar ao carrinho
       </button>
+      {narrow && !buttonVisible && !cart.notice && (
+        <div className="purchase-sticky" aria-hidden="true">
+          <p>
+            <span>
+              {quantity}× {selected.label}
+            </span>
+            <strong>{formatBRL(selected.unitPriceCents * quantity)}</strong>
+          </p>
+          <button
+            type="button"
+            className="button"
+            tabIndex={-1}
+            disabled={available === 0}
+            onClick={() => add(selected, quantity)}
+          >
+            Adicionar
+          </button>
+        </div>
+      )}
       <p role="status" className="selection-feedback">
         {added && (
           <>
@@ -196,10 +237,11 @@ export function PurchasePanel({
           )
         );
       })}
-      <p className="availability">
-        Frete calculado pelo CEP no carrinho. Pagamento por Pix ou cartão,
-        processado pelo Mercado Pago.
-      </p>
+      <ul className="purchase-trust">
+        <li>Frete calculado pelo CEP, antes de pagar.</li>
+        <li>Pix ou cartão, processados pelo Mercado Pago.</li>
+        <li>O preço e o estoque são conferidos de novo ao finalizar.</li>
+      </ul>
     </aside>
   );
 }

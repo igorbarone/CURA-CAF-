@@ -47,20 +47,8 @@ export function signMercadoPagoNotification(
   const manifest = `id:${dataId.toLowerCase()};request-id:${requestId};ts:${ts};`;
   return `ts=${ts},v1=${createHmac("sha256", secret).update(manifest).digest("hex")}`;
 }
-// CPF check digits (Receita Federal algorithm); rejects repeated digits.
-export function isValidCpf(value: string) {
-  const digits = value.replace(/\D/g, "");
-  if (digits.length !== 11 || /^(\d)\1{10}$/.test(digits)) return false;
-  const check = (length: number) => {
-    const sum = [...digits.slice(0, length)].reduce(
-      (total, digit, index) => total + Number(digit) * (length + 1 - index),
-      0,
-    );
-    const rest = (sum * 10) % 11;
-    return rest === 10 ? 0 : rest;
-  };
-  return check(9) === Number(digits[9]) && check(10) === Number(digits[10]);
-}
+// CPF validation lives with the client-safe helpers (used by the checkout form).
+export { isValidCpf } from "../format";
 // Fixed-window limiter per key. In-memory, so it guards one server instance;
 // a multi-instance deploy needs a shared store (see the architecture doc).
 const windows = new Map<string, { start: number; count: number }>();

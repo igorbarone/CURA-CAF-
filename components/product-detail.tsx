@@ -74,6 +74,15 @@ export function ProductDetail({
               <span>{coffee.profile}</span>
             </h1>
             <p className="coffee-notes">{coffee.notes}</p>
+            {/* In the store, price and "Adicionar" come right after the name:
+                the details below support the choice instead of hiding it. */}
+            {commerceEnabled && (
+              <PurchasePanel
+                coffeeName={coffee.name}
+                coffeeSlug={coffee.slug}
+                lotId={coffee.lotId}
+              />
+            )}
             <p className="body-copy">{coffee.description}</p>
             <dl className="quick-facts">
               {coffee.score !== null && (
@@ -109,17 +118,10 @@ export function ProductDetail({
               <span>{coffee.producers}</span>
             </a>
             {commerceEnabled ? (
-              <>
-                <PurchasePanel
-                  coffeeName={coffee.name}
-                  coffeeSlug={coffee.slug}
-                  lotId={coffee.lotId}
-                />
-                <ContactLinks
-                  links={contactByLot[coffee.lotId ?? ""] ?? []}
-                  note="Dúvidas sobre o café? Fale com a equipe antes de comprar."
-                />
-              </>
+              <ContactLinks
+                links={contactByLot[coffee.lotId ?? ""] ?? []}
+                note="Dúvidas sobre o café? Fale com a equipe antes de comprar."
+              />
             ) : (
               <CommerceStatus
                 offers={entry.offers.filter(
