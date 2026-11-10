@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatBRL, pricePer100g } from "../../lib/commerce/catalog";
 import { crossSell } from "../../lib/commerce/recommendations";
 import { api, messageFor, type ApiError } from "../../lib/commerce/client";
@@ -31,6 +31,8 @@ export function CartView() {
   const [quoteError, setQuoteError] = useState("");
   const [loading, setLoading] = useState(false);
   const [restored, setRestored] = useState(false);
+  // Only the latest freight request may update the screen.
+  const quoteRequest = useRef(0);
   useEffect(() => {
     try {
       setCep(sessionStorage.getItem(CEP_KEY) ?? "");
@@ -57,7 +59,9 @@ export function CartView() {
   // A different cart invalidates the quote; with a known CEP it is quoted
   // again right away, so the total never shows stale freight.
   useEffect(() => {
+    quoteRequest.current += 1;
     setQuote(null);
+    setLoading(false);
     if (
       restored &&
       cart.ready &&
@@ -95,6 +99,7 @@ export function CartView() {
     await quoteFor(cep);
   }
   async function quoteFor(value: string) {
+    const request = ++quoteRequest.current;
     setLoading(true);
     setQuoteError("");
     const result = await api<Quote>("/api/shipping/quote/", {
@@ -104,6 +109,7 @@ export function CartView() {
         lines: cart.lines.map(({ id, quantity }) => ({ id, quantity })),
       }),
     });
+    if (request !== quoteRequest.current) return;
     setLoading(false);
     if (result.ok) {
       setQuote(result.data);

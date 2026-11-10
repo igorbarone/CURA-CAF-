@@ -74,6 +74,9 @@ export function CheckoutForm() {
   // Values filled from the CEP, so a later lookup never overwrites what the
   // visitor typed by hand.
   const autofilled = useRef<Record<string, string>>({});
+  // Only the latest freight request may update the screen: an older answer
+  // (previous CEP or cart) arriving late is ignored.
+  const quoteRequest = useRef(0);
   const [busy, setBusy] = useState(false);
   // One idempotency key per attempt: resubmitting the same data after a
   // network failure reuses it, so the server never creates a second order.
@@ -116,6 +119,7 @@ export function CheckoutForm() {
   // A complete CEP fills the address and quotes the freight by itself.
   const cep = cepDigits(address.cep);
   useEffect(() => {
+    quoteRequest.current += 1;
     setQuote(null);
     setOptionId("");
     if (cep.length !== 8 || !cart.ready || !cart.lines.length) return;
@@ -173,6 +177,7 @@ export function CheckoutForm() {
         ...current,
         cep: "CEP com 8 números.",
       }));
+    const request = ++quoteRequest.current;
     const result = await api<Quote>("/api/shipping/quote/", {
       method: "POST",
       body: JSON.stringify({
@@ -180,6 +185,7 @@ export function CheckoutForm() {
         lines: cart.lines.map(({ id, quantity }) => ({ id, quantity })),
       }),
     });
+    if (request !== quoteRequest.current) return;
     if (!result.ok) return setError(messageFor(result.error as ApiError));
     setQuote(result.data);
     setOptionId(result.data.options[0]?.id ?? "");

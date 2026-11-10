@@ -411,3 +411,23 @@ test("checkout fills the address from the CEP, quotes freight and points at wron
   await axe(page);
   expect(await noOverflow(page)).toBe(true);
 });
+
+test("a late freight answer for a previous CEP never replaces the current one", async ({
+  page,
+}) => {
+  await addFromProduct(page, "teste-b", "250 g · Em grãos", 1);
+  await page.goto("checkout/");
+  const cep = page.getByLabel("CEP", { exact: true });
+  // The first CEP answers slowly (and is pricier); the second answers at once.
+  await cep.fill("69900000");
+  await cep.fill("01310100");
+  const pac = page.locator(".shipping-options .package-option").first();
+  await expect(pac).toContainText("Correios PAC");
+  // 250 g + 150 g tare: 18 + 0.4 × 4 = R$ 19,60 (the slow CEP would be R$ 99,60).
+  await expect(pac).toContainText("R$ 19,60");
+  await page.waitForTimeout(3000);
+  await expect(pac).toContainText("R$ 19,60");
+  await expect(page.locator(".checkout-summary .cart-total")).toContainText(
+    "R$ 71,60",
+  );
+});
