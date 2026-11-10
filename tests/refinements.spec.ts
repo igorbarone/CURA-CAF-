@@ -44,7 +44,7 @@ test("roast and sensory filters preserve the published lot score and displayed f
       );
       if (expected.code === "CURA-26-02") {
         await expect(card.locator(".lot-facts")).toContainText("86 pontos");
-        await expect(card.locator(".lot-facts")).toContainText("Clara");
+        await expect(card.locator(".lot-facts")).toContainText("Média");
       }
       await page.getByLabel("Torra", { exact: true }).selectOption("");
       await page.getByRole("button", { name: "Todos", exact: true }).click();

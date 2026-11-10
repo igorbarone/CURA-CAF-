@@ -53,8 +53,14 @@ Fontes locais Fontsource com licença OFL incluída nos pacotes. O logo utiliza 
 
 ## Dados atuais confirmados
 
-SAMBA — CURA-26-01, Mauricio Lemos e Diego Campos, 84 pontos SCA, torra média, rapadura/melaço, corpo cremoso, acidez média, coado/espresso. Origem detalhada pendente.
+Fonte: rótulos oficiais recebidos em 10/11/2026 (prevalecem sobre a versão anterior).
 
-SALSA — CURA-26-02, Décio José Lemos, Fazenda Serrinha, variedade Arara, 86 pontos SCA, torra clara, laranja/tangerina, acidez cítrica, coado/gelado. Município/UF pendentes.
+SAMBA — Linha Origem, safra 2026, CURA-26-01, de Mauricio Lemos e Diego Campos, Região Campos Altos – MG, 1.200 m, Catucaí, natural, 84 pontos SCA, torra média, rapadura/melaço, corpo cremoso, acidez média, coado/espresso.
 
-Os campos entre colchetes nos rótulos são provisórios e não viram dados do catálogo. Indicação impressa de formato não confirma uma oferta. Os registros comerciais continuam vazios até validação. Não inventar preços, estoque, peso, moagem, contatos, origem, depoimentos, visitas, certificações ou motivos de seleção. Fotos reais exigem autorização e crédito; artes são identificadas como artes, nunca como fotografias.
+SALSA — Linha Origem, safra 2026, CURA-26-02, de Décio José Lemos, Fazenda Serrinha, Região Campos Altos – MG, 1.200 m, Arara, natural, 86 pontos SCA, torra média (antes registrada como clara), laranja/tangerina, acidez cítrica, coado/espresso (antes coado/gelado).
+
+DA CASA — Linha Casa, “sempre disponível”, blend gourmet, “o café do dia a dia”. Sem pontuação, origem ou notas no rótulo; esses campos ficam vazios.
+
+Ofertas aprovadas pela equipe: 250 g em grãos — SAMBA e SALSA R$ 39,90, DA CASA R$ 29,90. Estoque inicial de homologação: 20 unidades cada (ajustável no CMS).
+
+Os campos entre colchetes nos rótulos são provisórios e não viram dados do catálogo. Indicação impressa de formato não confirma uma oferta. Não inventar preços, estoque, peso, moagem, contatos, origem, depoimentos, visitas, certificações ou motivos de seleção. Fotos reais exigem autorização e crédito; artes são identificadas como artes, nunca como fotografias.

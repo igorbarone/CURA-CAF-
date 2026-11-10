@@ -1,0 +1,17 @@
+{
+  "name": "DA CASA",
+  "slug": "da-casa",
+  "description": "O café do dia a dia. Blend gourmet da Linha Casa, sempre disponível.",
+  "tone": "cura",
+  "id": "da-casa",
+  "status": "published",
+  "sortOrder": 2,
+  "primaryLotId": "linha-casa",
+  "media": {
+    "src": "/media/rotulo-2026-da-casa.png",
+    "kind": "artwork",
+    "alt": "Rótulo oficial do café DA CASA, blend gourmet da Linha Casa, o café do dia a dia, 250 gramas em grãos",
+    "credit": "Arte oficial Cura Café · rótulo Linha Casa",
+    "lotId": "linha-casa"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id": "samba-250g-graos",
+  "lotId": "cura-26-01",
+  "status": "published",
+  "sku": "SAMBA-250G-GRAOS",
+  "currency": "BRL",
+  "unitPriceInCents": 3990,
+  "availableQuantity": 20,
+  "weightInGrams": 250,
+  "grind": "Em grãos"
+}
