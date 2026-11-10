@@ -80,6 +80,7 @@ test("full Pix purchase: product → cart → checkout → server-confirmed paym
   await expect(page.locator(".card-price").first()).toContainText(
     "A PARTIR DE R$ 45,00",
   );
+  await shot(page, "loja-home");
   await page
     .getByRole("link", { name: "Comprar CAFÉ TÉCNICO A" })
     .first()
@@ -87,6 +88,7 @@ test("full Pix purchase: product → cart → checkout → server-confirmed paym
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "CAFÉ TÉCNICO A",
   );
+  await shot(page, "loja-produto-inicio");
   const panel = page.getByRole("complementary", {
     name: "Comprar CAFÉ TÉCNICO A",
   });
@@ -106,9 +108,18 @@ test("full Pix purchase: product → cart → checkout → server-confirmed paym
   );
   await panel.getByLabel(/500 g/).check();
   await panel.getByRole("button", { name: "Aumentar quantidade" }).click();
-  await expect(panel.getByText("R$ 160,00")).toBeVisible();
+  await expect(panel.locator(".purchase-total")).toContainText("R$ 160,00");
   await panel.getByRole("button", { name: "Adicionar ao carrinho" }).click();
   await expect(page.locator(".header-cart")).toContainText("2 itens");
+  // Confirmation with the next step, closable with Esc.
+  const notice = page.getByRole("dialog", { name: /Adicionado ao carrinho/ });
+  await expect(notice).toContainText("2× CAFÉ TÉCNICO A · 500 g · Em grãos");
+  await expect(
+    notice.getByRole("link", { name: /Finalizar compra/ }),
+  ).toBeVisible();
+  await shot(page, "loja-mini-carrinho");
+  await page.keyboard.press("Escape");
+  await expect(notice).toHaveCount(0);
   await shot(page, "loja-produto");
   await axe(page);
   expect(await noOverflow(page)).toBe(true);
@@ -344,4 +355,59 @@ test("rejected card and invalid requests never create a paid order", async ({
     publicKey: null,
   });
   void page;
+});
+
+test("checkout fills the address from the CEP, quotes freight and points at wrong fields", async ({
+  page,
+}) => {
+  await addFromProduct(page, "teste-b", "250 g · Em grãos", 1);
+  await page.goto("checkout/");
+  await expect(
+    page.getByRole("navigation", { name: "Etapas da compra" }),
+  ).toContainText("Carrinho");
+  await page.getByLabel("CPF", { exact: true }).fill("52998224725");
+  await expect(page.getByLabel("CPF", { exact: true })).toHaveValue(
+    "529.982.247-25",
+  );
+  await page.getByLabel("Celular com DDD", { exact: true }).fill("11999990000");
+  await expect(page.getByLabel("Celular com DDD", { exact: true })).toHaveValue(
+    "(11) 99999-0000",
+  );
+  await page.getByLabel("CEP", { exact: true }).fill("00000000");
+  await expect(
+    page.getByText("CEP não encontrado. Preencha o endereço."),
+  ).toBeVisible();
+  await page.getByLabel("CEP", { exact: true }).fill("01310100");
+  await expect(page.getByLabel("CEP", { exact: true })).toHaveValue(
+    "01310-100",
+  );
+  await expect(page.getByText(/Endereço preenchido pelo CEP/)).toBeVisible();
+  await expect(page.getByLabel("Rua", { exact: true })).toHaveValue(
+    "Avenida Paulista",
+  );
+  await expect(page.getByLabel("Cidade", { exact: true })).toHaveValue(
+    "São Paulo",
+  );
+  await expect(page.getByLabel("Estado", { exact: true })).toHaveValue("SP");
+  // Freight shows up without pressing "Calcular frete".
+  await expect(
+    page.getByRole("radiogroup", { name: "Opções de entrega" }),
+  ).toBeVisible();
+  await page.getByLabel("CPF", { exact: true }).fill("11111111111");
+  await page.getByText(/Autorizo o uso/).click();
+  await page.getByRole("button", { name: /Gerar Pix de/ }).click();
+  await expect(page.locator(".cart-warning[role=alert]")).toHaveText(
+    "Revise os campos destacados.",
+  );
+  const cpf = page.getByLabel("CPF", { exact: true });
+  await expect(cpf).toHaveAttribute("aria-invalid", "true");
+  // Focus goes to the first wrong field (the name, still empty).
+  await expect(page.getByLabel("Nome completo", { exact: true })).toBeFocused();
+  await expect(
+    page.getByText("CPF inválido. Confira os números."),
+  ).toBeVisible();
+  await expect(page.getByText("Informe nome e sobrenome.")).toBeVisible();
+  await expect(page).toHaveURL(/checkout\/$/);
+  await axe(page);
+  expect(await noOverflow(page)).toBe(true);
 });

@@ -9,6 +9,7 @@ import { Arrow } from "../arrow";
 import { useCart } from "./cart-provider";
 import { QuantityInput } from "./quantity-input";
 import { useAvailability } from "./use-availability";
+import { cepDigits, maskCep } from "../../lib/commerce/format";
 export type Quote = {
   subtotalCents: number;
   freeShipping: boolean;
@@ -29,12 +30,14 @@ export function CartView() {
   const [quote, setQuote] = useState<Quote | null>(null);
   const [quoteError, setQuoteError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [restored, setRestored] = useState(false);
   useEffect(() => {
     try {
       setCep(sessionStorage.getItem(CEP_KEY) ?? "");
     } catch {
       /* optional */
     }
+    setRestored(true);
   }, []);
   useEffect(() => {
     if (cart.ready && cart.lines.length)
@@ -51,8 +54,19 @@ export function CartView() {
     // Once when the cart is shown.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart.ready]);
-  // A different cart invalidates a freight quote made for the previous one.
-  useEffect(() => setQuote(null), [cart.subtotalCents, cart.weightGrams]);
+  // A different cart invalidates the quote; with a known CEP it is quoted
+  // again right away, so the total never shows stale freight.
+  useEffect(() => {
+    setQuote(null);
+    if (
+      restored &&
+      cart.ready &&
+      cart.lines.length &&
+      cepDigits(cep).length === 8
+    )
+      quoteFor(cep);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restored, cart.ready, cart.subtotalCents, cart.weightGrams]);
   if (!cart.ready) return <p className="body-copy">Carregando o carrinho…</p>;
   if (!cart.lines.length)
     return (
@@ -78,12 +92,15 @@ export function CartView() {
   ).slice(0, 2);
   async function estimate(event: React.FormEvent) {
     event.preventDefault();
+    await quoteFor(cep);
+  }
+  async function quoteFor(value: string) {
     setLoading(true);
     setQuoteError("");
     const result = await api<Quote>("/api/shipping/quote/", {
       method: "POST",
       body: JSON.stringify({
-        cep,
+        cep: value,
         lines: cart.lines.map(({ id, quantity }) => ({ id, quantity })),
       }),
     });
@@ -91,7 +108,7 @@ export function CartView() {
     if (result.ok) {
       setQuote(result.data);
       try {
-        sessionStorage.setItem(CEP_KEY, cep);
+        sessionStorage.setItem(CEP_KEY, value);
       } catch {
         /* optional */
       }
@@ -159,7 +176,7 @@ export function CartView() {
               autoComplete="postal-code"
               placeholder="00000-000"
               value={cep}
-              onChange={(event) => setCep(event.target.value)}
+              onChange={(event) => setCep(maskCep(event.target.value))}
             />
             <button type="submit" className="text-link" disabled={loading}>
               {loading ? "Calculando…" : "Calcular"}

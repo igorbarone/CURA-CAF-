@@ -1,6 +1,7 @@
 import { SelectionProvider } from "../components/selection-provider";
 import { CompareProvider } from "../components/compare-provider";
 import { CartProvider } from "../components/commerce/cart-provider";
+import { CartNotice } from "../components/commerce/cart-notice";
 import { commerceEnabled } from "../lib/commerce/client";
 import { getCommerceRules } from "../lib/commerce/rules";
 import { getCatalog, getPriceBook } from "../lib/coffees";
@@ -50,6 +51,7 @@ export default function RootLayout({
             {commerceEnabled ? (
               <CartProvider book={getPriceBook()} rules={getCommerceRules()}>
                 {children}
+                <CartNotice />
               </CartProvider>
             ) : (
               children

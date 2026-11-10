@@ -126,6 +126,20 @@ export function startMockProviders({
         },
       ]);
     }
+    const cep = url.pathname.match(/^\/ws\/(\d{8})\/json\/$/);
+    if (cep && request.method === "GET")
+      return send(
+        200,
+        cep[1] === "00000000"
+          ? { erro: "true" }
+          : {
+              cep: cep[1],
+              logradouro: "Avenida Paulista",
+              bairro: "Bela Vista",
+              localidade: "São Paulo",
+              uf: "SP",
+            },
+      );
     if (url.pathname === "/emails" && request.method === "POST") {
       emails.push((await body(request)) as { to: string[]; subject: string });
       return send(200, { id: randomUUID() });

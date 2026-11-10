@@ -622,3 +622,36 @@ test("CMS stock seeds only SKUs without a stock row; Vercel variables are unders
   assert.equal(config.databaseUrl, "postgres://exemplo");
   assert.equal(config.payments, false);
 });
+test("CEP lookup returns the address, null for unknown CEPs and fails loudly when down", async () => {
+  const { lookupCep } = await import("../../lib/commerce/server/cep");
+  const calls: string[] = [];
+  const fake = (body: unknown, ok = true) =>
+    (async (url: string) => {
+      calls.push(url);
+      return { ok, json: async () => body } as Response;
+    }) as unknown as typeof fetch;
+  assert.deepEqual(
+    await lookupCep("01310-100", {
+      base: "https://cep.test",
+      fetchImpl: fake({
+        logradouro: "Avenida Paulista",
+        bairro: "Bela Vista",
+        localidade: "São Paulo",
+        uf: "SP",
+      }),
+    }),
+    {
+      street: "Avenida Paulista",
+      district: "Bela Vista",
+      city: "São Paulo",
+      state: "SP",
+    },
+  );
+  assert.equal(calls[0], "https://cep.test/ws/01310100/json/");
+  assert.equal(
+    await lookupCep("00000000", { fetchImpl: fake({ erro: "true" }) }),
+    null,
+  );
+  assert.equal(await lookupCep("123", { fetchImpl: fake({}) }), null);
+  await assert.rejects(lookupCep("01310100", { fetchImpl: fake({}, false) }));
+});

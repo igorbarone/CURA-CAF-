@@ -136,6 +136,7 @@ const env: NodeJS.ProcessEnv = {
   RESEND_API_KEY: "re_simulado",
   RESEND_API_BASE: mockUrl,
   EMAIL_FROM: "Cura Café <loja@example.test>",
+  CEP_API_BASE: mockUrl,
   CURA_LOG: "silent",
   CURA_RATE_LIMIT_SCALE: "20",
 };
