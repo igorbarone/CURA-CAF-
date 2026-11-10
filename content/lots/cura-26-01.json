@@ -2,8 +2,8 @@
   "profile": "Doce e cremoso",
   "acidity": "Média",
   "body": "Cremoso",
-  "origin": "Origem exata a confirmar.",
-  "variety": null,
+  "origin": "Região Campos Altos – MG · 1.200 m · processo natural · safra 2026",
+  "variety": "Catucaí",
   "score": 84,
   "roast": "Média",
   "id": "cura-26-01",
@@ -11,7 +11,16 @@
   "code": "CURA-26-01",
   "status": "published",
   "sortOrder": 0,
-  "notes": ["Rapadura", "melaço"],
-  "producers": ["Mauricio Lemos", "Diego Campos"],
-  "preparations": ["Coado", "Espresso"]
+  "notes": [
+    "Rapadura",
+    "melaço"
+  ],
+  "producers": [
+    "Mauricio Lemos",
+    "Diego Campos"
+  ],
+  "preparations": [
+    "Coado",
+    "Espresso"
+  ]
 }

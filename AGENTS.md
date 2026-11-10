@@ -18,7 +18,7 @@ Next.js App Router + TypeScript + Tailwind CSS, com dois alvos de build (ver doc
 - Hierarquia de comunicação: “Democratizando café especial.” é o slogan principal; “Da roça à cidade.” é assinatura de origem; “Encontrado. Escolhido. Explicado.” é o método. B2B prioriza Food Service gastronômico.
 - O slogan usa sempre o gerúndio: **“Democratizando café especial.”** (nunca “Democratizar café especial.”). Quando “democratizar” é verbo dentro de uma frase (“Democratizar é abrir a conversa”, “Democratizar também é servir”), mantém o infinitivo.
 - Não inventar fazendas, altitude, safra, número de lotes provados, preço, depoimentos ou histórias de produtores.
-- Os cafés reais iniciais são SAMBA (CURA-26-01, 84 pontos, torra média, rapadura/melaço) e SALSA (CURA-26-02, 86 pontos, torra clara, cítrico/laranja/tangerina). Outros nomes de mockup são **conceituais**.
+- Os cafés reais são SAMBA (CURA-26-01, 84 pontos, torra média, rapadura/melaço, Catucaí natural), SALSA (CURA-26-02, 86 pontos, torra média, cítrico/laranja/tangerina, Arara natural, Fazenda Serrinha) — ambos Linha Origem, safra 2026, Região Campos Altos – MG, 1.200 m — e DA CASA (blend gourmet da Linha Casa, “o café do dia a dia”). Fonte: rótulos oficiais de 10/11/2026. Ofertas: 250 g em grãos, R$ 39,90 (SAMBA, SALSA) e R$ 29,90 (DA CASA). Outros nomes de mockup são **conceituais**.
 - Não publicar fotografias sintéticas como imagens reais de produtores/fazendas.
 - Referência coffeemais.com apenas para mapear funcionalidades públicas; criar implementação e visual próprios.
 - Mobile-first, acessibilidade, SEO e desempenho.

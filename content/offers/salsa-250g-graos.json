@@ -1,0 +1,11 @@
+{
+  "id": "salsa-250g-graos",
+  "lotId": "cura-26-02",
+  "status": "published",
+  "sku": "SALSA-250G-GRAOS",
+  "currency": "BRL",
+  "unitPriceInCents": 3990,
+  "availableQuantity": 20,
+  "weightInGrams": 250,
+  "grind": "Em grãos"
+}
