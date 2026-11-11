@@ -7,5 +7,15 @@
   "unitPriceInCents": 3990,
   "availableQuantity": 20,
   "weightInGrams": 250,
-  "grind": "Em grãos"
+  "grind": "Em grãos",
+  "promoPriceInCents": null,
+  "commercialLabel": null,
+  "grossWeightInGrams": null,
+  "packageHeightCm": null,
+  "packageWidthCm": null,
+  "packageLengthCm": null,
+  "minQuantity": null,
+  "maxQuantity": null,
+  "saleStartsAt": null,
+  "saleEndsAt": null
 }

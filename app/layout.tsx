@@ -3,7 +3,7 @@ import { CompareProvider } from "../components/compare-provider";
 import { CartProvider } from "../components/commerce/cart-provider";
 import { CartNotice } from "../components/commerce/cart-notice";
 import { commerceEnabled } from "../lib/commerce/client";
-import { getCommerceRules } from "../lib/commerce/rules";
+import { clientRules, getCommerceRules } from "../lib/commerce/rules";
 import { getCatalog, getPriceBook } from "../lib/coffees";
 import type { Metadata } from "next";
 import "@fontsource-variable/archivo/standard.css";
@@ -53,7 +53,10 @@ export default function RootLayout({
             validSlugs={getCatalog().map((entry) => entry.coffee.slug)}
           >
             {commerceEnabled ? (
-              <CartProvider book={getPriceBook()} rules={getCommerceRules()}>
+              <CartProvider
+                book={getPriceBook()}
+                rules={clientRules(getCommerceRules())}
+              >
                 {children}
                 <CartNotice />
               </CartProvider>

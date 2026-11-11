@@ -84,6 +84,16 @@ export function ProductDetail({
               />
             )}
             <p className="body-copy">{coffee.description}</p>
+            {coffee.longDescription && (
+              <p className="body-copy">{coffee.longDescription}</p>
+            )}
+            {coffee.highlights.length > 0 && (
+              <ul className="product-highlights">
+                {coffee.highlights.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            )}
             <dl className="quick-facts">
               {coffee.score !== null && (
                 <div>

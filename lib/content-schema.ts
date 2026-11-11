@@ -18,6 +18,18 @@ const sensoryLevel = z
   )
   .transform((value) => value ?? null);
 const id = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+// Calendar date (YYYY-MM-DD, Brasília) for sale windows; empty = no limit.
+const nullableDate = z
+  .preprocess(
+    (value) => (value === "" ? null : value),
+    z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .nullish(),
+  )
+  .transform((value) => value ?? null);
+const nullableInt = (min: number, max: number) =>
+  nullableNumber(z.number().int().min(min).max(max));
 const mediaSrc = z
   .string()
   .regex(
@@ -41,6 +53,14 @@ export const coffeeSchema = z
     slug: id,
     name: text,
     description: text,
+    // Optional editorial depth and SEO; empty fields fall back to description.
+    longDescription: nullableText,
+    highlights: z
+      .array(text)
+      .nullish()
+      .transform((value) => value ?? []),
+    seoTitle: nullableText,
+    seoDescription: nullableText,
     status: statusSchema,
     sortOrder: z.number().int().nonnegative(),
     primaryLotId: z
@@ -110,10 +130,13 @@ export const lotSchema = z
     origin: nullableText,
     variety: nullableText,
     score: nullableNumber(z.number().min(0).max(100)),
+    // How the score was obtained (e.g. "SCA, avaliação do produtor").
+    scoreMethodology: nullableText,
     roast: nullableText,
     // Structured traceability (CURA Experience). Optional: only confirmed data
     // (e.g. printed on the official label); empty fields stay hidden.
     region: nullableText,
+    municipality: nullableText,
     farm: nullableText,
     altitudeMeters: nullableNumber(z.number().int().positive().max(3000)),
     process: nullableText,
@@ -126,8 +149,15 @@ export const lotSchema = z
     acidityLevel: sensoryLevel,
     sweetnessLevel: sensoryLevel,
     bodyLevel: sensoryLevel,
+    // Sale window of the lot. A new harvest is a new lot: the old one is
+    // archived (never deleted), so its history stays traceable.
+    saleStartsAt: nullableDate,
+    saleEndsAt: nullableDate,
   })
   .strict();
+// Offer = sellable variant (SKU) of a lot. A variant is sold only when it is
+// published and has price, net and gross weight and package dimensions; see
+// sellabilityIssues() in lib/commerce/catalog.ts.
 export const offerSchema = z
   .object({
     id,
@@ -139,8 +169,34 @@ export const offerSchema = z
     availableQuantity: nullableNumber(z.number().int().safe().nonnegative()),
     weightInGrams: nullableNumber(z.number().int().positive()),
     grind: nullableText,
+    // Optional approved promotional price; null = no promotion.
+    promoPriceInCents: nullableNumber(z.number().int().safe().positive()),
+    commercialLabel: nullableText,
+    // Logistics of one packed unit (bag ready to ship), from the team.
+    grossWeightInGrams: nullableInt(1, 30000),
+    packageHeightCm: nullableNumber(z.number().positive().max(100)),
+    packageWidthCm: nullableNumber(z.number().positive().max(100)),
+    packageLengthCm: nullableNumber(z.number().positive().max(100)),
+    minQuantity: nullableInt(1, 50),
+    maxQuantity: nullableInt(1, 50),
+    saleStartsAt: nullableDate,
+    saleEndsAt: nullableDate,
   })
   .strict();
+// Optional variant fields, all empty: a convenience for code that builds
+// offers by hand (fixtures, scenarios).
+export const offerExtras = {
+  promoPriceInCents: null,
+  commercialLabel: null,
+  grossWeightInGrams: null,
+  packageHeightCm: null,
+  packageWidthCm: null,
+  packageLengthCm: null,
+  minQuantity: null,
+  maxQuantity: null,
+  saleStartsAt: null,
+  saleEndsAt: null,
+} as const;
 // A kit is sold only with a price approved by the team; null keeps it hidden.
 export const bundleSchema = z
   .object({
@@ -233,9 +289,44 @@ export const contentSchema = z
         issue(
           `Lote ${lot.id}: latitude e longitude devem ser preenchidas juntas`,
         );
-    for (const offer of data.offers)
+    for (const offer of data.offers) {
       if (!data.lots.some((x) => x.id === offer.lotId))
         issue(`Oferta ${offer.id}: lote inexistente`);
+      if (
+        offer.promoPriceInCents !== null &&
+        (offer.unitPriceInCents === null ||
+          offer.promoPriceInCents >= offer.unitPriceInCents)
+      )
+        issue(
+          `Oferta ${offer.id}: preço promocional precisa ser menor que o preço`,
+        );
+      if (
+        offer.minQuantity !== null &&
+        offer.maxQuantity !== null &&
+        offer.minQuantity > offer.maxQuantity
+      )
+        issue(`Oferta ${offer.id}: quantidade mínima maior que a máxima`);
+      const dims = [
+        offer.packageHeightCm,
+        offer.packageWidthCm,
+        offer.packageLengthCm,
+      ];
+      if (dims.some((v) => v === null) && dims.some((v) => v !== null))
+        issue(`Oferta ${offer.id}: informe as três dimensões da embalagem`);
+      if (
+        offer.grossWeightInGrams !== null &&
+        offer.weightInGrams !== null &&
+        offer.grossWeightInGrams < offer.weightInGrams
+      )
+        issue(`Oferta ${offer.id}: peso bruto menor que o peso líquido`);
+    }
+    for (const item of [...data.offers, ...data.lots])
+      if (
+        item.saleStartsAt &&
+        item.saleEndsAt &&
+        item.saleStartsAt > item.saleEndsAt
+      )
+        issue(`${item.id}: início de venda depois do fim`);
     for (const coffee of data.coffees)
       if (
         coffee.media?.lotId &&

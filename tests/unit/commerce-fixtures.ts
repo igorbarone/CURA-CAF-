@@ -48,6 +48,11 @@ export function fixtureContent(): Content {
     availableQuantity: null,
     weightInGrams: grams,
     grind: "Em grãos",
+    // Fictitious logistics for tests: a bag 20 % heavier than its coffee.
+    grossWeightInGrams: Math.round(grams * 1.2),
+    packageHeightCm: grams >= 1000 ? 30 : grams >= 500 ? 25 : 20,
+    packageWidthCm: grams >= 1000 ? 15 : 12,
+    packageLengthCm: grams >= 1000 ? 10 : 7,
   });
   return contentSchema.parse({
     coffees: [coffee("cafe-a", 0), coffee("cafe-b", 1)],

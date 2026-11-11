@@ -44,6 +44,19 @@ content:
         label: Apresentação
         type: text
         required: true
+      - name: longDescription
+        label: Descrição completa (opcional; vazio = só a apresentação)
+        type: text
+      - name: highlights
+        label: Destaques (frases curtas confirmadas; opcional)
+        type: string
+        list: true
+      - name: seoTitle
+        label: "SEO · Título da página (opcional; vazio = nome do café)"
+        type: string
+      - name: seoDescription
+        label: "SEO · Descrição para buscadores (opcional; vazio = apresentação)"
+        type: text
       - name: status
         label: Estado editorial
         type: select
@@ -253,6 +266,9 @@ content:
       - name: score
         label: Pontuação confirmada (0–100)
         type: number
+      - name: scoreMethodology
+        label: "Metodologia da pontuação (ex.: SCA; somente se confirmada)"
+        type: string
       - name: producerStory
         label: História de quem produz (somente texto confirmado e autorizado; opcional)
         type: text
@@ -261,6 +277,9 @@ content:
         type: text
       - name: region
         label: "Experiência · Região produtora (ex.: Campos Altos – MG; somente se confirmada)"
+        type: string
+      - name: municipality
+        label: "Município / UF (somente se confirmado)"
         type: string
       - name: farm
         label: "Experiência · Fazenda (somente se confirmada)"
@@ -292,6 +311,12 @@ content:
       - name: bodyLevel
         label: "Experiência · Corpo (1 a 5, da ficha sensorial oficial; vazio = oculto)"
         type: number
+      - name: saleStartsAt
+        label: "Venda · Início (AAAA-MM-DD; vazio = sem data)"
+        type: string
+      - name: saleEndsAt
+        label: "Venda · Fim (AAAA-MM-DD; vazio = sem data). Nova safra = novo lote; arquive o antigo, não apague."
+        type: string
   - name: offers
     label: Ofertas (embalagens à venda; preço confirmado em centavos)
     type: collection
@@ -358,6 +383,36 @@ content:
         type: number
       - name: grind
         label: Moagem confirmada
+        type: string
+      - name: promoPriceInCents
+        label: Preço promocional aprovado em centavos (vazio = sem promoção; menor que o preço)
+        type: number
+      - name: commercialLabel
+        label: "Selo comercial (ex.: Novo lote; opcional, somente se verdadeiro)"
+        type: string
+      - name: grossWeightInGrams
+        label: "Envio · Peso bruto da unidade embalada, em gramas (obrigatório para vender)"
+        type: number
+      - name: packageHeightCm
+        label: "Envio · Altura da embalagem em cm (obrigatório para vender)"
+        type: number
+      - name: packageWidthCm
+        label: "Envio · Largura da embalagem em cm (obrigatório para vender)"
+        type: number
+      - name: packageLengthCm
+        label: "Envio · Comprimento da embalagem em cm (obrigatório para vender)"
+        type: number
+      - name: minQuantity
+        label: Quantidade mínima por pedido (vazio = 1)
+        type: number
+      - name: maxQuantity
+        label: Quantidade máxima por pedido (vazio = regra geral da loja)
+        type: number
+      - name: saleStartsAt
+        label: "Venda · Início (AAAA-MM-DD; vazio = sem data)"
+        type: string
+      - name: saleEndsAt
+        label: "Venda · Fim (AAAA-MM-DD; vazio = sem data)"
         type: string
   - name: bundles
     label: Kits (ex. Kit descoberta)
@@ -448,6 +503,79 @@ content:
         type: number
         required: true
         default: 30
+      - name: cardExpirationMinutes
+        label: Prazo para pagar com cartão, em minutos (depois o pedido expira e o estoque volta)
+        type: number
+        required: true
+        default: 60
+      - name: pixDiscountPercent
+        label: Desconto no Pix (% sobre os cafés, nunca sobre o frete)
+        type: number
+        required: true
+        default: 0
+      - name: cardFeeAssumptionPercent
+        label: "Taxa estimada do cartão (% · uso interno nos indicadores; nunca cobrada do cliente)"
+        type: number
+        required: true
+        default: 0
+      - name: shippingSubsidyCents
+        label: Subsídio fixo de frete em centavos (vazio = cliente paga todo o frete)
+        type: number
+      - name: maxVolumeWeightGrams
+        label: Peso máximo por volume em gramas
+        type: number
+        required: true
+        default: 4000
+      - name: packingFillFactor
+        label: Ocupação máxima da caixa (0,3 a 1; ex. 0,8 = 80% do volume interno)
+        type: number
+        required: true
+        default: 0.8
+      - name: shippingServiceIds
+        label: "Serviços do Melhor Envio oferecidos (ids; ex. 1 = Correios PAC, 3 = Jadlog .Package)"
+        type: string
+        list: true
+      - name: boxes
+        label: Caixas de envio (medidas reais da embalagem de transporte)
+        type: object
+        list: true
+        fields:
+          - name: id
+            label: Identificador (letras minúsculas e hífen)
+            type: string
+            required: true
+          - name: label
+            label: Nome
+            type: string
+            required: true
+          - name: innerHeightCm
+            label: Altura interna (cm)
+            type: number
+            required: true
+          - name: innerWidthCm
+            label: Largura interna (cm)
+            type: number
+            required: true
+          - name: innerLengthCm
+            label: Comprimento interno (cm)
+            type: number
+            required: true
+          - name: outerHeightCm
+            label: Altura externa (cm)
+            type: number
+            required: true
+          - name: outerWidthCm
+            label: Largura externa (cm)
+            type: number
+            required: true
+          - name: outerLengthCm
+            label: Comprimento externo (cm)
+            type: number
+            required: true
+          - name: tareGrams
+            label: Peso da caixa vazia com proteção (g)
+            type: number
+            required: true
   - name: home
     label: Destaques da Home
     type: file

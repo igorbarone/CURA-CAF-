@@ -1,5 +1,13 @@
 {
   "freeShippingFromCents": null,
+  "shippingSubsidyCents": null,
   "maxQuantityPerLine": 10,
-  "pixExpirationMinutes": 30
+  "pixExpirationMinutes": 30,
+  "cardExpirationMinutes": 60,
+  "pixDiscountPercent": 5,
+  "cardFeeAssumptionPercent": 3,
+  "maxVolumeWeightGrams": 4000,
+  "packingFillFactor": 0.8,
+  "shippingServiceIds": ["1", "3"],
+  "boxes": []
 }
