@@ -257,3 +257,98 @@ test("tools validate inputs and report errors as data", () => {
   }) as { resultados: { titulo: string }[] };
   assert.ok(search.resultados.some((item) => /conservar/i.test(item.titulo)));
 });
+
+test("compare intent works for any published coffee name, not a fixed list", () => {
+  const catalog = [...names, { slug: "cafe-novo", name: "AURORA" }];
+  const entities = extractEntities(
+    "qual a diferença entre o AURORA e o SAMBA?",
+    catalog,
+  );
+  assert.equal(
+    detectIntent("qual a diferença entre o AURORA e o SAMBA?", entities),
+    "compare",
+  );
+  const one = extractEntities(
+    "diferença entre o AURORA e um café comum",
+    catalog,
+  );
+  assert.equal(
+    detectIntent("diferença entre o AURORA e um café comum", one),
+    "compare",
+  );
+  // Without a coffee name, "diferença entre" is a topic question.
+  const none = extractEntities(
+    "qual a diferença entre TDS e extração?",
+    catalog,
+  );
+  assert.notEqual(
+    detectIntent("qual a diferença entre TDS e extração?", none),
+    "compare",
+  );
+});
+
+test("consultarCompra answers price and stock from the store snapshot, never from memory", () => {
+  const offline = runTool(data, "consultarCompra", { slug: "samba" }) as {
+    cafes: { vendaOnline: string; embalagens: unknown[] }[];
+    descontoPix: string | null;
+  };
+  // No snapshot: the store is reported as "em breve" and no price appears.
+  assert.match(offline.cafes[0].vendaOnline, /em breve/);
+  assert.deepEqual(offline.cafes[0].embalagens, []);
+  assert.equal(offline.descontoPix, null);
+  const shop = {
+    online: true,
+    pixDiscountPercent: 5,
+    offers: [
+      {
+        coffeeSlug: "samba",
+        label: "250 g · Em grãos",
+        priceCents: 3990,
+        listPriceCents: 3990,
+        units: 0,
+      },
+      {
+        coffeeSlug: "salsa",
+        label: "250 g · Em grãos",
+        priceCents: 3990,
+        listPriceCents: 3990,
+        units: 4,
+      },
+    ],
+  };
+  const result = runTool({ ...data, shop }, "consultarCompra", {
+    slug: "samba",
+  }) as {
+    cafes: {
+      vendaOnline: string;
+      embalagens: { preco: string; disponivel: unknown }[];
+    }[];
+    alternativasDisponiveis: { slug: string }[];
+    descontoPix: string;
+    acoes: { href: string }[];
+  };
+  assert.equal(result.cafes[0].vendaOnline, "esgotado no momento");
+  assert.equal(
+    result.cafes[0].embalagens[0].preco.replace(/\s/g, " "),
+    "R$ 39,90",
+  );
+  assert.equal(result.cafes[0].embalagens[0].disponivel, false);
+  assert.deepEqual(
+    result.alternativasDisponiveis.map((a) => a.slug),
+    ["salsa"],
+  );
+  assert.match(result.descontoPix, /5% sobre os cafés no Pix/);
+  assert.equal(result.acoes[0].href, "/cafes/samba/");
+  const all = runTool({ ...data, shop }, "consultarCompra", {}) as {
+    cafes: unknown[];
+  };
+  assert.equal(all.cafes.length, coffees.length);
+  assert.equal(
+    (
+      runTool(data, "consultarCompra", { slug: "inexistente" }) as {
+        ok: boolean;
+      }
+    ).ok,
+    false,
+  );
+});

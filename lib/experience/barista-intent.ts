@@ -156,7 +156,10 @@ export function detectIntent(text: string, entities: Entities): Intent {
     return "diagnose";
   if (
     entities.coffees.length >= 2 ||
-    /diferenca entre (o |a )?(samba|salsa|da casa)|compar/.test(value)
+    // Coffee names come from the published catalog (entities), never from
+    // a fixed list: "diferença entre o <café> e …" works for any coffee.
+    (entities.coffees.length >= 1 && /diferenca entre/.test(value)) ||
+    /compar/.test(value)
   )
     return "compare";
   if (/qual moagem|que moagem|moagem (devo|uso|usar|ideal)/.test(value))

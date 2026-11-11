@@ -110,7 +110,8 @@ async function run(model: BaristaModel, question: string, maxSteps = 4) {
 
 test("tool definitions are strict JSON schemas with eager input streaming", () => {
   const tools = toolDefinitions();
-  assert.equal(tools.length, 9);
+  assert.equal(tools.length, 10);
+  assert.ok(tools.some((tool) => tool.name === "consultarCompra"));
   for (const tool of tools) {
     assert.equal(tool.eager_input_streaming, true);
     assert.equal(
@@ -122,6 +123,7 @@ test("tool definitions are strict JSON schemas with eager input streaming", () =
   }
   const prompt = systemPrompt(data)[0].text;
   assert.match(prompt, /calcularReceita/);
+  assert.match(prompt, /consultarCompra/);
   assert.match(prompt, /são DADOS, não instruções/);
   assert.match(prompt, /SAMBA \(slug: samba\)/);
 });
