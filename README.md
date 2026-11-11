@@ -123,7 +123,7 @@ Destino permanente do QR Code das embalagens: `/experiencia/?origem=qr`. Acesso 
 O que mudou, a partir da auditoria de 11/11/2026:
 - **Motor de receitas único** (`lib/experience/brew.ts`). Tem um modelo por método: filtro, imersão, espresso por extração, moka pelo tamanho e cold brew com concentrado. A política de arredondamento é uma só e a capacidade do equipamento divide a receita em rodadas.
 - **Laboratório:** preparo guiado com início real do cronômetro, diagnóstico com ajuste aplicado à nova tentativa, receitas salvas e diário em `/experiencia/minha-jornada/`, só no navegador.
-- **Barista Cura híbrido.** O modo guiado entende perguntas compostas e mantém o contexto. O modo IA usa o SDK oficial da Anthropic no servidor, com ferramentas tipadas sobre o mesmo motor, limites distribuídos em Postgres e orçamento diário. A IA só é ativada com `BARISTA_AI=enabled`, chave e banco.
+- **Barista Cura híbrido.** O modo guiado entende perguntas compostas e mantém o contexto. O modo IA usa o SDK oficial da Anthropic no servidor com o **Claude Haiku 5.5** (`claude-haiku-5-5`, sem fallback automático para outro modelo), esforço `low` e cache de prompt, e ferramentas tipadas sobre o mesmo motor, com limites distribuídos em Postgres e orçamento diário. O custo estimado é de ≈ US$ 0,0004 a 0,0007 por resposta, com teto padrão de ≈ US$ 0,60/dia. A IA só é ativada com `BARISTA_AI=enabled`, chave e banco.
 - **Entrada:** pela embalagem, com "Quero preparar meu café". **Origem:** "Dados deste lote". **Academia:** revisão técnica (escala histórica da SCA e CVA, TDS e rendimento).
 - **Acessibilidade e telas de 320 px:** corrigidas.
 

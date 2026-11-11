@@ -172,7 +172,15 @@ export function createBaristaHandler(deps: HandlerDeps) {
     if (!release) return json({ error: "busy" }, 429, { "Retry-After": "5" });
 
     // Keep the context small: the last 12 turns are enough for a chat.
-    const history = body.messages.slice(-12);
+    // Bounded context = bounded cost: the last N messages, with earlier
+    // Barista replies trimmed (the latest question is kept whole).
+    const history = body.messages
+      .slice(-config.historyMessages)
+      .map((turn, index, all) =>
+        index === all.length - 1 || turn.role === "user"
+          ? turn
+          : { ...turn, content: turn.content.slice(0, config.historyChars) },
+      );
     if (history[0].role !== "user") history.shift();
     const timeout = new AbortController();
     const timer = setTimeout(() => timeout.abort(), config.timeoutMs);
