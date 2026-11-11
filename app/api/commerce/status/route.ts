@@ -10,6 +10,5 @@ export function GET() {
     card: config.card,
     shipping: config.shipping,
     environment: config.environment,
-    publicKey: config.card ? config.mp.publicKey : null,
   });
 }

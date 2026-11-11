@@ -3,9 +3,13 @@ import type {
   PaymentGateway,
   PaymentRequest,
   ProviderPayment,
-} from "../../lib/commerce/server/mercadopago";
-import { GatewayError } from "../../lib/commerce/server/mercadopago";
-import type { ShippingGateway } from "../../lib/commerce/server/shipping";
+} from "../../lib/commerce/server/asaas";
+import { GatewayError } from "../../lib/commerce/server/asaas";
+import type { Volume } from "../../lib/commerce/packing";
+import type {
+  LabelRequest,
+  ShippingGateway,
+} from "../../lib/commerce/server/shipping";
 import type { Notifier, OrderMessage } from "../../lib/commerce/server/notify";
 // Test-only catalog with prices. These values exist only in tests and never
 // describe a real Cura Café offer.
@@ -100,9 +104,38 @@ export function fixtureContent(): Content {
   });
 }
 export const VALID_CPF = "52998224725";
+// Test boxes (fictitious measures): a small box for up to ~4 bags of 250 g
+// and a larger one; 4 kg per volume at most (rules default).
+export const TEST_BOXES = [
+  {
+    id: "caixa-p",
+    label: "Caixa P (teste)",
+    innerHeightCm: 12,
+    innerWidthCm: 16,
+    innerLengthCm: 22,
+    outerHeightCm: 13,
+    outerWidthCm: 17,
+    outerLengthCm: 23,
+    tareGrams: 150,
+  },
+  {
+    id: "caixa-g",
+    label: "Caixa G (teste)",
+    innerHeightCm: 20,
+    innerWidthCm: 26,
+    innerLengthCm: 32,
+    outerHeightCm: 21,
+    outerWidthCm: 27,
+    outerLengthCm: 33,
+    tareGrams: 300,
+  },
+];
+// Asaas stand-in with the gateway contract: charges keyed by order
+// (externalReference), Pix QR for pending Pix, invoiceUrl for card.
 export function fakePayments() {
   const store = new Map<string, ProviderPayment>();
   const created: PaymentRequest[] = [];
+  const cancelled: string[] = [];
   let failNext = 0;
   let sequence = 1000;
   const gateway: PaymentGateway = {
@@ -111,46 +144,59 @@ export function fakePayments() {
         failNext -= 1;
         throw new GatewayError("rede", null);
       }
+      const existing = [...store.values()].find(
+        (payment) =>
+          payment.externalReference === request.orderId &&
+          payment.status !== "DELETED",
+      );
+      if (existing) return { ...existing };
       created.push(request);
-      const id = String(sequence++);
-      const status =
-        request.method === "pix"
-          ? "pending"
-          : request.token === "tok-reject"
-            ? "rejected"
-            : request.token === "tok-review"
-              ? "in_process"
-              : "approved";
+      const id = `pay_${sequence++}`;
       const payment: ProviderPayment = {
         id,
-        status,
-        statusDetail: status === "rejected" ? "cc_rejected_other_reason" : null,
+        status: "PENDING",
         amountCents: request.amountCents,
+        netAmountCents: null,
         externalReference: request.orderId,
-        method: request.method === "pix" ? "pix" : request.paymentMethodId,
+        method: request.method,
+        invoiceUrl: `https://asaas.test/i/${id}`,
         pix:
           request.method === "pix"
-            ? {
-                qrCode: `PIX-${id}`,
-                qrCodeBase64: "iVBORw0KGgo=",
-                ticketUrl: `https://pix.test/${id}`,
-              }
+            ? { payload: `00020126-PIX-${id}`, encodedImage: "iVBORw0KGgo=" }
             : null,
-        expiresAt:
-          request.method === "pix" ? request.expiresAt.toISOString() : null,
       };
       store.set(id, payment);
-      return payment;
+      return { ...payment };
     },
     async get(id) {
       const payment = store.get(id);
-      if (!payment) throw new GatewayError("não encontrado", 404);
+      // Like the real client: a charge Asaas does not know reads as DELETED.
+      if (!payment)
+        return {
+          id,
+          status: "DELETED",
+          amountCents: 0,
+          netAmountCents: null,
+          externalReference: null,
+          method: "pix",
+          invoiceUrl: null,
+          pix: null,
+        };
       return { ...payment };
+    },
+    async cancel(id) {
+      cancelled.push(id);
+      const payment = store.get(id);
+      if (!payment) throw new GatewayError("não encontrado", 404);
+      if (payment.status !== "PENDING")
+        throw new GatewayError("não pode remover", 400);
+      store.set(id, { ...payment, status: "DELETED" });
     },
   };
   return {
     gateway,
     created,
+    cancelled,
     store,
     failNext: (count = 1) => {
       failNext = count;
@@ -160,26 +206,82 @@ export function fakePayments() {
     },
   };
 }
-export function fakeShipping(
-  options = [
-    { id: "1", name: "PAC", company: "Correios", priceCents: 2290, days: 7 },
-    { id: "2", name: "SEDEX", company: "Correios", priceCents: 4190, days: 2 },
-  ],
-) {
-  const calls: { toCep: string; weightGrams: number }[] = [];
+// Melhor Envio stand-in: price grows with weight and distance (first CEP
+// digit), PAC and .Package by default; labels recorded per volume.
+export function fakeShipping({
+  services = ["1", "3"],
+}: { services?: string[] } = {}) {
+  const calls: { toCep: string; volumes: Volume[]; services: string[] }[] = [];
+  const carts: LabelRequest[] = [];
+  const purchased: string[][] = [];
   let down = false;
+  let failAt: string | null = null;
+  const names: Record<string, [string, string]> = {
+    "1": ["PAC", "Correios"],
+    "2": ["SEDEX", "Correios"],
+    "3": [".Package", "Jadlog"],
+  };
+  const fail = async (step: string) => {
+    if (down || failAt === step) {
+      const { ShippingError } =
+        await import("../../lib/commerce/server/shipping");
+      throw new ShippingError(`fora do ar (${step})`);
+    }
+  };
+  let sequence = 1;
   const gateway: ShippingGateway = {
     async quote(input) {
       calls.push(input);
-      if (down) {
-        const { ShippingError } =
-          await import("../../lib/commerce/server/shipping");
-        throw new ShippingError("fora do ar");
-      }
-      return options;
+      await fail("quote");
+      const region = Number(input.toCep[0]);
+      return services
+        .filter((id) => !input.services.length || input.services.includes(id))
+        .map((id) => ({
+          id,
+          name: names[id][0],
+          company: names[id][1],
+          priceCents: input.volumes.reduce(
+            (sum, volume) =>
+              sum +
+              1500 +
+              region * 150 +
+              Math.ceil(volume.weightGrams / 100) * 20 +
+              (id === "3" ? 300 : 0),
+            0,
+          ),
+          days: 3 + region,
+          volumes: input.volumes.length,
+        }))
+        .sort((a, b) => a.priceCents - b.priceCents);
+    },
+    async addToCart(request) {
+      await fail("cart");
+      carts.push(request);
+      return { id: `me-${sequence++}`, priceCents: 2000 };
+    },
+    async checkout(ids) {
+      await fail("checkout");
+      purchased.push(ids);
+    },
+    async generate() {
+      await fail("generate");
+    },
+    async print(ids) {
+      await fail("print");
+      return `https://melhorenvio.test/print/${ids.join("-")}`;
+    },
+    async tracking(ids) {
+      return Object.fromEntries(ids.map((id) => [id, `BR${id.toUpperCase()}`]));
     },
   };
-  return { gateway, calls, setDown: (value: boolean) => (down = value) };
+  return {
+    gateway,
+    calls,
+    carts,
+    purchased,
+    setDown: (value: boolean) => (down = value),
+    failAt: (step: string | null) => (failAt = step),
+  };
 }
 export function fakeNotifier() {
   const sent: OrderMessage[] = [];

@@ -13,39 +13,11 @@ export function safeEqual(a: string, b: string) {
 }
 export const sha256 = (value: string) =>
   createHash("sha256").update(value).digest("hex");
-// Mercado Pago signs notifications with x-signature "ts=<ts>,v1=<hmac>" over
-// "id:<data.id>;request-id:<x-request-id>;ts:<ts>;" using the webhook secret.
-export function verifyMercadoPagoSignature({
-  secret,
-  signature,
-  requestId,
-  dataId,
-}: {
-  secret: string;
-  signature: string | null;
-  requestId: string | null;
-  dataId: string | null;
-}) {
-  if (!secret || !signature || !requestId || !dataId) return false;
-  const parts = Object.fromEntries(
-    signature.split(",").map((part) => {
-      const [key, ...value] = part.trim().split("=");
-      return [key, value.join("=")];
-    }),
-  );
-  if (!parts.ts || !parts.v1) return false;
-  const manifest = `id:${dataId.toLowerCase()};request-id:${requestId};ts:${parts.ts};`;
-  const expected = createHmac("sha256", secret).update(manifest).digest("hex");
-  return safeEqual(expected, parts.v1);
-}
-export function signMercadoPagoNotification(
-  secret: string,
-  dataId: string,
-  requestId: string,
-  ts = String(Date.now()),
-) {
-  const manifest = `id:${dataId.toLowerCase()};request-id:${requestId};ts:${ts};`;
-  return `ts=${ts},v1=${createHmac("sha256", secret).update(manifest).digest("hex")}`;
+// Asaas authenticates webhooks with the token chosen when the webhook was
+// created, sent back in the `asaas-access-token` header. Compared in
+// constant time; an empty secret never matches.
+export function verifyWebhookToken(expected: string, received: string | null) {
+  return !!expected && !!received && safeEqual(expected, received);
 }
 // CPF validation lives with the client-safe helpers (used by the checkout form).
 export { isValidCpf } from "../format";

@@ -1,95 +1,119 @@
-// Operação da loja em homologação (sem painel web): banco, estoque e pedidos.
-// Uso: npm run ops -- <comando> [argumentos]. Lê DATABASE_URL e as demais
-// variáveis do ambiente; nada aqui imprime CPF, e-mail, telefone ou endereço.
+// Operação da loja pela linha de comando (o painel /admin faz o mesmo pela
+// web). Uso: npm run ops -- <comando> [argumentos]. Lê DATABASE_URL e as
+// demais variáveis do ambiente; nada aqui imprime CPF, e-mail, telefone ou
+// endereço.
+import { stdin, stdout } from "node:process";
+import { createInterface } from "node:readline/promises";
 import { buildPriceBook } from "../lib/commerce/catalog";
 import { getCommerceRules } from "../lib/commerce/rules";
+import { hashPassword } from "../lib/commerce/server/admin-auth";
 import { readConfig } from "../lib/commerce/server/config";
 import { migrate, openDb } from "../lib/commerce/server/db";
-import { mercadoPagoGateway } from "../lib/commerce/server/mercadopago";
+import { indicators } from "../lib/commerce/server/indicators";
+import {
+  buyLabel,
+  refreshTracking,
+  type LabelDeps,
+} from "../lib/commerce/server/labels";
 import { resendNotifier, skippedNotifier } from "../lib/commerce/server/notify";
 import {
-  markShipped,
-  reconcilePending,
+  advanceFulfillment,
+  reconcile,
   seedStockFromContent,
-  type Deps,
 } from "../lib/commerce/server/orders";
+import { gateways } from "../lib/commerce/server/runtime";
+import {
+  adjustStock,
+  setPaused,
+  stockReport,
+} from "../lib/commerce/server/stock";
 import { loadContent } from "../lib/content-loader";
 
 const HELP = `Comandos:
+  admin:hash                      gera ADMIN_PASSWORD_HASH (pede a senha, não a imprime)
   migrate                         aplica db/migrations
-  stock:list                      estoque por SKU (com os SKUs vendáveis do CMS)
-  stock:set <SKU> <quantidade>    define o estoque disponível de um SKU
+  stock:list                      variantes, bloqueios de venda, estoque, reservado e vendido
+  stock:set <SKU> <qtd> <motivo>  define o estoque disponível (registra o ajuste)
+  stock:pause <SKU> | stock:resume <SKU>   pausa ou retoma a venda de um SKU
   stock:seed-cms                  cria o estoque dos SKUs sem registro a partir do estoque editorial do CMS
   orders:list [status]            últimos pedidos (sem dados pessoais)
   order:events <id>               histórico do pedido
-  order:ship <id> <rastreio> [transportadora]   marca como enviado e avisa o cliente
+  order:prepare <id>              marca como "em preparação"
+  order:label <id> [chave NF-e]   compra e gera a etiqueta no Melhor Envio (ação explícita)
+  order:tracking <id>             atualiza o rastreio da etiqueta
+  order:ship <id> <rastreio> [transportadora]   marca como enviado sem etiqueta do site
   order:deliver <id>              marca como entregue
-  orders:reconcile [minutos]      revisa pendentes antigos (padrão 60) e libera estoque`;
+  indicators [dias]               indicadores (padrão: 30 dias; "todos" = desde o início)
+  reconcile                       relê cobranças pendentes e expira pedidos vencidos`;
 
 async function main() {
   const [command, ...args] = process.argv.slice(2);
+  if (command === "admin:hash") {
+    const rl = createInterface({ input: stdin, output: stdout });
+    const password = await rl.question(
+      "Senha do painel (mín. 12 caracteres): ",
+    );
+    rl.close();
+    if (password.length < 12) throw new Error("Use pelo menos 12 caracteres.");
+    console.log(`ADMIN_PASSWORD_HASH=${hashPassword(password)}`);
+    return;
+  }
   const config = readConfig();
   if (!config.databaseUrl) throw new Error("Defina DATABASE_URL.");
   const db = await openDb(config.databaseUrl);
   try {
     const content = loadContent();
     const book = buildPriceBook(content);
-    const unavailable = async () => {
-      throw new Error("Mercado Pago não configurado");
-    };
-    const deps: Deps = {
+    const skus = content.offers.map((offer) => offer.sku);
+    const rules = getCommerceRules();
+    const deps: LabelDeps = {
       db,
       book,
-      rules: getCommerceRules(),
+      rules,
       siteUrl: config.siteUrl,
       tokenSecret: config.orderTokenSecret,
-      payments: config.payments
-        ? mercadoPagoGateway({
-            base: config.mp.base,
-            accessToken: config.mp.accessToken,
-          })
-        : { create: unavailable, get: unavailable },
-      shipping: { quote: unavailable },
+      ...gateways(config),
       notifier: config.email ? resendNotifier(config.resend) : skippedNotifier,
     };
     switch (command) {
       case "migrate":
         console.log("Aplicadas:", (await migrate(db)).join(", ") || "nenhuma");
         break;
-      case "stock:list": {
-        const rows = await db.query<{ sku: string; available: number }>(
-          "SELECT sku, available FROM inventory ORDER BY sku",
-        );
-        const stock = new Map(rows.map((row) => [row.sku, row.available]));
-        const skus = new Set([
-          ...stock.keys(),
-          ...content.offers.map((offer) => offer.sku),
-        ]);
+      case "stock:list":
         console.table(
-          [...skus].sort().map((sku) => ({
-            sku,
-            disponivel: stock.get(sku) ?? "sem registro (indisponível)",
-            vendavel: Object.values(book).some((item) =>
-              item.skus.some((entry) => entry.sku === sku),
-            ),
+          (await stockReport(db, content, book)).map((row) => ({
+            sku: row.sku,
+            estado: row.status,
+            vendavel: row.sellable ? "sim" : row.issues.join("; "),
+            disponivel: row.available ?? "sem registro",
+            pausado: row.paused,
+            reservado: row.held,
+            vendido: row.sold,
           })),
         );
         break;
-      }
       case "stock:set": {
-        const [sku, value] = args;
-        const quantity = Number(value);
-        if (!sku || !Number.isInteger(quantity) || quantity < 0)
-          throw new Error("Uso: stock:set <SKU> <quantidade inteira ≥ 0>");
-        if (!content.offers.some((offer) => offer.sku === sku))
-          throw new Error(`SKU ${sku} não existe nas ofertas do CMS.`);
-        await db.query(
-          "INSERT INTO inventory (sku, available) VALUES ($1, $2) ON CONFLICT (sku) DO UPDATE SET available = EXCLUDED.available, updated_at = now()",
-          [sku, quantity],
+        const [sku, value, ...reason] = args;
+        const result = await adjustStock(
+          db,
+          {
+            sku,
+            set: Number(value),
+            reason: reason.join(" ") || "ajuste pela linha de comando",
+            actor: "ops",
+          },
+          skus,
         );
-        console.log(`${sku}: ${quantity} disponível(is).`);
+        console.log(`${result.sku}: ${result.before} → ${result.after}.`);
         break;
       }
+      case "stock:pause":
+      case "stock:resume":
+        await setPaused(db, args[0], command === "stock:pause", "ops", skus);
+        console.log(
+          `${args[0]}: venda ${command === "stock:pause" ? "pausada" : "retomada"}.`,
+        );
+        break;
       case "stock:seed-cms":
         console.log(
           "Criados:",
@@ -100,9 +124,11 @@ async function main() {
       case "orders:list":
         console.table(
           await db.query(
-            `SELECT id, status, payment_method AS metodo, total_cents AS total_centavos,
-               address->>'state' AS uf, tracking_code AS rastreio, created_at AS criado
-             FROM orders ${args[0] ? "WHERE status = $1" : ""} ORDER BY created_at DESC LIMIT 50`,
+            `SELECT id, status, fulfillment_status AS logistica, payment_method AS metodo,
+               total_cents AS total_centavos, discount_cents AS desconto, address->>'state' AS uf,
+               tracking_code AS rastreio, created_at AS criado
+             FROM orders ${args[0] ? "WHERE status = $1 OR fulfillment_status = $1" : ""}
+             ORDER BY created_at DESC LIMIT 50`,
             args[0] ? [args[0]] : [],
           ),
         );
@@ -115,37 +141,41 @@ async function main() {
           ),
         );
         break;
+      case "order:prepare":
+        await advanceFulfillment(deps, args[0], "preparing");
+        console.log("Pedido em preparação.");
+        break;
+      case "order:label":
+        console.log(
+          await buyLabel(deps, args[0], { invoiceKey: args[1] ?? null }),
+        );
+        break;
+      case "order:tracking":
+        console.log(await refreshTracking(deps, args[0]));
+        break;
       case "order:ship":
         if (!args[0] || !args[1])
           throw new Error("Uso: order:ship <id> <rastreio> [transportadora]");
+        await advanceFulfillment(deps, args[0], "shipped", {
+          code: args[1],
+          carrier: args[2] ?? null,
+        });
+        console.log("Pedido marcado como enviado.");
+        break;
+      case "order:deliver":
+        await advanceFulfillment(deps, args[0], "delivered");
+        console.log("Pedido entregue.");
+        break;
+      case "indicators":
         console.log(
-          (await markShipped(deps, args[0], {
-            code: args[1],
-            carrier: args[2] ?? null,
-          }))
-            ? "Pedido marcado como enviado."
-            : "Nada alterado: só pedidos pagos podem ser enviados.",
+          await indicators(db, rules, {
+            days: args[0] === "todos" ? null : Number(args[0] ?? 30),
+          }),
         );
         break;
-      case "order:deliver": {
-        const rows = await db.query(
-          "UPDATE orders SET status = 'delivered', updated_at = now() WHERE id = $1 AND status = 'shipped' RETURNING id",
-          [args[0]],
-        );
-        if (rows.length)
-          await db.query(
-            "INSERT INTO order_events (order_id, type) VALUES ($1, 'order.delivered')",
-            [args[0]],
-          );
-        console.log(
-          rows.length
-            ? "Pedido entregue."
-            : "Nada alterado: o pedido precisa estar enviado.",
-        );
-        break;
-      }
+      case "reconcile":
       case "orders:reconcile":
-        console.log(await reconcilePending(deps, Number(args[0] ?? 60)));
+        console.log(await reconcile(deps));
         break;
       default:
         console.log(HELP);
