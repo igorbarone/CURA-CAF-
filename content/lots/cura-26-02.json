@@ -21,5 +21,16 @@
   "preparations": [
     "Coado",
     "Espresso"
-  ]
+  ],
+  "region": "Campos Altos – MG",
+  "farm": "Fazenda Serrinha",
+  "altitudeMeters": 1200,
+  "process": "Natural",
+  "harvest": "2026",
+  "latitude": null,
+  "longitude": null,
+  "intensityLevel": null,
+  "acidityLevel": null,
+  "sweetnessLevel": null,
+  "bodyLevel": null
 }

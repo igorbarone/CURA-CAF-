@@ -13,5 +13,16 @@
   "sortOrder": 0,
   "notes": [],
   "producers": [],
-  "preparations": []
+  "preparations": [],
+  "region": null,
+  "farm": null,
+  "altitudeMeters": null,
+  "process": null,
+  "harvest": null,
+  "latitude": null,
+  "longitude": null,
+  "intensityLevel": null,
+  "acidityLevel": null,
+  "sweetnessLevel": null,
+  "bodyLevel": null
 }

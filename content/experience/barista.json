@@ -1,0 +1,272 @@
+{
+  "greeting": "Olá! Eu sou o Barista Cura. Posso ajudar a preparar seu café, ajustar uma receita, entender um conceito ou escolher um café. Por onde começamos?",
+  "disclaimer": "Assistente educativo com respostas estruturadas a partir da base revisada da Cura e dos dados publicados de cada café. Não é uma inteligência artificial generativa e não guarda suas mensagens.",
+  "starters": [
+    "diagnostico",
+    "receita",
+    "recomendar",
+    "metodos",
+    "cafe-especial",
+    "moagem"
+  ],
+  "topics": [
+    {
+      "id": "cafe-especial",
+      "label": "O que é café especial?",
+      "keywords": [
+        "café especial",
+        "cafe especial",
+        "o que é especial",
+        "especial"
+      ],
+      "answer": [
+        "Café especial é aquele que passa por uma avaliação sensorial e alcança pelo menos 80 pontos, de 0 a 100, na metodologia da SCA.",
+        "Para chegar lá, é preciso cuidado em todas as etapas: cultivo, colheita, secagem, armazenamento e torra."
+      ],
+      "followUps": ["pontuacao", "gourmet"],
+      "link": {
+        "href": "/experiencia/aprender/cafe-sem-complicacao/#o-que-e-cafe-especial",
+        "label": "Ler na Academia"
+      }
+    },
+    {
+      "id": "pontuacao",
+      "label": "O que significam os pontos?",
+      "keywords": [
+        "pontos",
+        "pontuação",
+        "pontuacao",
+        "nota",
+        "84",
+        "86",
+        "sca"
+      ],
+      "answer": [
+        "É a nota da avaliação sensorial. A partir de 80 pontos o café é especial; de 80 a 84,99 é classificado como muito bom; de 85 a 89,99, como excelente.",
+        "Pontuação mostra qualidade técnica. Preferência é pessoal: o seu paladar continua sendo o melhor guia."
+      ],
+      "followUps": ["recomendar", "cafe-especial"],
+      "link": {
+        "href": "/experiencia/aprender/cafe-sem-complicacao/#o-que-significam-os-pontos",
+        "label": "Ler na Academia"
+      }
+    },
+    {
+      "id": "gourmet",
+      "label": "Tradicional, gourmet e especial",
+      "keywords": ["gourmet", "tradicional", "diferença"],
+      "answer": [
+        "Tradicional é o café mais comum no mercado. Gourmet é um termo usado no Brasil para cafés de qualidade superior ao tradicional, com grãos mais selecionados. Especial é o café avaliado com 80 pontos ou mais na escala da SCA.",
+        "Na Cura, DA CASA é o blend gourmet do dia a dia; SAMBA e SALSA são cafés especiais da Linha Origem."
+      ],
+      "followUps": ["recomendar"],
+      "link": {
+        "href": "/experiencia/aprender/cafe-sem-complicacao/#tradicional-gourmet-especial",
+        "label": "Ler na Academia"
+      }
+    },
+    {
+      "id": "moagem",
+      "label": "Qual moagem usar?",
+      "keywords": [
+        "moagem",
+        "moer",
+        "moído",
+        "moido",
+        "moedor",
+        "granulometria"
+      ],
+      "answer": [
+        "Cada método pede uma moagem: fina para espresso; média-fina para V60, Aeropress e moka; média para filtro de papel tradicional e cafeteira elétrica; grossa para prensa francesa e cold brew.",
+        "Se o café estiver amargo, a moagem pode estar fina demais. Se estiver azedo ou ralo, grossa demais. Mude um pouco por vez."
+      ],
+      "followUps": ["graos-ou-moido", "receita"],
+      "link": {
+        "href": "/experiencia/aprender/cafe-sem-complicacao/#por-que-a-moagem-importa",
+        "label": "Ler na Academia"
+      }
+    },
+    {
+      "id": "graos-ou-moido",
+      "label": "Grãos ou moído?",
+      "keywords": [
+        "grão",
+        "grãos",
+        "graos",
+        "já moído",
+        "pré-moído",
+        "pre moido"
+      ],
+      "answer": [
+        "Em grãos, o café conserva os aromas por muito mais tempo. Depois de moído, perde frescor rápido, porque a superfície exposta ao ar aumenta.",
+        "Os cafés da Cura são vendidos em grãos. Se puder, moa na hora só o que vai usar."
+      ],
+      "followUps": ["moagem", "conservar"]
+    },
+    {
+      "id": "conservar",
+      "label": "Como conservar?",
+      "keywords": [
+        "conservar",
+        "guardar",
+        "armazenar",
+        "geladeira",
+        "pote",
+        "validade"
+      ],
+      "answer": [
+        "Feche bem a embalagem, tirando o ar, ou use um pote opaco e vedado. Guarde em local fresco e seco, longe de luz, calor e umidade.",
+        "Evite a geladeira para o uso diário: a variação de temperatura cria umidade e o café pode pegar cheiros."
+      ],
+      "followUps": ["frescor"],
+      "link": {
+        "href": "/experiencia/aprender/cafe-sem-complicacao/#como-conservar",
+        "label": "Ler na Academia"
+      }
+    },
+    {
+      "id": "frescor",
+      "label": "O que é frescor?",
+      "keywords": ["frescor", "fresco", "velho", "data de torra"],
+      "answer": [
+        "Depois da torra, o café tende a estar no melhor momento nas semanas seguintes. Com o tempo e o ar, os aromas se perdem e o sabor fica plano.",
+        "Um sinal de frescor: na pré-infusão do coado, o pó estufa e borbulha."
+      ],
+      "followUps": ["conservar"]
+    },
+    {
+      "id": "torra",
+      "label": "O que é torra?",
+      "keywords": ["torra", "torrado", "torrefação", "clara", "escura"],
+      "answer": [
+        "Torra é o aquecimento que transforma o grão verde no café aromático. Torras mais claras tendem a destacar acidez e notas da origem; mais escuras trazem notas tostadas e mais amargor.",
+        "Nenhuma torra é melhor por definição. SAMBA e SALSA têm torra média, segundo os rótulos."
+      ],
+      "followUps": ["processo"],
+      "link": {
+        "href": "/experiencia/origem/#torra",
+        "label": "Ver os níveis de torra"
+      }
+    },
+    {
+      "id": "acidez",
+      "label": "Acidez ou azedume?",
+      "keywords": ["acidez", "ácido", "acido", "cítrico", "citrico"],
+      "answer": [
+        "Acidez é a sensação viva e refrescante, como a de uma laranja ou tangerina. Azedume é áspero e incômodo, e costuma indicar extração de menos.",
+        "Se o seu café está azedo, posso ajudar a ajustar o preparo."
+      ],
+      "followUps": ["diagnostico", "degustar"],
+      "link": {
+        "href": "/experiencia/aprender/cafe-sem-complicacao/#acidez-ou-azedume",
+        "label": "Ler na Academia"
+      }
+    },
+    {
+      "id": "docura",
+      "label": "De onde vem a doçura?",
+      "keywords": ["doce", "doçura", "docura", "açúcar", "acucar", "adoçar"],
+      "answer": [
+        "O fruto do café é doce quando maduro, e a torra transforma parte desses açúcares em notas de caramelo, mel ou rapadura.",
+        "Colheita madura, secagem cuidadosa, torra adequada e preparo equilibrado ajudam a doçura a aparecer, mesmo sem açúcar."
+      ],
+      "followUps": ["degustar"]
+    },
+    {
+      "id": "agua",
+      "label": "Que água usar?",
+      "keywords": [
+        "água",
+        "agua",
+        "filtrada",
+        "mineral",
+        "temperatura da água",
+        "ferver",
+        "fervendo"
+      ],
+      "answer": [
+        "A bebida tem cerca de 98% de água. Use água filtrada ou mineral leve, sem gosto.",
+        "Para coados, ferva e espere cerca de 30 segundos (algo entre 90 °C e 96 °C). Água fervendo tende a acentuar o amargor."
+      ],
+      "followUps": ["receita"],
+      "link": {
+        "href": "/experiencia/aprender/ciencia-do-cafe/#influencia-da-agua",
+        "label": "Ler na Academia"
+      }
+    },
+    {
+      "id": "processo",
+      "label": "Natural, lavado e honey",
+      "keywords": ["processo", "natural", "lavado", "honey", "processamento"],
+      "answer": [
+        "Natural: o fruto seca inteiro, com casca, e tende a gerar cafés mais doces e encorpados. Lavado: a polpa é retirada antes da secagem, com xícara mais limpa e acidez evidente. Honey: parte da mucilagem fica no grão, um meio-termo.",
+        "SAMBA e SALSA são de processo natural, segundo os rótulos."
+      ],
+      "link": {
+        "href": "/experiencia/aprender/ciencia-do-cafe/#processamentos",
+        "label": "Ler na Academia"
+      }
+    },
+    {
+      "id": "degustar",
+      "label": "Como degustar?",
+      "keywords": [
+        "degustar",
+        "degustação",
+        "provar",
+        "sentir",
+        "perceber",
+        "sabor",
+        "aroma",
+        "corpo"
+      ],
+      "answer": [
+        "Cheire antes de beber, dê um gole e espalhe pela boca, perceba o que fica depois de engolir e prove de novo quando amornar.",
+        "Pense em sabores que você já conhece: fruta, caramelo, chocolate. Não existe resposta errada."
+      ],
+      "link": {
+        "href": "/experiencia/aprender/aprendendo-a-degustar/",
+        "label": "Abrir o módulo de degustação"
+      }
+    },
+    {
+      "id": "arabica",
+      "label": "O que é 100% arábica?",
+      "keywords": [
+        "arábica",
+        "arabica",
+        "robusta",
+        "conilon",
+        "canéfora",
+        "espécie",
+        "variedade"
+      ],
+      "answer": [
+        "Significa que todos os grãos são da espécie Coffea arabica. A outra espécie muito cultivada é a canéfora (robusta e conilon).",
+        "Dentro de cada espécie há variedades. Os rótulos trazem Catucaí no SAMBA e Arara no SALSA."
+      ],
+      "link": {
+        "href": "/experiencia/aprender/cafe-sem-complicacao/#cem-por-cento-arabica",
+        "label": "Ler na Academia"
+      }
+    },
+    {
+      "id": "comprar",
+      "label": "Onde comprar?",
+      "keywords": [
+        "comprar",
+        "preço",
+        "preco",
+        "loja",
+        "pedido",
+        "frete",
+        "entrega",
+        "valor"
+      ],
+      "answer": [
+        "Os cafés, preços e condições de compra ficam na loja oficial da Cura, no próprio site. Eu não registro pedidos por aqui."
+      ],
+      "link": { "href": "/cafes/", "label": "Ver os cafés da Cura" }
+    }
+  ]
+}

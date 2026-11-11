@@ -1,0 +1,104 @@
+{
+  "intro": {
+    "eyebrow": "CURA EXPERIENCE",
+    "title": "Todo café tem uma origem. O seu tem uma história para contar.",
+    "subtitle": "Da terra à sua xícara, descubra o universo por trás de cada grão.",
+    "cta": "Começar experiência",
+    "paths": [
+      {
+        "id": "meu-cafe",
+        "title": "Conhecer meu café",
+        "text": "Origem, quem produz, perfil sensorial e como preparar o café que está na sua mão.",
+        "href": "/experiencia/cafes/"
+      },
+      {
+        "id": "preparar",
+        "title": "Aprender a preparar",
+        "text": "Receita calculada para o seu equipamento, passo a passo e cronômetro.",
+        "href": "/experiencia/preparar/"
+      },
+      {
+        "id": "universo",
+        "title": "Explorar o universo do café",
+        "text": "Da florada à xícara, a Academia Cura e um quiz para descobrir seu paladar.",
+        "href": "/experiencia/origem/"
+      }
+    ]
+  },
+  "terroir": {
+    "title": "O que é terroir?",
+    "text": "Terroir é o conjunto de condições do lugar onde o café cresce: altitude, clima, solo, relevo e o jeito de cultivar. Tudo isso influencia como o fruto amadurece e, no fim, o que você sente na xícara.",
+    "analogy": "Assim como acontece com o vinho, o lugar onde o café cresce influencia suas características."
+  },
+  "curation": {
+    "title": "Como a Cura escolhe",
+    "text": "Encontrado. Escolhido. Explicado. A Cura começa pela origem brasileira e por quem produz, escolhe cada lote pelo perfil na xícara e explica tudo em língua de gente. O produtor assina o café. A Cura assina a escolha."
+  },
+  "cycle": [
+    {
+      "id": "florada",
+      "title": "Florada",
+      "text": "Depois das primeiras chuvas, o cafeeiro se cobre de flores brancas e perfumadas, que duram poucos dias. Cada flor polinizada pode virar um fruto."
+    },
+    {
+      "id": "fruto",
+      "title": "Fruto",
+      "text": "A flor dá lugar a um fruto verde, chamado popularmente de cereja. Dentro dele, normalmente, há duas sementes: os grãos de café."
+    },
+    {
+      "id": "maturacao",
+      "title": "Maturação",
+      "text": "Ao longo de meses, o fruto muda de cor (para vermelho ou amarelo, conforme a variedade) e acumula açúcares. Colher no ponto certo de maturação é decisivo para a doçura."
+    },
+    {
+      "id": "colheita",
+      "title": "Colheita",
+      "text": "A colheita pode ser manual ou mecanizada. Em cafés de qualidade, busca-se colher a maior proporção possível de frutos maduros."
+    },
+    {
+      "id": "secagem",
+      "title": "Secagem",
+      "text": "Os frutos ou grãos secam em terreiros, camas suspensas ou secadores até atingir a umidade adequada. No processo natural, o fruto seca inteiro, com a casca, o que influencia doçura e corpo."
+    },
+    {
+      "id": "beneficiamento",
+      "title": "Beneficiamento",
+      "text": "Depois de seco e descansado, o café tem as camadas externas removidas. Os grãos são classificados por tamanho e qualidade: este é o café verde, pronto para provar e torrar."
+    }
+  ],
+  "roasts": [
+    {
+      "id": "clara",
+      "name": "Torra clara",
+      "color": "#B07A45",
+      "aroma": "Mais floral e frutado.",
+      "flavor": "Destaca características da origem e a acidez.",
+      "body": "Tende a ser mais leve.",
+      "bitterness": "Percepção de amargor mais baixa."
+    },
+    {
+      "id": "media",
+      "name": "Torra média",
+      "color": "#7A4A24",
+      "aroma": "Caramelo, frutas maduras, chocolate ao leite.",
+      "flavor": "Busca equilíbrio entre acidez, doçura e corpo.",
+      "body": "Corpo intermediário.",
+      "bitterness": "Amargor moderado e integrado."
+    },
+    {
+      "id": "escura",
+      "name": "Torra escura",
+      "color": "#3A2618",
+      "aroma": "Tostado, cacau amargo, especiarias.",
+      "flavor": "Notas da torra ganham protagonismo sobre as da origem.",
+      "body": "Tende a ser mais encorpada.",
+      "bitterness": "Percepção de amargor mais alta."
+    }
+  ],
+  "roastNote": "Nenhuma torra é melhor por definição. Cada nível revela um lado diferente do mesmo grão, e o ponto ideal depende do café e de como ele será preparado.",
+  "cup": {
+    "title": "Agora essa história continua com você.",
+    "text": "Da terra, das mãos de quem produz e da escolha da curadoria, o café chegou até aqui. O próximo passo é seu.",
+    "cta": "Aprenda a preparar seu café"
+  }
+}

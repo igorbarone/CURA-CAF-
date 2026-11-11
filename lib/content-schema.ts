@@ -10,6 +10,13 @@ const nullableNumber = (schema: z.ZodNumber) =>
   z
     .preprocess((value) => (value === "" ? null : value), schema.nullish())
     .transform((value) => value ?? null);
+// 1–5 sensory scale used by the CURA Experience; null = not published.
+const sensoryLevel = z
+  .preprocess(
+    (value) => (value === "" ? null : value),
+    z.number().int().min(1).max(5).nullish(),
+  )
+  .transform((value) => value ?? null);
 const id = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 const mediaSrc = z
   .string()
@@ -19,7 +26,9 @@ const mediaSrc = z
 // Extra product photos. Each one needs alt text and a credit, like `media`.
 const galleryItem = z
   .object({
-    kind: z.enum(["photograph", "artwork", "illustration"]).default("photograph"),
+    kind: z
+      .enum(["photograph", "artwork", "illustration"])
+      .default("photograph"),
     src: mediaSrc,
     alt: text,
     credit: text,
@@ -51,7 +60,9 @@ export const coffeeSchema = z
             : value,
         z
           .object({
-            kind: z.enum(["photograph", "artwork", "illustration"]).default("photograph"),
+            kind: z
+              .enum(["photograph", "artwork", "illustration"])
+              .default("photograph"),
             lotId: z
               .preprocess(
                 (value) => (value === "" ? null : value),
@@ -100,6 +111,21 @@ export const lotSchema = z
     variety: nullableText,
     score: nullableNumber(z.number().min(0).max(100)),
     roast: nullableText,
+    // Structured traceability (CURA Experience). Optional: only confirmed data
+    // (e.g. printed on the official label); empty fields stay hidden.
+    region: nullableText,
+    farm: nullableText,
+    altitudeMeters: nullableNumber(z.number().int().positive().max(3000)),
+    process: nullableText,
+    harvest: nullableText,
+    latitude: nullableNumber(z.number().min(-90).max(90)),
+    longitude: nullableNumber(z.number().min(-180).max(180)),
+    // Sensory intensity on the documented 1–5 scale (docs/EXPERIENCIA.md):
+    // 1 = muito baixa, 3 = média, 5 = muito alta. Only from an official sheet.
+    intensityLevel: sensoryLevel,
+    acidityLevel: sensoryLevel,
+    sweetnessLevel: sensoryLevel,
+    bodyLevel: sensoryLevel,
   })
   .strict();
 export const offerSchema = z
@@ -202,6 +228,11 @@ export const contentSchema = z
     for (const lot of data.lots)
       if (!data.coffees.some((x) => x.id === lot.coffeeId))
         issue(`Lote ${lot.id}: café inexistente`);
+    for (const lot of data.lots)
+      if ((lot.latitude === null) !== (lot.longitude === null))
+        issue(
+          `Lote ${lot.id}: latitude e longitude devem ser preenchidas juntas`,
+        );
     for (const offer of data.offers)
       if (!data.lots.some((x) => x.id === offer.lotId))
         issue(`Oferta ${offer.id}: lote inexistente`);

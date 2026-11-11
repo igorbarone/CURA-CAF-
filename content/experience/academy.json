@@ -1,0 +1,326 @@
+{
+  "modules": [
+    {
+      "id": "cafe-sem-complicacao",
+      "number": 1,
+      "title": "Café sem complicação",
+      "level": "Iniciante",
+      "audience": "Para quem está começando e quer entender o básico, sem termos difíceis.",
+      "intro": "Doze respostas curtas para as perguntas mais comuns sobre café especial. Leia na ordem que quiser.",
+      "interactive": "none",
+      "lessons": [
+        {
+          "id": "o-que-e-cafe-especial",
+          "title": "O que é café especial?",
+          "summary": "Um café avaliado por provadores e reconhecido pela qualidade da bebida.",
+          "body": [
+            "Café especial é aquele que passa por uma avaliação sensorial e alcança uma pontuação mínima. Na metodologia da SCA (Specialty Coffee Association), provadores treinados analisam aroma, sabor, acidez, corpo, doçura, equilíbrio e outros atributos, e dão uma nota de 0 a 100.",
+            "Cafés com 80 pontos ou mais são considerados especiais. Para chegar lá, é preciso cuidado em todas as etapas: cultivo, colheita, secagem, armazenamento e torra."
+          ],
+          "example": "É parecido com uma prova de vinhos: pessoas treinadas provam, comparam e registram o que percebem.",
+          "keyIdea": "Especial não é uma marca nem um preço: é um resultado de avaliação."
+        },
+        {
+          "id": "tradicional-gourmet-especial",
+          "title": "Qual a diferença entre café tradicional, gourmet e especial?",
+          "summary": "São categorias diferentes de qualidade e de critério de avaliação.",
+          "body": [
+            "O café tradicional é o mais comum no mercado: costuma ser feito para ter sabor estável e intenso, muitas vezes com torra mais escura.",
+            "Gourmet é um termo usado no mercado brasileiro para cafés de qualidade superior ao tradicional, com grãos mais selecionados. Na Cura, DA CASA é um blend gourmet: o café do dia a dia.",
+            "O café especial vai além: cada lote é avaliado por provadores e precisa alcançar pelo menos 80 pontos na escala da SCA. SAMBA e SALSA são cafés especiais da Linha Origem."
+          ],
+          "keyIdea": "Cada categoria atende a um momento. O importante é saber o que você está escolhendo."
+        },
+        {
+          "id": "o-que-significam-os-pontos",
+          "title": "O que significa um café de 84 ou 86 pontos?",
+          "summary": "É a nota da avaliação sensorial, numa escala de 0 a 100.",
+          "body": [
+            "A partir de 80 pontos, o café é considerado especial. De 80 a 84,99, a qualidade é classificada como muito boa; de 85 a 89,99, como excelente; e a partir de 90, como excepcional.",
+            "O SAMBA tem 84 pontos e o SALSA tem 86 pontos, segundo os rótulos oficiais. Uma pontuação maior não quer dizer que você vai gostar mais: ela indica a avaliação técnica. O seu paladar continua sendo o melhor guia."
+          ],
+          "example": "Uma nota alta numa avaliação de restaurante não garante que é o seu prato favorito. Com café é igual.",
+          "keyIdea": "Pontuação mostra qualidade técnica. Preferência é pessoal."
+        },
+        {
+          "id": "cafe-precisa-ser-amargo",
+          "title": "O café precisa ser amargo?",
+          "summary": "Não. Um pouco de amargor faz parte, mas ele não deveria dominar.",
+          "body": [
+            "O amargor é uma das sensações do café, como no chocolate amargo ou na casca da laranja. Em equilíbrio, ele é agradável.",
+            "Quando o amargor domina, pode ser sinal de torra muito escura, de extração demais (moagem fina demais, água fervendo, tempo longo) ou de café que perdeu frescor. Por isso, muita gente se surpreende ao provar um café especial bem preparado."
+          ],
+          "keyIdea": "Amargor demais é sintoma, não característica obrigatória."
+        },
+        {
+          "id": "por-que-parecem-doces",
+          "title": "Por que alguns cafés parecem mais doces?",
+          "summary": "O grão tem açúcares naturais que, bem cuidados, aparecem na xícara.",
+          "body": [
+            "O fruto do café é doce quando maduro. Durante a torra, parte desses açúcares se transforma em compostos que lembram caramelo, mel ou rapadura.",
+            "Frutos colhidos maduros, secagem cuidadosa, uma torra adequada e um preparo equilibrado ajudam a doçura a aparecer, mesmo sem açúcar. O SAMBA, por exemplo, tem notas de rapadura e melaço no rótulo."
+          ],
+          "example": "Prove o café sem açúcar e, depois de engolir, preste atenção na sensação que fica na boca.",
+          "keyIdea": "Doçura vem do grão, não do açucareiro."
+        },
+        {
+          "id": "acidez-ou-azedume",
+          "title": "Qual a diferença entre acidez e azedume?",
+          "summary": "Acidez é viva e agradável; azedume é áspero e incômodo.",
+          "body": [
+            "Acidez é aquela sensação refrescante que faz a boca salivar, como a de uma laranja ou de uma tangerina. Ela dá vida ao café e é valorizada em muitos cafés especiais. O SALSA, por exemplo, tem acidez cítrica.",
+            "Azedume é diferente: uma sensação áspera, que costuma indicar extração de menos (moagem grossa demais, água fria, tempo curto) ou um defeito. Ajustando o preparo, o azedume geralmente desaparece."
+          ],
+          "example": "Suco de laranja fresco tem acidez. Leite estragado é azedo.",
+          "keyIdea": "Acidez é qualidade; azedume é sinal de ajuste."
+        },
+        {
+          "id": "por-que-a-moagem-importa",
+          "title": "Por que a moagem importa?",
+          "summary": "O tamanho das partículas define a velocidade com que a água extrai o café.",
+          "body": [
+            "Quanto mais fino o pó, maior a superfície em contato com a água e mais rápida a extração. Quanto mais grosso, mais lenta.",
+            "Por isso, cada método pede uma moagem: fina para espresso, média-fina para V60 e Aeropress, média para o filtro de papel tradicional e grossa para prensa francesa e cold brew. Moer na hora, com um moedor de mós, deixa as partículas mais uniformes."
+          ],
+          "example": "Açúcar refinado dissolve mais rápido que açúcar cristal. Com o café acontece algo parecido.",
+          "keyIdea": "Moagem é o principal ajuste do preparo."
+        },
+        {
+          "id": "graos-ou-moido",
+          "title": "Café em grãos ou moído?",
+          "summary": "Em grãos conserva o frescor por mais tempo. Moído é mais prático.",
+          "body": [
+            "Depois de moído, o café perde aromas muito mais rápido, porque a superfície exposta ao ar aumenta. Em grãos, ele se mantém fresco por mais tempo.",
+            "Se puder, moa só a quantidade que vai usar, na hora de preparar. Os cafés da Cura são vendidos em grãos, em embalagens de 250 g. Se você ainda não tem moedor, peça a moagem adequada ao seu método onde comprar um moedor ou numa cafeteria de confiança."
+          ],
+          "keyIdea": "Moer na hora é o maior ganho de sabor com o menor esforço."
+        },
+        {
+          "id": "como-conservar",
+          "title": "Como conservar o café?",
+          "summary": "Longe de ar, luz, calor e umidade.",
+          "body": [
+            "Depois de aberto, feche bem a embalagem, tirando o ar, ou transfira para um pote opaco e bem vedado. Guarde em local fresco e seco, longe do fogão e da luz do sol.",
+            "Evite a geladeira para o uso diário: a variação de temperatura cria umidade e o café pode absorver cheiros de outros alimentos. O ideal é consumir o café algumas semanas depois de aberto."
+          ],
+          "keyIdea": "Ar, luz, calor e umidade são os inimigos do frescor."
+        },
+        {
+          "id": "o-que-e-torra",
+          "title": "O que é torra?",
+          "summary": "O aquecimento que transforma o grão verde no café aromático que conhecemos.",
+          "body": [
+            "O grão cru é verde, duro e quase sem aroma de café. Na torra, ele é aquecido e passa por centenas de reações químicas que criam cor, aroma e sabor.",
+            "Torras mais claras tendem a preservar características da origem, como acidez e notas frutadas. Torras mais escuras trazem mais notas tostadas e mais amargor. Nenhuma torra é, por si só, melhor: cada uma revela um lado do café. SAMBA e SALSA têm torra média."
+          ],
+          "keyIdea": "Torra é escolha de perfil, não escala de qualidade."
+        },
+        {
+          "id": "cem-por-cento-arabica",
+          "title": "O que significa café 100% arábica?",
+          "summary": "Que todos os grãos são da espécie Coffea arabica.",
+          "body": [
+            "As duas espécies de café mais cultivadas são a arábica (Coffea arabica) e a canéfora (Coffea canephora, que inclui os cafés conhecidos como robusta e conilon).",
+            "A arábica é a espécie mais associada à complexidade aromática e à acidez. A canéfora tende a ter mais corpo, mais cafeína e mais amargor, e também pode render cafés de alta qualidade quando bem cuidada. Dentro de cada espécie existem variedades, como Catucaí e Arara, presentes nos rótulos do SAMBA e do SALSA."
+          ],
+          "keyIdea": "Espécie é a família do café; variedade é o “sobrenome” da planta."
+        },
+        {
+          "id": "o-que-e-frescor",
+          "title": "O que é frescor do café?",
+          "summary": "O período em que o café torrado mantém seus aromas no auge.",
+          "body": [
+            "Logo depois da torra, o café libera gás carbônico e seus aromas ainda estão se assentando. Nas semanas seguintes, ele tende a estar no melhor momento. Com o tempo e o contato com o ar, os aromas vão se perdendo e o sabor fica mais plano.",
+            "Um sinal de frescor no coado é a pré-infusão: o pó fresco “estufa” e borbulha quando recebe a primeira água."
+          ],
+          "keyIdea": "Café é um alimento: frescor faz diferença."
+        }
+      ]
+    },
+    {
+      "id": "aprendendo-a-degustar",
+      "number": 2,
+      "title": "Aprendendo a degustar",
+      "level": "Iniciante a intermediário",
+      "audience": "Para quem quer perceber mais coisas na própria xícara.",
+      "intro": "Degustar é prestar atenção. Toque em cada característica para entender como percebê-la e registre o que você sentiu no seu café de hoje.",
+      "interactive": "tasting",
+      "lessons": [
+        {
+          "id": "como-degustar",
+          "title": "Como degustar, em quatro passos",
+          "summary": "Cheirar, provar, sentir e lembrar.",
+          "body": [
+            "1. Cheire o café antes de beber, com o nariz perto da xícara. 2. Dê um gole e espalhe pela boca. 3. Perceba o que acontece na ponta da língua, nas laterais e depois de engolir. 4. Prove de novo quando o café amornar: muitas sensações ficam mais claras.",
+            "Não existe resposta errada. O vocabulário vem com a prática, comparando com sabores que você já conhece."
+          ],
+          "keyIdea": "Degustar é treinar a atenção, não acertar uma resposta."
+        }
+      ]
+    },
+    {
+      "id": "ciencia-do-cafe",
+      "number": 3,
+      "title": "Ciência do café",
+      "level": "Intermediário e avançado",
+      "audience": "Para quem quer entender por que cada ajuste muda a xícara.",
+      "intro": "Extração, granulometria, temperatura e proporção explicadas, com um simulador para você ver como cada variável empurra o resultado.",
+      "interactive": "extraction",
+      "lessons": [
+        {
+          "id": "extracao",
+          "title": "Extração",
+          "summary": "O processo de a água dissolver compostos do café moído.",
+          "body": [
+            "Preparar café é extrair: a água dissolve parte do pó e leva esses compostos para a xícara. Nem tudo sai ao mesmo tempo. Primeiro saem ácidos e compostos aromáticos; depois, açúcares e compostos que dão doçura e corpo; por último, compostos mais amargos e adstringentes.",
+            "Uma boa xícara busca extrair na medida: o suficiente para trazer doçura e equilíbrio, sem avançar demais para o amargor."
+          ],
+          "keyIdea": "Ácido primeiro, doce no meio, amargo no fim."
+        },
+        {
+          "id": "solubilidade",
+          "title": "Solubilidade",
+          "summary": "Cerca de 30% da massa do café torrado pode ser dissolvida pela água.",
+          "body": [
+            "Apenas parte do grão torrado é solúvel. Na prática, um preparo equilibrado costuma extrair por volta de 18% a 22% da massa do café. Abaixo disso, a bebida tende a ficar azeda e rala; acima, amarga e adstringente.",
+            "Essa faixa é uma referência técnica, medida com refratômetro. Em casa, o paladar é o melhor instrumento."
+          ],
+          "keyIdea": "Extrair tudo não é o objetivo: equilíbrio é."
+        },
+        {
+          "id": "temperatura",
+          "title": "Temperatura",
+          "summary": "Água mais quente extrai mais rápido.",
+          "body": [
+            "A temperatura dá energia à extração. Para métodos coados, a referência comum é água entre 90 °C e 96 °C, o que em casa significa ferver e esperar cerca de 30 segundos.",
+            "Água mais fria extrai menos e pode deixar a bebida azeda; água em ebulição constante tende a acentuar o amargor. O cold brew é a exceção: compensa a água fria com muitas horas de contato."
+          ],
+          "keyIdea": "Temperatura acelera ou freia a extração."
+        },
+        {
+          "id": "granulometria",
+          "title": "Granulometria",
+          "summary": "O tamanho e a uniformidade das partículas de café moído.",
+          "body": [
+            "Partículas finas extraem rápido; grossas, devagar. Uma moagem desigual mistura pó fino (que superextrai) com pedaços grossos (que subextraem) e pode deixar a xícara amarga e azeda ao mesmo tempo.",
+            "Moedores de mós produzem partículas mais uniformes do que moedores de lâmina."
+          ],
+          "keyIdea": "Uniformidade importa tanto quanto o tamanho."
+        },
+        {
+          "id": "proporcao",
+          "title": "Proporção café/água",
+          "summary": "Quanto café para quanta água. Define a concentração.",
+          "body": [
+            "A proporção é escrita como 1:15, por exemplo: 1 g de café para 15 g de água. Para coados, referências entre 1:15 e 1:17 são comuns. Menos água deixa a bebida mais concentrada; mais água, mais diluída.",
+            "Proporção e extração são coisas diferentes: um café pode estar concentrado e subextraído ao mesmo tempo. Por isso, ajuste uma variável por vez."
+          ],
+          "example": "Água (g) = Café (g) × Proporção. 20 g × 15 = 300 g de água.",
+          "keyIdea": "Proporção controla a força; extração controla o equilíbrio."
+        },
+        {
+          "id": "tempo-de-contato",
+          "title": "Tempo de contato",
+          "summary": "Quanto tempo a água fica em contato com o café.",
+          "body": [
+            "Mais tempo, mais extração. No coado, o tempo depende principalmente da moagem e da forma de despejar. Na prensa francesa e no cold brew, você controla o tempo diretamente.",
+            "Se o seu V60 termina muito rápido, a moagem provavelmente está grossa; se demora demais, fina."
+          ],
+          "keyIdea": "O tempo é consequência da moagem nos coados."
+        },
+        {
+          "id": "agitacao",
+          "title": "Agitação",
+          "summary": "Mexer ou despejar com força acelera a extração.",
+          "body": [
+            "Agitar renova a água em volta das partículas e aumenta a extração. Despejos fortes, mexidas e rodadas no suporte são formas de agitação.",
+            "Use com moderação e de forma consistente: agitação demais pode entupir o filtro e alongar o tempo."
+          ],
+          "keyIdea": "Agitação é um acelerador sutil."
+        },
+        {
+          "id": "sub-e-superextracao",
+          "title": "Subextração e superextração",
+          "summary": "Extrair de menos ou de mais.",
+          "body": [
+            "Subextração: azedo, ralo, sem doçura, final curto. Causas comuns: moagem grossa, água fria, tempo curto, proporção com água demais para o pouco tempo de contato.",
+            "Superextração: amargo, áspero, seca a boca. Causas comuns: moagem fina, água muito quente, tempo longo."
+          ],
+          "keyIdea": "Azedo pede mais extração; amargo pede menos."
+        },
+        {
+          "id": "influencia-da-agua",
+          "title": "Influência da água",
+          "summary": "A bebida tem cerca de 98% de água.",
+          "body": [
+            "Cloro, cheiros e excesso de minerais aparecem na xícara. Água filtrada, sem gosto, costuma dar os melhores resultados.",
+            "Água sem nenhum mineral também não é ideal: os minerais ajudam a extrair sabores. Uma água mineral leve é uma boa opção."
+          ],
+          "keyIdea": "Se a água não é boa para beber, não é boa para o café."
+        },
+        {
+          "id": "processamentos",
+          "title": "Processamento natural, lavado e honey",
+          "summary": "Como o fruto é tratado depois da colheita muda o sabor.",
+          "body": [
+            "Natural: o fruto inteiro seca ao sol com a casca. Tende a gerar cafés mais doces, encorpados e frutados. SAMBA e SALSA são de processo natural, segundo os rótulos.",
+            "Lavado: a casca e a polpa são retiradas e a mucilagem é removida com água antes da secagem. Tende a gerar xícaras mais limpas e com acidez mais evidente.",
+            "Honey: retira-se a casca, mas parte da mucilagem açucarada fica no grão durante a secagem. Costuma ficar entre o natural e o lavado."
+          ],
+          "keyIdea": "Processo é uma das assinaturas do produtor."
+        }
+      ]
+    }
+  ],
+  "attributes": [
+    {
+      "id": "aroma",
+      "name": "Aroma",
+      "definition": "O que você sente pelo nariz, antes e durante o gole.",
+      "howTo": "Aproxime o nariz da xícara e respire devagar. Depois do gole, expire pelo nariz: parte do aroma é percebida por dentro.",
+      "analogy": "Como o cheiro de um bolo saindo do forno antes da primeira mordida."
+    },
+    {
+      "id": "docura",
+      "name": "Doçura",
+      "definition": "Sensação agradável que lembra açúcar, mel, caramelo ou frutas maduras, mesmo sem adoçar.",
+      "howTo": "Prove sem açúcar e perceba a ponta da língua e a sensação que fica depois de engolir.",
+      "analogy": "A doçura natural de uma fruta bem madura."
+    },
+    {
+      "id": "acidez",
+      "name": "Acidez",
+      "definition": "É a sensação viva e refrescante que alguns cafés apresentam, semelhante à encontrada em determinadas frutas.",
+      "howTo": "Perceba se a boca saliva e se as laterais da língua formigam levemente. Pense em frutas: é mais laranja, maçã ou limão?",
+      "analogy": "O frescor de uma tangerina."
+    },
+    {
+      "id": "corpo",
+      "name": "Corpo",
+      "definition": "A sensação de peso e textura da bebida na boca.",
+      "howTo": "Deixe o café um instante sobre a língua. Ele parece leve como chá ou denso como leite integral?",
+      "analogy": "A diferença entre água, leite desnatado e leite integral."
+    },
+    {
+      "id": "amargor",
+      "name": "Amargor",
+      "definition": "Sensação percebida principalmente no fundo da língua. Em equilíbrio é agradável; em excesso, domina a xícara.",
+      "howTo": "Perceba se o amargor aparece junto com outras sensações ou se cobre tudo.",
+      "analogy": "O amargo agradável do chocolate meio amargo."
+    },
+    {
+      "id": "finalizacao",
+      "name": "Finalização",
+      "definition": "O que permanece na boca depois de engolir: duração e qualidade do sabor residual.",
+      "howTo": "Depois de engolir, conte alguns segundos. O sabor some rápido ou continua? É agradável ou seca a boca?",
+      "analogy": "O sabor que fica depois de comer uma fruta."
+    },
+    {
+      "id": "equilibrio",
+      "name": "Equilíbrio",
+      "definition": "Como as sensações convivem: nenhuma domina as outras de forma desagradável.",
+      "howTo": "Pense no conjunto. Doçura, acidez, corpo e amargor parecem em harmonia?",
+      "analogy": "Uma música em que nenhum instrumento abafa os outros."
+    }
+  ]
+}

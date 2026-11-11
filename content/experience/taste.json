@@ -1,0 +1,268 @@
+{
+  "disclaimer": "Os perfis descrevem preferências, não classificações científicas. A recomendação cruza suas respostas com as características publicadas de cada café; seu paladar sempre tem a palavra final.",
+  "questions": [
+    {
+      "id": "docura-ou-intensidade",
+      "title": "Você prefere bebidas mais doces ou mais intensas?",
+      "options": [
+        {
+          "id": "doces",
+          "label": "Mais doces e macias",
+          "points": {
+            "classico": 2
+          },
+          "traits": ["doce"]
+        },
+        {
+          "id": "intensas",
+          "label": "Mais intensas e marcantes",
+          "points": {
+            "intensidade": 2
+          },
+          "traits": ["encorpado"]
+        },
+        {
+          "id": "tanto-faz",
+          "label": "Gosto das duas",
+          "points": {
+            "explorador": 1,
+            "classico": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "frutado",
+      "title": "Gosta de sabores frutados?",
+      "options": [
+        {
+          "id": "adoro",
+          "label": "Adoro: laranja, frutas vermelhas…",
+          "points": {
+            "explorador": 2
+          },
+          "traits": ["frutado"]
+        },
+        {
+          "id": "as-vezes",
+          "label": "Às vezes, se for suave",
+          "points": {
+            "explorador": 1,
+            "classico": 1
+          }
+        },
+        {
+          "id": "prefiro-nao",
+          "label": "Prefiro notas de caramelo e chocolate",
+          "points": {
+            "classico": 2
+          },
+          "traits": ["doce"]
+        }
+      ]
+    },
+    {
+      "id": "leite",
+      "title": "Prefere café com ou sem leite?",
+      "options": [
+        {
+          "id": "puro",
+          "label": "Puro",
+          "points": {
+            "explorador": 1
+          }
+        },
+        {
+          "id": "com-leite",
+          "label": "Com leite",
+          "points": {
+            "intensidade": 2
+          },
+          "traits": ["encorpado"]
+        },
+        {
+          "id": "depende",
+          "label": "Depende do dia",
+          "points": {
+            "classico": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "preparo",
+      "title": "Como costuma preparar seu café?",
+      "options": [
+        {
+          "id": "coado",
+          "label": "Coado (filtro, V60, cafeteira elétrica)",
+          "points": {
+            "classico": 1
+          },
+          "traits": ["coado"]
+        },
+        {
+          "id": "espresso",
+          "label": "Espresso ou moka",
+          "points": {
+            "intensidade": 2
+          },
+          "traits": ["espresso"]
+        },
+        {
+          "id": "variado",
+          "label": "Gosto de testar métodos diferentes",
+          "points": {
+            "explorador": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "novidade",
+      "title": "Prefere sabores familiares ou experimentar novidades?",
+      "options": [
+        {
+          "id": "familiar",
+          "label": "Sabores familiares e confortáveis",
+          "points": {
+            "classico": 2
+          },
+          "traits": ["dia-a-dia"]
+        },
+        {
+          "id": "novidades",
+          "label": "Quero experimentar novidades",
+          "points": {
+            "explorador": 2
+          },
+          "traits": ["frutado"]
+        },
+        {
+          "id": "meio-termo",
+          "label": "Um pouco de cada",
+          "points": {
+            "explorador": 1,
+            "classico": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "acidez",
+      "title": "Gosta de bebidas com maior percepção de acidez?",
+      "options": [
+        {
+          "id": "sim",
+          "label": "Sim, acho refrescante",
+          "points": {
+            "explorador": 2
+          },
+          "traits": ["acido"]
+        },
+        {
+          "id": "um-pouco",
+          "label": "Um pouco, sem exagero",
+          "points": {
+            "classico": 1
+          },
+          "traits": ["acidez-media"]
+        },
+        {
+          "id": "nao",
+          "label": "Prefiro pouca acidez",
+          "points": {
+            "intensidade": 1,
+            "classico": 1
+          },
+          "traits": ["doce"]
+        }
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "id": "explorador",
+      "name": "Explorador Sensorial",
+      "description": "Você gosta de experimentar sabores e descobrir novas características. Cafés frutados e com acidez viva tendem a despertar sua curiosidade.",
+      "traits": ["frutado", "acido"]
+    },
+    {
+      "id": "classico",
+      "name": "Clássico Equilibrado",
+      "description": "Você prefere cafés com perfil familiar, equilíbrio e conforto. Doçura e notas que lembram caramelo costumam agradar.",
+      "traits": ["doce", "dia-a-dia"]
+    },
+    {
+      "id": "intensidade",
+      "name": "Intensidade na Xícara",
+      "description": "Você prefere bebidas mais concentradas e encorpadas, que se destacam puras ou com leite.",
+      "traits": ["encorpado", "espresso"]
+    }
+  ],
+  "traits": [
+    {
+      "id": "frutado",
+      "label": "notas frutadas",
+      "keywords": [
+        "frut",
+        "laranja",
+        "tangerina",
+        "cítric",
+        "limão",
+        "amora",
+        "frutas"
+      ],
+      "fields": ["profile", "notes"]
+    },
+    {
+      "id": "acido",
+      "label": "acidez marcante",
+      "keywords": ["cítrica", "alta", "vibrante", "viva"],
+      "fields": ["acidity"]
+    },
+    {
+      "id": "acidez-media",
+      "label": "acidez média",
+      "keywords": ["média", "media", "suave"],
+      "fields": ["acidity"]
+    },
+    {
+      "id": "doce",
+      "label": "doçura",
+      "keywords": [
+        "doce",
+        "rapadura",
+        "melaço",
+        "caramelo",
+        "mel",
+        "chocolate"
+      ],
+      "fields": ["profile", "notes"]
+    },
+    {
+      "id": "encorpado",
+      "label": "corpo marcante",
+      "keywords": ["cremoso", "encorpado", "denso", "aveludado"],
+      "fields": ["body"]
+    },
+    {
+      "id": "dia-a-dia",
+      "label": "perfil do dia a dia",
+      "keywords": ["dia a dia"],
+      "fields": ["profile"]
+    },
+    {
+      "id": "coado",
+      "label": "sugestão para coado",
+      "keywords": ["coado"],
+      "fields": ["preparations"]
+    },
+    {
+      "id": "espresso",
+      "label": "sugestão para espresso",
+      "keywords": ["espresso"],
+      "fields": ["preparations"]
+    }
+  ]
+}
