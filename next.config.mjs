@@ -16,7 +16,6 @@ const nextConfig = isServer
       env: {
         NEXT_PUBLIC_BASE_PATH: "",
         NEXT_PUBLIC_COMMERCE: process.env.CURA_COMMERCE ?? "disabled",
-        NEXT_PUBLIC_MP_PUBLIC_KEY: process.env.MP_PUBLIC_KEY ?? "",
         // The server build has /api/barista; whether the AI is on is asked at runtime.
         NEXT_PUBLIC_BARISTA_API: "available",
       },
@@ -57,7 +56,6 @@ const nextConfig = isServer
       env: {
         NEXT_PUBLIC_BASE_PATH: isPages ? `/${repo}` : "",
         NEXT_PUBLIC_COMMERCE: "disabled",
-        NEXT_PUBLIC_MP_PUBLIC_KEY: "",
         // Static export: no API, the Barista runs in guided mode.
         NEXT_PUBLIC_BARISTA_API: "",
       },

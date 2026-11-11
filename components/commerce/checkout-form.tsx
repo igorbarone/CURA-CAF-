@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { formatBRL } from "../../lib/commerce/catalog";
 import { api, messageFor, type ApiError } from "../../lib/commerce/client";
 import { centsToValue, track } from "../../lib/analytics";
+import { orderTotals } from "../../lib/commerce/pricing";
 import { useCart } from "./cart-provider";
 import { CEP_KEY, type Quote } from "./cart-view";
 import {
@@ -30,14 +31,12 @@ type Status = {
   card: boolean;
   shipping: boolean;
   environment: string;
-  publicKey: string | null;
 };
-type OrderResult = { id: string; token?: string; status: string };
-type CardData = {
-  token: string;
-  payment_method_id: string;
-  installments: number;
-  issuer_id?: string | number | null;
+type OrderResult = {
+  id: string;
+  token?: string;
+  status: string;
+  payment: { invoiceUrl: string | null } | null;
 };
 const UFS =
   "AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO".split(
@@ -93,7 +92,6 @@ export function CheckoutForm() {
               card: false,
               shipping: false,
               environment: "",
-              publicKey: null,
             },
       ),
     );
@@ -161,7 +159,14 @@ export function CheckoutForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cep, cart.ready, cart.subtotalCents, cart.weightGrams]);
   const option = quote?.options.find((item) => item.id === optionId);
-  const totalCents = cart.subtotalCents + (option?.chargedCents ?? 0);
+  // Recomputed whenever the method changes: Pix takes the discount off the
+  // coffees (never off the freight). The server computes it again.
+  const { discountCents, totalCents } = orderTotals({
+    subtotalCents: cart.subtotalCents,
+    shippingCents: option?.chargedCents ?? 0,
+    method,
+    rules: cart.rules,
+  });
   function items() {
     return cart.lines.map((line) => ({
       item_id: line.id,
@@ -191,9 +196,7 @@ export function CheckoutForm() {
     setQuote(result.data);
     setOptionId(result.data.options[0]?.id ?? "");
   }
-  async function submit(
-    payment: { method: "pix" } | ({ method: "card" } & Record<string, unknown>),
-  ) {
+  async function submit(payment: { method: "pix" | "card" }) {
     setError("");
     const found = checkoutErrors({ ...customer, ...address });
     setErrors(found);
@@ -213,6 +216,7 @@ export function CheckoutForm() {
       customer,
       address,
       shippingOptionId: option.id,
+      shippingPriceCents: option.chargedCents,
       consent: true as const,
       payment,
     };
@@ -247,7 +251,14 @@ export function CheckoutForm() {
         )
       )
         attempt.current = null;
-      if (code === "shipping_changed") setQuote(null);
+      if (code === "shipping_changed") {
+        // The server sent the current options: show them and ask again.
+        const options = (result.error as ApiError).options;
+        if (quote && Array.isArray(options)) {
+          setQuote({ ...quote, options: options as Quote["options"] });
+          setOptionId("");
+        } else setQuote(null);
+      }
       const fields = (result.error as ApiError).fields;
       if (code === "invalid_input" && Array.isArray(fields)) {
         const server: FieldErrors = {};
@@ -257,16 +268,14 @@ export function CheckoutForm() {
       }
       return setError(messageFor(result.error as ApiError));
     }
-    if (result.data.status === "payment_failed") {
-      attempt.current = null;
-      sessionStorage.removeItem(KEY);
-      return setError(
-        "O pagamento não foi aprovado. Confira os dados do cartão ou escolha Pix.",
-      );
-    }
     sessionStorage.removeItem(KEY);
     cart.clear();
-    router.push(`/pedido/?id=${result.data.id}&token=${result.data.token}`);
+    // Card: the buyer types the card on the Asaas page, which returns to the
+    // order page. Pix: the order page shows the QR Code.
+    const invoice = result.data.payment?.invoiceUrl;
+    if (payment.method === "card" && invoice) window.location.assign(invoice);
+    else
+      router.push(`/pedido/?id=${result.data.id}&token=${result.data.token}`);
   }
   if (!status || !cart.ready)
     return <p className="body-copy">Preparando o checkout…</p>;
@@ -364,7 +373,7 @@ export function CheckoutForm() {
         noValidate
         onSubmit={(event) => {
           event.preventDefault();
-          if (method === "pix") submit({ method: "pix" });
+          submit({ method });
         }}
       >
         {status.environment === "sandbox" && (
@@ -486,6 +495,7 @@ export function CheckoutForm() {
                   <span className="package-label">
                     {item.company} {item.name}
                     {item.days !== null && ` · até ${item.days} dias úteis`}
+                    {item.volumes > 1 && ` · ${item.volumes} volumes`}
                   </span>
                   <span className="package-price">
                     {item.chargedCents === 0
@@ -506,8 +516,14 @@ export function CheckoutForm() {
               checked={method === "pix"}
               onChange={() => setMethod("pix")}
             />
-            <span className="package-label">Pix</span>
-            <span className="package-unit mono">QR Code na próxima tela</span>
+            <span className="package-label">
+              Pix
+              {cart.rules.pixDiscountPercent > 0 &&
+                ` · ${cart.rules.pixDiscountPercent}% de desconto nos cafés`}
+            </span>
+            <span className="package-unit mono">
+              QR Code e copia e cola na próxima tela
+            </span>
           </label>
           {status.card && (
             <label className="package-option">
@@ -519,7 +535,7 @@ export function CheckoutForm() {
               />
               <span className="package-label">Cartão de crédito</span>
               <span className="package-unit mono">
-                dados protegidos pelo Mercado Pago
+                você digita o cartão na página segura do Asaas
               </span>
             </label>
           )}
@@ -531,43 +547,24 @@ export function CheckoutForm() {
             />
             <span>
               Autorizo o uso do meu nome, CPF, contato e endereço apenas para
-              processar este pedido, o pagamento (Mercado Pago) e a entrega
-              (transportadora).
+              processar este pedido, o pagamento (Asaas) e a entrega
+              (transportadora, via Melhor Envio).
             </span>
           </label>
-          {method === "pix" ? (
-            <button type="submit" className="button" disabled={busy}>
-              {busy ? "Gerando Pix…" : `Gerar Pix de ${formatBRL(totalCents)}`}
-            </button>
-          ) : (
-            option &&
-            consent &&
-            status.publicKey && (
-              <CardBrick
-                publicKey={status.publicKey}
-                amountCents={totalCents}
-                email={customer.email}
-                onSubmit={(data) =>
-                  submit({
-                    method: "card",
-                    token: data.token,
-                    paymentMethodId: data.payment_method_id,
-                    installments: Number(data.installments),
-                    issuerId: data.issuer_id ? String(data.issuer_id) : null,
-                  })
-                }
-              />
-            )
-          )}
-          {method === "card" && (!option || !consent) && (
-            <p className="availability">
-              Escolha o frete e confirme o uso dos dados para preencher o
-              cartão.
-            </p>
-          )}
+          <button type="submit" className="button" disabled={busy}>
+            {busy
+              ? method === "pix"
+                ? "Gerando Pix…"
+                : "Abrindo o pagamento…"
+              : method === "pix"
+                ? `Gerar Pix de ${formatBRL(totalCents)}`
+                : `Pagar ${formatBRL(totalCents)} no cartão`}
+          </button>
           <p className="checkout-secure">
-            <span aria-hidden="true">🔒</span> Pagamento processado pelo Mercado
-            Pago. A Cura não recebe nem guarda os dados do seu cartão.
+            <span aria-hidden="true">🔒</span> Pagamento processado pelo Asaas.
+            No cartão, os dados são digitados na página do Asaas: a Cura não
+            recebe nem guarda os dados do seu cartão. O pedido só é confirmado
+            quando o Asaas confirma o pagamento.
           </p>
           <p role="alert" className="cart-warning">
             {error}
@@ -595,6 +592,12 @@ export function CheckoutForm() {
             <dt>Subtotal</dt>
             <dd>{formatBRL(cart.subtotalCents)}</dd>
           </div>
+          {discountCents > 0 && (
+            <div className="summary-discount">
+              <dt>Desconto Pix ({cart.rules.pixDiscountPercent}% nos cafés)</dt>
+              <dd>−{formatBRL(discountCents)}</dd>
+            </div>
+          )}
           <div>
             <dt>Frete</dt>
             <dd>
@@ -616,72 +619,5 @@ export function CheckoutForm() {
         </p>
       </aside>
     </div>
-  );
-}
-type MercadoPagoSdk = new (
-  key: string,
-  options: { locale: string },
-) => {
-  bricks(): {
-    create(
-      name: "cardPayment",
-      container: string,
-      settings: Record<string, unknown>,
-    ): Promise<{ unmount(): void }>;
-  };
-};
-// Mercado Pago's Card Payment Brick: card number and CVV are typed into the
-// provider's own fields and become a one-time token; they never reach us.
-function CardBrick({
-  publicKey,
-  amountCents,
-  email,
-  onSubmit,
-}: {
-  publicKey: string;
-  amountCents: number;
-  email: string;
-  onSubmit: (data: CardData) => Promise<void>;
-}) {
-  const [failed, setFailed] = useState(false);
-  const submitRef = useRef(onSubmit);
-  submitRef.current = onSubmit;
-  useEffect(() => {
-    let controller: { unmount(): void } | null = null;
-    let cancelled = false;
-    const start = async () => {
-      const global = window as unknown as { MercadoPago?: MercadoPagoSdk };
-      if (!global.MercadoPago)
-        await new Promise<void>((resolve, reject) => {
-          const script = document.createElement("script");
-          script.src = "https://sdk.mercadopago.com/js/v2";
-          script.onload = () => resolve();
-          script.onerror = () => reject(new Error("sdk"));
-          document.head.append(script);
-        });
-      if (cancelled || !global.MercadoPago) return;
-      const mp = new global.MercadoPago(publicKey, { locale: "pt-BR" });
-      controller = await mp.bricks().create("cardPayment", "card-brick", {
-        initialization: { amount: amountCents / 100, payer: { email } },
-        customization: { paymentMethods: { maxInstallments: 12 } },
-        callbacks: {
-          onReady: () => undefined,
-          onSubmit: (data: CardData) => submitRef.current(data),
-          onError: () => setFailed(true),
-        },
-      });
-    };
-    start().catch(() => setFailed(true));
-    return () => {
-      cancelled = true;
-      controller?.unmount();
-    };
-  }, [publicKey, amountCents, email]);
-  return failed ? (
-    <p className="cart-warning" role="alert">
-      O formulário de cartão não carregou. Tente novamente ou pague com Pix.
-    </p>
-  ) : (
-    <div id="card-brick" />
   );
 }

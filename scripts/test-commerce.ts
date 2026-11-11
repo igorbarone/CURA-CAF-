@@ -1,18 +1,19 @@
 // End-to-end purchase tests in an isolated test environment: the server build
 // of the store, a test-only catalog with fictitious prices, PGlite as the
-// database and local stand-ins for Mercado Pago, Melhor Envio and Resend.
+// database and local stand-ins for Asaas, Melhor Envio and Resend.
 // Nothing here touches real providers, real prices or the published content.
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { startMockProviders } from "./lib/mock-providers";
+import { hashPassword } from "../lib/commerce/server/admin-auth";
 
 const MOCK_PORT = 4300;
 const STORE_PORT = 4310;
 const storeUrl = `http://127.0.0.1:${STORE_PORT}`;
 const mockUrl = `http://127.0.0.1:${MOCK_PORT}`;
-const webhookSecret = "segredo-de-teste-do-webhook";
+const webhookToken = "token-de-teste-do-webhook-asaas";
 const root = mkdtempSync(join(tmpdir(), "cura-commerce-"));
 
 const coffee = (id: string, name: string, sortOrder: number) => ({
@@ -53,6 +54,11 @@ const offer = (id: string, lotId: string, price: number, grams: number) => ({
   availableQuantity: null,
   weightInGrams: grams,
   grind: "Em grãos",
+  // Fictitious logistics, test only.
+  grossWeightInGrams: Math.round(grams * 1.2),
+  packageHeightCm: grams >= 1000 ? 30 : grams >= 500 ? 25 : 20,
+  packageWidthCm: grams >= 1000 ? 15 : 12,
+  packageLengthCm: grams >= 1000 ? 10 : 7,
 });
 const content: Record<string, Record<string, unknown>[]> = {
   coffees: [
@@ -68,6 +74,7 @@ const content: Record<string, Record<string, unknown>[]> = {
   offers: [
     offer("a-250", "teste-a-lote", 4500, 250),
     offer("a-500", "teste-a-lote", 8000, 500),
+    offer("a-1000", "teste-a-lote", 15000, 1000),
     offer("b-250", "teste-b-lote", 5200, 250),
     offer("c-250", "teste-c-lote", 6100, 250),
   ],
@@ -108,14 +115,55 @@ writeFileSync(
   join(root, "content/commerce.json"),
   JSON.stringify({
     freeShippingFromCents: null,
+    shippingSubsidyCents: null,
     maxQuantityPerLine: 10,
     pixExpirationMinutes: 30,
+    cardExpirationMinutes: 60,
+    pixDiscountPercent: 5,
+    cardFeeAssumptionPercent: 3,
+    maxVolumeWeightGrams: 4000,
+    packingFillFactor: 0.8,
+    shippingServiceIds: ["1", "3"],
+    // Test boxes with fictitious measures.
+    boxes: [
+      {
+        id: "caixa-p",
+        label: "Caixa P (teste)",
+        innerHeightCm: 12,
+        innerWidthCm: 16,
+        innerLengthCm: 22,
+        outerHeightCm: 13,
+        outerWidthCm: 17,
+        outerLengthCm: 23,
+        tareGrams: 150,
+      },
+      {
+        id: "caixa-g",
+        label: "Caixa G (teste)",
+        innerHeightCm: 20,
+        innerWidthCm: 26,
+        innerLengthCm: 32,
+        outerHeightCm: 21,
+        outerWidthCm: 27,
+        outerLengthCm: 33,
+        tareGrams: 300,
+      },
+    ],
   }),
 );
 mkdirSync(join(root, "public"), { recursive: true });
 
+// A real key in the developer's shell must never reach the test store.
+const inherited = Object.fromEntries(
+  Object.entries(process.env).filter(
+    ([key]) =>
+      !/^(ASAAS_|MELHOR_ENVIO_|SHIPPING_|CURA_ALLOW_LIVE|ADMIN_|ANTHROPIC_|RESEND_|DATABASE_|POSTGRES_)/.test(
+        key,
+      ),
+  ),
+);
 const env: NodeJS.ProcessEnv = {
-  ...process.env,
+  ...(inherited as NodeJS.ProcessEnv),
   NEXT_TELEMETRY_DISABLED: "1",
   CURA_TARGET: "server",
   CURA_COMMERCE: "enabled",
@@ -123,16 +171,30 @@ const env: NodeJS.ProcessEnv = {
   SITE_URL: storeUrl,
   DATABASE_URL: `pglite:${join(root, "db")}`,
   ORDER_TOKEN_SECRET: "segredo-de-teste-com-mais-de-32-caracteres",
-  MP_ENVIRONMENT: "sandbox",
-  MP_ACCESS_TOKEN: "TEST-token-simulado",
-  MP_WEBHOOK_SECRET: webhookSecret,
-  MP_API_BASE: mockUrl,
+  // Simulated sandbox credentials: never real keys in automated tests.
+  ASAAS_ENVIRONMENT: "sandbox",
+  ASAAS_API_KEY: "$aact_hmlg_chave_simulada",
+  ASAAS_WEBHOOK_TOKEN: webhookToken,
+  ASAAS_API_BASE: `${mockUrl}/v3`,
+  MELHOR_ENVIO_ENVIRONMENT: "sandbox",
   MELHOR_ENVIO_TOKEN: "token-simulado",
   MELHOR_ENVIO_API_BASE: mockUrl,
   MELHOR_ENVIO_USER_AGENT: "Cura Cafe testes (loja@example.test)",
-  SHIPPING_ORIGIN_CEP: "37500000",
-  SHIPPING_BOX_CM: "12x16x24",
-  SHIPPING_TARE_GRAMS: "150",
+  // Fictitious origin and sender, test only.
+  SHIPPING_ORIGIN_CEP: "00000000",
+  SHIPPING_FROM_NAME: "Remetente de Teste",
+  SHIPPING_FROM_DOCUMENT: "52998224725",
+  SHIPPING_FROM_PHONE: "11999990000",
+  SHIPPING_FROM_EMAIL: "envio@example.test",
+  SHIPPING_FROM_STREET: "Rua de Teste",
+  SHIPPING_FROM_NUMBER: "1",
+  SHIPPING_FROM_DISTRICT: "Centro",
+  SHIPPING_FROM_CITY: "Cidade de Teste",
+  SHIPPING_FROM_STATE: "SP",
+  SHIPPING_NON_COMMERCIAL: "true",
+  ADMIN_PASSWORD_HASH: hashPassword("senha-de-teste-do-painel"),
+  ADMIN_SESSION_SECRET: "segredo-de-sessao-do-painel-de-teste-123456",
+  CRON_SECRET: "segredo-do-cron-de-teste",
   RESEND_API_KEY: "re_simulado",
   RESEND_API_BASE: mockUrl,
   EMAIL_FROM: "Cura Café <loja@example.test>",
@@ -141,7 +203,7 @@ const env: NodeJS.ProcessEnv = {
   CURA_RATE_LIMIT_SCALE: "20",
 };
 delete env.GITHUB_PAGES;
-delete env.MP_PUBLIC_KEY;
+
 function run(
   command: string,
   args: string[],
@@ -177,6 +239,7 @@ async function main() {
     for (const [sku, quantity] of [
       ["A-250", "50"],
       ["A-500", "50"],
+      ["A-1000", "50"],
       ["B-250", "50"],
       ["C-250", "1"],
     ])
@@ -184,7 +247,7 @@ async function main() {
     mock = await startMockProviders({
       port: MOCK_PORT,
       storeUrl,
-      webhookSecret,
+      webhookToken,
     });
     // Own process group, so stopping it also stops the Next.js child.
     server = spawn(

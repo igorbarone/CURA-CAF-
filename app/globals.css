@@ -4466,3 +4466,30 @@ button[aria-pressed="true"] .showcase-progress::after {
   color: #efe9dd;
   padding: 6px 10px;
 }
+
+/* Store: Pix discount, promotional price, commercial tag, highlights. */
+.package-price del {
+  font-weight: 400;
+  color: var(--muted-ink);
+  margin-right: 4px;
+}
+.package-tag {
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.summary-discount dd,
+.cart-pix-note {
+  color: var(--brand);
+  font-weight: 700;
+}
+.cart-pix-note {
+  font-size: 13px;
+  margin: 8px 0 0;
+}
+.product-highlights {
+  margin: 12px 0;
+  padding-left: 18px;
+  line-height: 1.6;
+}
