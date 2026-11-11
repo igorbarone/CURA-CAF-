@@ -9,11 +9,12 @@ import { EditorialTopics } from "../components/editorial-topics";
 import { ProducerFeature } from "../components/producer-feature";
 import { CoffeeCard } from "../components/coffee-card";
 import { getHomeSelection } from "../lib/coffees";
-import { OriginConsole } from "../components/origin-console";
+import { HeroShowcase } from "../components/hero-showcase";
+import { formatBRL } from "../lib/commerce/catalog";
 import { KitShelf } from "../components/commerce/kit-shelf";
 import { commerceEnabled } from "../lib/commerce/client";
 import { getEditorial } from "../lib/editorial";
-import { projectCoffee } from "../lib/catalog-model";
+import { coffeePath, mediaForLot, projectCoffee } from "../lib/catalog-model";
 export const metadata: Metadata = metadataFor(
   "Cura Café | Democratizando café especial.",
   getEditorial().hero.description,
@@ -59,8 +60,30 @@ export default function Home() {
               ENCONTRADO. ESCOLHIDO. EXPLICADO.
             </p>
           </div>
-          <OriginConsole
-            coffees={entries.map((entry) => projectCoffee(entry))}
+          <HeroShowcase
+            slides={entries.flatMap((entry) => {
+              const coffee = projectCoffee(entry);
+              const media = mediaForLot(coffee);
+              return media
+                ? [
+                    {
+                      id: coffee.id,
+                      name: coffee.name,
+                      lot: coffee.lot,
+                      notes: coffee.notes,
+                      score: coffee.score,
+                      roast: coffee.roast,
+                      href: coffeePath(coffee),
+                      src: media.src,
+                      kind: media.kind,
+                      price:
+                        coffee.fromPriceCents !== null
+                          ? formatBRL(coffee.fromPriceCents)
+                          : null,
+                    },
+                  ]
+                : [];
+            })}
             signature={hero.originSignature}
           />
         </section>

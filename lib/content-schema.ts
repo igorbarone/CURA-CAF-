@@ -19,7 +19,7 @@ const mediaSrc = z
 // Extra product photos. Each one needs alt text and a credit, like `media`.
 const galleryItem = z
   .object({
-    kind: z.enum(["photograph", "artwork"]).default("photograph"),
+    kind: z.enum(["photograph", "artwork", "illustration"]).default("photograph"),
     src: mediaSrc,
     alt: text,
     credit: text,
@@ -51,7 +51,7 @@ export const coffeeSchema = z
             : value,
         z
           .object({
-            kind: z.enum(["photograph", "artwork"]).default("photograph"),
+            kind: z.enum(["photograph", "artwork", "illustration"]).default("photograph"),
             lotId: z
               .preprocess(
                 (value) => (value === "" ? null : value),

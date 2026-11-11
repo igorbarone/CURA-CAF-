@@ -102,6 +102,8 @@ content:
                   label: Fotografia autorizada
                 - name: artwork
                   label: Arte oficial (não é fotografia)
+                - name: illustration
+                  label: Ilustração da embalagem (cena criada digitalmente)
           - name: lotId
             label: Lote representado (vincular rótulos; vazio apenas para foto geral)
             type: reference
@@ -144,6 +146,8 @@ content:
                   label: Fotografia autorizada
                 - name: artwork
                   label: Arte oficial (não é fotografia)
+                - name: illustration
+                  label: Ilustração da embalagem (cena criada digitalmente)
           - name: src
             label: Imagem
             type: image

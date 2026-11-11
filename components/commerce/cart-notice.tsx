@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { PackThumb } from "./pack-thumb";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { formatBRL } from "../../lib/commerce/catalog";
@@ -51,10 +52,13 @@ export function CartNotice() {
           ×
         </button>
       </div>
-      <p className="cart-notice-item">
-        {notice.quantity}× {item.name} · {item.label} ·{" "}
-        {formatBRL(item.unitPriceCents * notice.quantity)}
-      </p>
+      <div className="cart-notice-line">
+        <PackThumb item={item} size={52} />
+        <p className="cart-notice-item">
+          {notice.quantity}× {item.name} · {item.label} ·{" "}
+          {formatBRL(item.unitPriceCents * notice.quantity)}
+        </p>
+      </div>
       <p className="cart-notice-total mono">
         {cart.itemCount} {cart.itemCount === 1 ? "ITEM" : "ITENS"} NO CARRINHO ·{" "}
         SUBTOTAL {formatBRL(cart.subtotalCents)}

@@ -8,6 +8,7 @@ import { centsToValue, track } from "../../lib/analytics";
 import { Arrow } from "../arrow";
 import { useCart } from "./cart-provider";
 import { QuantityInput } from "./quantity-input";
+import { PackThumb } from "./pack-thumb";
 import { useAvailability } from "./use-availability";
 import { cepDigits, maskCep } from "../../lib/commerce/format";
 export type Quote = {
@@ -134,20 +135,23 @@ export function CartView() {
           const stock = units ? (units[line.id] ?? 0) : null;
           return (
             <li key={line.id}>
-              <div>
-                <h2>{line.item.name}</h2>
-                <p>{line.item.label}</p>
-                <p className="mono">
-                  {formatBRL(line.item.unitPriceCents)} cada ·{" "}
-                  {formatBRL(pricePer100g(line.item))} / 100 g
-                </p>
-                {stock !== null && stock < line.quantity && (
-                  <p className="cart-warning" role="alert">
-                    {stock === 0
-                      ? "Indisponível no momento. Remova o item para continuar."
-                      : `Só há ${stock} unidade(s) disponível(is). Ajuste a quantidade.`}
+              <div className="cart-line-main">
+                <PackThumb item={line.item} size={72} />
+                <div>
+                  <h2>{line.item.name}</h2>
+                  <p>{line.item.label}</p>
+                  <p className="mono">
+                    {formatBRL(line.item.unitPriceCents)} cada ·{" "}
+                    {formatBRL(pricePer100g(line.item))} / 100 g
                   </p>
-                )}
+                  {stock !== null && stock < line.quantity && (
+                    <p className="cart-warning" role="alert">
+                      {stock === 0
+                        ? "Indisponível no momento. Remova o item para continuar."
+                        : `Só há ${stock} unidade(s) disponível(is). Ajuste a quantidade.`}
+                    </p>
+                  )}
+                </div>
               </div>
               <QuantityInput
                 id={`qty-${line.id}`}
@@ -254,6 +258,7 @@ export function CartView() {
           <ul>
             {suggestions.map(({ item, reason }) => (
               <li key={item.id}>
+                <PackThumb item={item} size={48} />
                 <p>
                   <strong>{item.name}</strong> · {item.label} ·{" "}
                   {formatBRL(item.unitPriceCents)}

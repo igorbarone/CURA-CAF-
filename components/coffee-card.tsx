@@ -1,6 +1,6 @@
 import { Arrow } from "./arrow";
 import Link from "next/link";
-import { CoffeeArt } from "./coffee-art";
+import { CardMedia } from "./card-media";
 import { CompareToggle } from "./compare-toggle";
 import { RoastMeter } from "./roast-meter";
 import { formatBRL } from "../lib/commerce/catalog";
@@ -13,13 +13,15 @@ export function CoffeeCard({ coffee }: { coffee: CoffeeView }) {
       className={`coffee-card ${coffee.tone}`}
       aria-labelledby={`cafe-${coffee.id}`}
     >
-      <CoffeeArt coffee={coffee} />
+      <CardMedia coffee={coffee} />
       <div className="coffee-info">
         <p className="eyebrow">{coffee.lot}</p>
         <h3 id={`cafe-${coffee.id}`}>
           <Link href={coffeePath(coffee)}>{coffee.name}</Link>
         </h3>
-        <p className="card-producers">de {coffee.producers}</p>
+        {coffee.producers !== "Informação a confirmar" && (
+          <p className="card-producers">de {coffee.producers}</p>
+        )}
         <p className="card-taste">
           <span className="profile-tag">{coffee.profile}</span>
           <span className="coffee-notes">{coffee.notes}</span>

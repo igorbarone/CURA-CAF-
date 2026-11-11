@@ -22,6 +22,7 @@ export function ProductGallery({ coffee }: { coffee: CoffeeView }) {
           />
           <figcaption>
             {current.kind === "artwork" && <strong>ARTE OFICIAL · </strong>}
+            {current.kind === "illustration" && <strong>ILUSTRAÇÃO · </strong>}
             {current.credit}
           </figcaption>
         </figure>

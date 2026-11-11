@@ -12,6 +12,8 @@ export type SellableItem = {
   unitPriceCents: number;
   weightGrams: number;
   grind: string | null;
+  // Package image shown in cart, mini-cart and checkout (null: none published).
+  image: { src: string; alt: string } | null;
   // Stock units the item consumes; a kit consumes each of its offers' SKUs.
   skus: { sku: string; quantity: number }[];
 };
@@ -41,6 +43,12 @@ export function buildPriceBook(content: Content): PriceBook {
       unitPriceCents: offer.unitPriceInCents,
       weightGrams: offer.weightInGrams,
       grind: offer.grind,
+      image:
+        coffee.media &&
+        (coffee.media.lotId === lot.id ||
+          (!coffee.media.lotId && coffee.media.kind === "photograph"))
+          ? { src: coffee.media.src, alt: coffee.media.alt }
+          : null,
       skus: [{ sku: offer.sku, quantity: 1 }],
     };
   }
@@ -72,6 +80,7 @@ export function buildPriceBook(content: Content): PriceBook {
         0,
       ),
       grind: null,
+      image: items.find((item) => item.offer.image)?.offer.image ?? null,
       skus: items.flatMap((item) =>
         item.offer.skus.map((sku) => ({
           sku: sku.sku,

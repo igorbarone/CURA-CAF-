@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { PackThumb } from "./pack-thumb";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { formatBRL } from "../../lib/commerce/catalog";
@@ -581,7 +582,8 @@ export function CheckoutForm() {
         <ul>
           {cart.lines.map((line) => (
             <li key={line.id}>
-              <span>
+              <PackThumb item={line.item} size={44} />
+              <span className="summary-line-name">
                 {line.quantity}× {line.item.name} · {line.item.label}
               </span>
               <span>{formatBRL(line.lineTotalCents)}</span>

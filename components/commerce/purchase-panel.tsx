@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { PackThumb } from "./pack-thumb";
 import { useEffect, useRef, useState } from "react";
 import {
   formatBRL,
@@ -174,6 +175,7 @@ export function PurchasePanel({
       </button>
       {narrow && !buttonVisible && !cart.notice && (
         <div className="purchase-sticky" aria-hidden="true">
+          <PackThumb item={selected} size={36} />
           <p>
             <span>
               {quantity}× {selected.label}
