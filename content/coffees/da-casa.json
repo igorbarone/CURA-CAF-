@@ -8,10 +8,18 @@
   "sortOrder": 2,
   "primaryLotId": "linha-casa",
   "media": {
-    "src": "/media/rotulo-2026-da-casa.png",
-    "kind": "artwork",
-    "alt": "Rótulo oficial do café DA CASA, blend gourmet da Linha Casa, o café do dia a dia, 250 gramas em grãos",
-    "credit": "Arte oficial Cura Café · rótulo Linha Casa",
-    "lotId": "linha-casa"
-  }
+    "kind": "illustration",
+    "lotId": "linha-casa",
+    "src": "/media/embalagem-da-casa.webp",
+    "alt": "Ilustração da embalagem de 250 g do café DA CASA com o rótulo oficial, grãos e um espresso ao lado, em cena criada digitalmente",
+    "credit": "Ilustração digital da embalagem · cena ilustrativa, não retrata a fazenda do produtor"
+  },
+  "gallery": [
+    {
+      "kind": "artwork",
+      "src": "/media/rotulo-2026-da-casa.png",
+      "alt": "Rótulo oficial do café DA CASA, blend gourmet da Linha Casa, o café do dia a dia, 250 gramas em grãos",
+      "credit": "Arte oficial Cura Café · rótulo Linha Casa"
+    }
+  ]
 }

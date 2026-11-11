@@ -8,10 +8,18 @@
   "sortOrder": 0,
   "primaryLotId": "cura-26-01",
   "media": {
-    "src": "/media/rotulo-2026-samba.png",
-    "kind": "artwork",
-    "alt": "Rótulo oficial do Café SAMBA, Linha Origem safra 2026: de Mauricio Lemos e Diego Campos, Região Campos Altos – MG, 1.200 m, Catucaí natural, 84 pontos SCA, torra média, 250 gramas em grãos",
-    "credit": "Arte oficial Cura Café · rótulo safra 2026",
-    "lotId": "cura-26-01"
-  }
+    "kind": "illustration",
+    "lotId": "cura-26-01",
+    "src": "/media/embalagem-samba.webp",
+    "alt": "Ilustração da embalagem de 250 g do café SAMBA com o rótulo oficial, rapadura e melaço ao lado, em cena criada digitalmente",
+    "credit": "Ilustração digital da embalagem · cena ilustrativa, não retrata a fazenda do produtor"
+  },
+  "gallery": [
+    {
+      "kind": "artwork",
+      "src": "/media/rotulo-2026-samba.png",
+      "alt": "Rótulo oficial do Café SAMBA, Linha Origem safra 2026: de Mauricio Lemos e Diego Campos, Região Campos Altos – MG, 1.200 m, Catucaí natural, 84 pontos SCA, torra média, 250 gramas em grãos",
+      "credit": "Arte oficial Cura Café · rótulo safra 2026"
+    }
+  ]
 }

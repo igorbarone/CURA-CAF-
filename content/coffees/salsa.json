@@ -8,10 +8,18 @@
   "sortOrder": 1,
   "primaryLotId": "cura-26-02",
   "media": {
-    "src": "/media/rotulo-2026-salsa.png",
-    "kind": "artwork",
-    "alt": "Rótulo oficial do Café SALSA, Linha Origem safra 2026: de Décio José Lemos, Fazenda Serrinha, Região Campos Altos – MG, 1.200 m, Arara natural, 86 pontos SCA, torra média, 250 gramas em grãos",
-    "credit": "Arte oficial Cura Café · rótulo safra 2026",
-    "lotId": "cura-26-02"
-  }
+    "kind": "illustration",
+    "lotId": "cura-26-02",
+    "src": "/media/embalagem-salsa.webp",
+    "alt": "Ilustração da embalagem de 250 g do café SALSA com o rótulo oficial, laranjas e tangerinas ao lado, em cena criada digitalmente",
+    "credit": "Ilustração digital da embalagem · cena ilustrativa, não retrata a fazenda do produtor"
+  },
+  "gallery": [
+    {
+      "kind": "artwork",
+      "src": "/media/rotulo-2026-salsa.png",
+      "alt": "Rótulo oficial do Café SALSA, Linha Origem safra 2026: de Décio José Lemos, Fazenda Serrinha, Região Campos Altos – MG, 1.200 m, Arara natural, 86 pontos SCA, torra média, 250 gramas em grãos",
+      "credit": "Arte oficial Cura Café · rótulo safra 2026"
+    }
+  ]
 }

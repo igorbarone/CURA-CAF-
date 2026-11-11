@@ -7,7 +7,7 @@ export function CoffeeArt({ coffee }: { coffee: CoffeeView }) {
   if (media)
     return (
       <figure
-        className={`coffee-art coffee-photo ${media.kind === "artwork" ? "official-label" : ""}`}
+        className={`coffee-art coffee-photo is-${media.kind} ${media.kind === "artwork" ? "official-label" : ""}`}
       >
         <Image
           src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}${media.src}`}
@@ -19,6 +19,7 @@ export function CoffeeArt({ coffee }: { coffee: CoffeeView }) {
           {media.kind === "artwork" && (
             <strong>ARTE OFICIAL DE RÓTULO · </strong>
           )}
+          {media.kind === "illustration" && <strong>ILUSTRAÇÃO · </strong>}
           {media.credit}
         </figcaption>
       </figure>

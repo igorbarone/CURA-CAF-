@@ -59,13 +59,12 @@ test("Food Service uses the published catalog and an honest partnership path", a
     const card = page.locator(".business-coffees .coffee-card").filter({
       has: page.getByRole("heading", { name: coffee.name, exact: true }),
     });
-    for (const text of [
-      coffee.profile,
-      coffee.producers,
-      coffee.preparation,
-      coffee.roast,
-    ])
+    for (const text of [coffee.profile, coffee.preparation, coffee.roast])
       await expect(card).toContainText(text);
+    // Producers appear only when confirmed; the card never prints a placeholder name.
+    if (coffee.producers === "Informação a confirmar")
+      await expect(card.locator(".card-producers")).toHaveCount(0);
+    else await expect(card).toContainText(coffee.producers);
     await expect(card.locator(".lot-facts")).toContainText(
       coffee.score !== null ? `${coffee.score} pontos` : "A confirmar",
     );
