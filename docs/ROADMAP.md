@@ -84,3 +84,6 @@ Build sem erros, navegação mobile, contraste legível, sem dados fictícios tr
 - [ ] Dados reais: coordenadas, fotos e histórias de produtores, ficha sensorial 1–5, domínio definitivo do QR
 - [ ] Fase 2: mapa interativo, Minha Xícara com comparação e compartilhamento, conquistas, Minha jornada, CMS para `content/experience/`
 - [ ] Fase 3: Barista com IA em rota de servidor, personalização, histórico com consentimento, métricas avançadas
+- [x] Versão 2.0 a partir da auditoria: motor de receitas por método, Laboratório guiado com ajuste e diário, Barista híbrido (modo guiado + IA com ferramentas, limites e orçamento), entrada pela embalagem, Dados do lote, revisão da Academia (docs/EXPERIENCIA-2.md)
+- [ ] Ativar a IA: credencial, `BARISTA_AI=enabled`, limite de gasto no Console e `npm run eval:barista` aprovado
+- [ ] Validar receitas com equipamento real (Melitta, AeroPress, espresso, moka) e o fluxo em aparelhos iOS/Android com o QR impresso

@@ -117,3 +117,14 @@ Mais detalhes em [Arquitetura, custos, migração e rollback](docs/COMMERCE-ARQU
 ## CURA Experience (Fase 1)
 
 Destino permanente do QR Code das embalagens: `/experiencia/?origem=qr`. Acesso exclusivo pelo QR: sem links no menu, home, rodapé ou fichas, fora do sitemap e com `noindex` (que só evita indexação; não é controle de acesso). Sem login ou validação de compra. Abertura cinematográfica, três caminhos livres (conhecer meu café, aprender a preparar, explorar), página por café com Jornada da Origem, Academia Cura (3 módulos, roda sensorial e simulador de extração), Laboratório de Preparo (8 métodos, receita personalizada, calculadora de proporção, passo a passo com cronômetro real e diagnóstico), Barista Cura com respostas estruturadas e quiz de paladar. Mantém Header, Footer, tema Black, catálogo e rotas de produto; a recompra leva à ficha existente, sem checkout paralelo. O lote ganhou campos opcionais de rastreabilidade e escala sensorial 1–5, preenchidos só com o que está nos rótulos (sem coordenadas nem escalas inventadas). Receitas, lições, quiz, diagnóstico e base do Barista ficam em `content/experience/*.json`, validados no build. Decisões, arquitetura da IA futura, eventos e pendências: [docs/EXPERIENCIA.md](docs/EXPERIENCIA.md).
+
+## CURA Experience 2.0
+
+O que mudou, a partir da auditoria de 11/11/2026:
+- **Motor de receitas único** (`lib/experience/brew.ts`). Tem um modelo por método: filtro, imersão, espresso por extração, moka pelo tamanho e cold brew com concentrado. A política de arredondamento é uma só e a capacidade do equipamento divide a receita em rodadas.
+- **Laboratório:** preparo guiado com início real do cronômetro, diagnóstico com ajuste aplicado à nova tentativa, receitas salvas e diário em `/experiencia/minha-jornada/`, só no navegador.
+- **Barista Cura híbrido.** O modo guiado entende perguntas compostas e mantém o contexto. O modo IA usa o SDK oficial da Anthropic no servidor, com ferramentas tipadas sobre o mesmo motor, limites distribuídos em Postgres e orçamento diário. A IA só é ativada com `BARISTA_AI=enabled`, chave e banco.
+- **Entrada:** pela embalagem, com "Quero preparar meu café". **Origem:** "Dados deste lote". **Academia:** revisão técnica (escala histórica da SCA e CVA, TDS e rendimento).
+- **Acessibilidade e telas de 320 px:** corrigidas.
+
+Ativação, variáveis, custos, segurança e a situação dos 15 achados: [docs/EXPERIENCIA-2.md](docs/EXPERIENCIA-2.md). A avaliação com o modelo real (`npm run eval:barista`) exige credencial e ainda não foi executada.

@@ -1,4 +1,6 @@
-# CURA Experience — Fase 1 (MVP)
+# CURA Experience
+
+> **Versão 2.0:** motor de receitas por método, Barista com IA (opcional) e modo guiado, Minha jornada e correções da auditoria. Arquitetura, ativação, custos e segurança: [EXPERIENCIA-2.md](EXPERIENCIA-2.md). As seções abaixo descrevem a base da Fase 1; onde houver diferença, vale o documento 2.0.
 
 Plataforma educativa acessada **exclusivamente** pelo QR Code único das embalagens. Integrada ao site: mesmo Next.js, Header/Footer, tema Black, tokens de cor, tipografia, catálogo e rotas de produto. Não há checkout paralelo, cadastro ou login.
 
@@ -32,6 +34,7 @@ https://<domínio-da-cura>/experiencia/?origem=qr
 | `/experiencia/preparar/` | Laboratório: café, método (8 equipamentos), quantidade (xícaras, café ou água), intensidade, modo iniciante/avançado, receita, calculadora, passo a passo, cronômetro e diagnóstico. Aceita `?cafe=`, `?metodo=` e `?xicaras=` |
 | `/experiencia/barista/` | Barista Cura (respostas estruturadas) |
 | `/experiencia/paladar/` | Quiz "Descubra seu paladar" |
+| `/experiencia/minha-jornada/` | Receitas salvas, diário de preparo e sugestões (2.0) |
 
 Navegação: barra superior no desktop e barra inferior fixa no celular (Início, Meu Café, Aprender, Preparar, Barista). O guia de preparo está a um toque.
 
