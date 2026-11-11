@@ -19,6 +19,7 @@
 - [x] Seleção demonstrativa por oferta publicada, sem pedido ou checkout
 - [x] Arquitetura de commerce: Next.js em modo servidor, PostgreSQL, Mercado Pago e Melhor Envio (docs/COMMERCE-ARQUITETURA.md)
 - [x] Carrinho, checkout Pix/cartão, pedidos, estoque, webhooks e frete funcionando no ambiente de testes
+- [x] Asaas (Pix com 5% nos cafés, cartão na página hospedada) no lugar do Mercado Pago; Melhor Envio com volumes e etiquetas; painel `/admin`; catálogo com dados logísticos e trava de venda
 - [ ] Homologação com sandbox real (credenciais de teste) e dados comerciais reais (docs/COMMERCE-ATIVACAO.md)
 - [ ] Produção: domínio, dados legais, política de privacidade e decisão explícita de cobrar
 - [ ] Assinaturas somente após definir operador de cobrança recorrente

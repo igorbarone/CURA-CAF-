@@ -94,25 +94,36 @@ Tema black e console de origem: o creme continua padrão; o botão “Black” n
 
 Embalagens na venda: as imagens das embalagens de SAMBA, SALSA e DA CASA (cenas criadas digitalmente) são a imagem principal de cada café, cadastradas com o novo tipo de mídia `illustration` (“Ilustração da embalagem” no CMS). Elas aparecem sempre com o selo “Ilustração digital” e o crédito diz que a cena não retrata a fazenda do produtor; o rótulo oficial fica na galeria. Usos: vitrine do hero (alterna os cafés a cada 5 s, pausa ao passar o mouse ou focar, sem movimento com redução de movimento), cartões da loja (mais baixos; ao passar o mouse, o rótulo aparece inteiro), ficha do produto (imagem grande) e fluxo de compra (miniatura no carrinho, mini-carrinho, resumo do checkout e barra fixa do celular, via `image` no price book). Decisão: imagem ilustrativa ajuda a vender sem se passar por fotografia real.
 
-## Cura Commerce (Missão 06)
+## Cura Commerce: Asaas, Melhor Envio, catálogo central e painel
 
-A loja roda no **alvo de servidor** (`npm run build:server` + `npm run start:server`). O export do GitHub Pages continua sem runtime e com "Compra online em breve". Estão prontos para homologação:
-- ficha com embalagens, quantidade, preço por 100 g e estoque ao vivo;
-- carrinho persistente e frete pelo Melhor Envio;
-- checkout transparente do Mercado Pago (Pix e cartão via Card Payment Brick);
-- pedidos com estoque reservado atomicamente;
-- webhook assinado e idempotente;
-- e-mails transacionais, recompra e eventos de funil.
+A loja roda no **alvo de servidor** (Vercel, `npm run build:server`). O export do GitHub Pages segue sem runtime e com "Compra online em breve". O que está pronto, para homologação em **sandbox**:
+- **Catálogo central** no Pages CMS: Café → Lote → Variante, com peso bruto, medidas, preço promocional opcional, limites de quantidade e janelas de venda. Uma variante só é vendida com preço, SKU e dados de envio. O validador e o painel mostram o que falta.
+- **Asaas:**
+  - Pix com QR Code e **5% de desconto só nos cafés**;
+  - cartão pago na página segura do Asaas, sem dados de cartão na Cura;
+  - webhook autenticado e idempotente;
+  - prazo de pagamento com devolução única do estoque.
+- **Melhor Envio:**
+  - carrinho empacotado em volumes de até 4 kg, nas caixas do CMS;
+  - cotação por volume (PAC e .Package conforme a cotação real);
+  - etiquetas compradas só por ação explícita, uma por pedido, com rastreio.
+- **Pedidos:** status financeiro separado do logístico. Não há overselling sob concorrência, e um webhook repetido ou fora de ordem nunca baixa estoque duas vezes.
+- **Painel `/admin`** com senha da equipe: indicadores, pedidos, etiquetas, estoque auditado com pausa por SKU, produtos e lotes.
+- **Barista:** preço e disponibilidade pela ferramenta `consultarCompra`, alternativas quando esgota, comparação sem nomes fixos.
 
-Decisões principais:
-- Preço, frete e status de pagamento são decididos só no servidor.
-- A cobrança real exige `MP_ENVIRONMENT=production` **e** `CURA_ALLOW_LIVE_PAYMENTS=true`.
-- Os dados editoriais seguem no Pages CMS, que ganhou Kits, Regras comerciais e galeria do produto.
-- Não há preço real cadastrado: nada aparece à venda até a equipe publicar ofertas.
+Decisões (11/11/2026):
+- O Asaas substitui o Mercado Pago por decisão da equipe. O cartão usa a página hospedada do Asaas, para que nenhum dado de cartão passe pelo servidor.
+- O catálogo continua no Git (Pages CMS): cada mudança de preço ou de origem é versionada, revisada e validada no build. O banco guarda só estoque, pausas, pedidos, pagamentos e etiquetas.
+- Os dados de envio não foram inventados. As variantes reais ficam fora da venda online até a equipe informar peso bruto, medidas, caixas e o CEP de origem.
+- A cobrança real exige `ASAAS_ENVIRONMENT=production`, uma chave de produção **e** `CURA_ALLOW_LIVE_PAYMENTS=true`.
+- A taxa de cartão de 3% é só uma premissa interna dos indicadores.
 
-Para testar a loja localmente: `npm run test:commerce`. O comando monta um ambiente isolado com catálogo fictício, PGlite e simuladores do Mercado Pago, Melhor Envio e Resend. Para operar: `npm run ops`.
+Testes: `npm run test:unit` e `npm run test:commerce`. O segundo usa um catálogo fictício e simuladores HTTP do Asaas e do Melhor Envio, e nunca usa credenciais reais. Para operar: painel `/admin` ou `npm run ops`.
 
-Mais detalhes em [Arquitetura, custos, migração e rollback](docs/COMMERCE-ARQUITETURA.md), em [Dependências e roteiro de ativação](docs/COMMERCE-ATIVACAO.md) e no [passo a passo da homologação na Vercel](docs/HOMOLOGACAO-VERCEL.md).
+Detalhes:
+- [Arquitetura](docs/COMMERCE-ARQUITETURA.md);
+- [dados que a equipe precisa fornecer e roteiro de ativação](docs/COMMERCE-ATIVACAO.md);
+- [passo a passo na Vercel](docs/HOMOLOGACAO-VERCEL.md).
 
 ## CURA Experience (Fase 1)
 

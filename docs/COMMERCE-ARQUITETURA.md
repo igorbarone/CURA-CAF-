@@ -1,207 +1,234 @@
-# Cura Commerce — arquitetura (Missão 06)
+# Cura Commerce — arquitetura (Asaas, Melhor Envio e catálogo central)
 
-Estado: **pronta para homologação**, com checkout funcional no ambiente de testes. Não há cobrança real habilitada, credencial publicada nem merge automático. O site atual no GitHub Pages continua no ar, sem mudança de comportamento.
+Estado: **pronta para homologação em sandbox**. Não há cobrança real habilitada, credencial no repositório nem merge automático. O GitHub Pages segue sem runtime e com "Compra online em breve". As variantes reais (SAMBA, SALSA, DA CASA 250 g) ficam **fora da venda online** até a equipe informar peso bruto e medidas da embalagem.
 
-## 1. Auditoria de partida
+## 1. Auditoria de partida (11/11/2026)
 
-| Área | Situação encontrada |
+| Área | Situação encontrada | Decisão |
+| --- | --- | --- |
+| Catálogo | Pages CMS (JSON no Git): Café → Lote → Oferta, validado com Zod no build. 3 cafés e 3 ofertas de 250 g com preço. | **Mantido** como fonte única. A oferta passa a ser a variante, com dados logísticos e trava de venda. |
+| Estoque, pedidos | Postgres (`inventory`, `orders`, `payments`, `webhook_events`, `order_events`); reserva atômica, idempotência. | **Mantido** e ampliado (migração 003). |
+| Pagamento | Mercado Pago (Pix e Card Payment Brick). | **Substituído pelo Asaas** (decisão definitiva da equipe). |
+| Frete | Melhor Envio com uma caixa fixa por variável de ambiente e peso somado. | **Mantido o provedor**, trocada a estratégia: empacotamento em volumes e cotação por volume; etiquetas. |
+| Operação | Só CLI (`npm run ops`). | **Painel `/admin`** autenticado, mais a CLI. |
+| Barista | Haiku 5.5 com ferramentas sobre o catálogo publicado; comparação com nomes fixos. | **Mantido**; nova ferramenta `consultarCompra` e comparação dinâmica. |
+| Experience | Já consome o catálogo publicado (`toExperienceCoffee`). | Sem mudança: QR, `noindex`, sem cadastro. |
+
+Não há sistema paralelo: o mesmo livro de preços (`buildPriceBook`) alimenta loja, carrinho, checkout, painel e Barista.
+
+## 2. Estrutura do catálogo
+
+```
+Café (identidade, URL, descrição, destaques, SEO, mídia)
+ └─ Lote (fazenda, produtor, região, município, altitude, variedade, processo,
+          safra, pontuação + metodologia, torra, sensorial, história, coordenadas,
+          janela de venda, status)
+     └─ Variante = oferta (SKU, peso líquido, peso bruto embalado, medidas,
+                  moagem, preço, preço promocional, quantidade mín./máx., selo,
+                  janela de venda, status)
+```
+
+- **Nova safra = novo lote.** O lote anterior é arquivado, nunca apagado (o CMS não permite apagar), e a rastreabilidade continua.
+- **Variante vendável** (`sellabilityIssues` em `lib/commerce/catalog.ts`): oferta, lote e café publicados, SKU, preço, peso líquido, **peso bruto e as três medidas**. Rascunhos podem ficar incompletos.
+- **Inconsistências recusadas no build:** promoção maior que o preço, mínimo maior que o máximo, medida faltando, peso bruto menor que o líquido, janela invertida.
+- O validador (`npm run validate:content`) lista o que falta para cada variante publicada. O painel mostra o mesmo em **Produtos e lotes**.
+- **Variantes preparadas como rascunho**, sem preço, peso bruto ou estoque: 500 g, 1 kg e 250 g moído de cada café. Não aparecem em lugar nenhum até a equipe completar os dados e publicar.
+- **Canais:** loja, Experience e Barista leem o mesmo catálogo publicado. Nada depende de nomes fixos, e o catálogo funciona com 3 ou com 10+ cafés. Academia e motor de receitas continuam independentes.
+
+### Fluxo de publicação
+
+1. **Rascunho** no Pages CMS.
+2. **Validação:** o build recusa inconsistências; validador e painel apontam o que falta para vender.
+3. **Publicação:** estado "Publicado" e commit; a Vercel publica em minutos.
+4. **Disponibilidade:** estoque, pausa por SKU e janela de venda, conferidos a cada requisição.
+
+**Por que o catálogo fica no Git e não no banco:**
+- cada mudança de preço ou de origem é revisável, versionada e validada antes de ir ao ar;
+- o site estático e a Experience continuam funcionando sem servidor.
+
+O banco guarda só o que muda a cada venda: estoque, pausas, pedidos, pagamentos e etiquetas.
+
+## 3. Compra
+
+```
+Produto → Carrinho (CEP e frete) → Checkout (dados, entrega, pagamento) → Pedido
+```
+
+1. **Carrinho:** cálculo local para exibição. O frete é cotado pelo servidor a partir do CEP.
+2. **Empacotamento** (`lib/commerce/packing.ts`):
+   - cada unidade usa o peso bruto e as medidas da variante; um kit vira as suas unidades;
+   - first-fit decreasing por volume: um volume "cabe" quando uma caixa comporta as medidas de cada unidade, o volume interno × ocupação máxima (`packingFillFactor`) e o peso, que não pode passar de `maxVolumeWeightGrams` (4 kg) incluindo a tara;
+   - cada volume usa a menor caixa que serve;
+   - sem caixas cadastradas não há cotação: a equipe precisa informá-las.
+3. **Cotação** (`lib/commerce/server/shipping.ts`):
+   - uma chamada `POST /api/v2/me/shipment/calculate` por volume (`package`, seguro com o valor do volume, `services` = ids do CMS, hoje `1` PAC e `3` .Package);
+   - só entram serviços que atendem **todos** os volumes; os preços somam e vale o maior prazo;
+   - o cliente paga todo o frete. `freeShippingFromCents` e `shippingSubsidyCents` existem, mas ficam nulos até haver aprovação.
+4. **Checkout** (`createCheckout`):
+   - Zod estrito; nenhum dado de cartão é aceito;
+   - o servidor recalcula preços, desconto e frete;
+   - se o frete mudou desde a tela (`shippingPriceCents`), responde `shipping_changed` com as opções atuais e o cliente confirma de novo;
+   - reserva o estoque por SKU (`SELECT … FOR UPDATE` e baixa, tudo ou nada; SKU pausado não vende);
+   - se faltar estoque preso em pedidos vencidos, eles expiram primeiro e a reserva é tentada de novo.
+5. **Cobrança** (`lib/commerce/server/asaas.ts`):
+   - **Pix:** `POST /payments` com `billingType: PIX`, depois `GET /payments/{id}/pixQrCode` (imagem e copia e cola).
+   - **Cartão:** `billingType: CREDIT_CARD`. O cliente paga na **página hospedada do Asaas** (`invoiceUrl`) e volta ao pedido (`callback.successUrl`). Nenhum dado de cartão passa pela Cura.
+   - **Idempotência:** a cobrança leva o id do pedido em `externalReference`. Antes de criar, o servidor procura uma existente; uma trava curta no pedido (`payment_claimed_at`) impede duas criações simultâneas.
+   - **Cliente:** reaproveitado pelo CPF, com `notificationDisabled`, porque os e-mails são da Cura.
+6. **Desconto Pix:**
+   - 5% (`pixDiscountPercent`) **só sobre os cafés**, nunca sobre o frete, arredondado ao centavo;
+   - calculado no servidor (`orderTotals`) e mostrado no carrinho, no checkout (recalculado ao trocar a forma de pagamento) e no pedido.
+7. **Taxa de cartão:** 3% (`cardFeeAssumptionPercent`) é **só** uma premissa interna dos indicadores. Nunca é cobrada do cliente.
+8. **Confirmação:**
+   - só o webhook autenticado (ou a reconciliação) marca o pedido como pago, sempre **relendo a cobrança no Asaas**;
+   - o valor pago é conferido com o total;
+   - o redirecionamento do navegador nunca confirma nada.
+
+### Estados
+
+| Financeiro (`status`) | Logístico (`fulfillment_status`) |
 | --- | --- |
-| Hospedagem | Export estático (`output: "export"`) no GitHub Pages, em `/CURA-CAF-/`, publicado pelo workflow `pages.yml` a cada push na `main`. |
-| Conteúdo | Pages CMS sobre JSON no Git: cafés, lotes, ofertas, Home e textos editoriais, validados com Zod no build. A equipe edita direto na `main`. |
-| Produtos | Café (identidade e URL) → lote (sensorial e origem) → oferta (SKU, preço, peso, moagem). Há **0 ofertas publicadas**: nenhum preço real existe. |
-| O que funcionava | Home, catálogo com filtros, ficha, quiz, comparador, clube (proposta), Food Service, canais de contato configuráveis (vazios). |
-| O que era demonstrativo | Carrinho de "seleção demonstrativa", só com IDs na sessão, sem preço, estoque, frete ou pagamento. |
-| Integrações | Nenhuma em runtime. Fontes locais, sem scripts de terceiros. |
-| Testes | Unitários, Playwright desktop/mobile com axe, cenários editoriais e de catálogo vazio, rodados no CI do PR e antes do deploy. |
+| `pending_payment` Aguardando pagamento | `unfulfilled` A preparar |
+| `paid` Pago | `preparing` Em preparação |
+| `expired` Expirado (prazo vencido; cobrança removida no Asaas) | `shipped` Enviado (com rastreio) |
+| `cancelled` Cancelado | `delivered` Entregue |
+| `refunded` Reembolsado | |
+| `payment_failed` (legado) | |
 
-## 2. Decisão de arquitetura
+**Regras:**
+- Os estados só avançam. Um evento repetido, atrasado ou fora de ordem não muda nada.
+- O estoque baixa **uma vez**, na reserva do checkout. Webhooks nunca baixam estoque; a devolução é única (`stock_released`).
+- **Pago depois de expirar:** o pedido vira "pago". O estoque é retomado se houver; se não houver, o pedido aparece em **Pedem atenção** no painel (repor ou estornar).
+- **Prazos:** Pix 30 min e cartão 60 min (CMS). Vencido, a cobrança é removida no Asaas (`DELETE /payments/{id}`), o estoque volta e o cliente recebe e-mail. Se o Asaas disser que foi pago no meio da expiração, o pagamento vence.
 
-Um único app Next.js com **dois alvos de build**:
+**Quando a expiração roda:**
+- na página do próprio pedido;
+- quando falta estoque num novo checkout;
+- em `GET /api/cron/reconcile/` (Vercel Cron diário, `CRON_SECRET`);
+- no painel ou na CLI.
 
-| | Estático (atual) | Servidor (loja) |
-| --- | --- | --- |
-| Comando | `GITHUB_PAGES=true npm run build` | `npm run build:server` (`CURA_TARGET=server`) |
-| Saída | `out/`, GitHub Pages | `.next-server/`, runtime Node.js |
-| Rotas de API | não existem | `app/api/**/route.ts` |
-| Loja | desligada: checkout e pedido dizem "Compra online em breve" | ligada quando `CURA_COMMERCE=enabled` e as variáveis exigidas existem |
+## 4. Etiquetas (Melhor Envio)
 
-As rotas de API são arquivos `route.ts` padrão em `app/api`. O build estático (`npm run build`, via `scripts/build-static.ts`) move essa pasta para uma pasta privada enquanto exporta e a devolve no fim, então o export nunca as vê. Na Vercel (`VERCEL=1`) o alvo é sempre o de servidor, com saída em `.next`. O conteúdo continua vindo do mesmo JSON do Pages CMS nos dois alvos: a migração não toca nos dados editoriais.
+**Só por ação explícita** no painel ou na CLI, nunca automática. Exigem pedido pago e o remetente configurado.
 
-### Fluxo de compra
+**Passos:** um item no carrinho do Melhor Envio por volume → `checkout` (paga com o saldo da carteira) → `generate` → `print` (link) → `tracking`.
 
-1. A ficha lista as embalagens à venda: oferta publicada, com preço e peso confirmados, de lote e café publicados. Ela consulta a disponibilidade em `GET /api/availability/`.
-2. O carrinho guarda no navegador apenas `{ id, quantidade }` e cota o frete em `POST /api/shipping/quote/`.
-3. `POST /api/checkout/` valida a entrada e faz todo o cálculo no servidor:
-   - Recalcula itens a partir do livro de preços do CMS, recota o frete e ignora qualquer valor enviado pelo navegador.
-   - Grava o pedido com a chave de idempotência.
-   - Reserva o estoque por SKU numa transação: tudo ou nada.
-   - Cria o pagamento no Mercado Pago com `X-Idempotency-Key` igual ao id do pedido.
-4. Pix: o QR Code é devolvido e exibido na página do pedido. Cartão: o Card Payment Brick gera um token no navegador e só esse token chega ao servidor. Número e CVV nunca chegam.
-5. O Mercado Pago chama `POST /api/webhooks/mercadopago/`. A loja processa a notificação assim:
-   - Verifica a assinatura HMAC (`x-signature`).
-   - Descarta entregas repetidas pelo `x-request-id`.
-   - **Lê o pagamento na API do Mercado Pago**, sem confiar no corpo da notificação.
-   - Confere o valor e só então muda o status do pedido.
-6. `/pedido/?id=…&token=…` mostra o status ao vivo. O token é `HMAC(ORDER_TOKEN_SECRET, id)`: não é guardado e não revela dados pessoais.
+**Proteções:**
+- `shipments` tem um registro por pedido (chave primária). O status guarda a última etapa concluída, e uma nova tentativa continua dali **sem pagar de novo**.
+- Um clique duplo ou simultâneo encontra a tentativa em andamento e não repete.
 
-### Estados do pedido
+**NF-e:** a chave é pedida no painel. A declaração de conteúdo só é usada se a equipe ativar `SHIPPING_NON_COMMERCIAL=true`.
 
-| Pagamento no Mercado Pago | Pedido | Estoque |
-| --- | --- | --- |
-| `pending`, `in_process`, `authorized` | `pending_payment` | reservado |
-| `approved`, com o valor igual ao do pedido | `paid` | baixado |
-| `approved` com valor diferente | continua pendente, evento `payment.amount_mismatch` | reservado |
-| `rejected` | `payment_failed` | devolvido uma única vez |
-| `cancelled` ou `expired` (Pix vencido) | `cancelled` | devolvido uma única vez |
-| `refunded` ou `charged_back` | `refunded` | conferência manual |
-| — (operação) | `shipped` → `delivered` | — |
+Com todos os códigos de rastreio, o pedido passa a "Enviado" e o cliente é avisado. Também existe o envio manual, com rastreio digitado.
 
-O navegador nunca marca pedido como pago. Um pagamento aprovado depois de o estoque ter sido liberado gera o evento `payment.approved_after_release`, para conferência manual.
+## 5. Painel `/admin`
 
-## 3. Código
+Acesso:
+- senha única da equipe, guardada só como hash scrypt em `ADMIN_PASSWORD_HASH` (`npm run ops -- admin:hash`);
+- sessão assinada (`ADMIN_SESSION_SECRET`) de 8 h, em cookie `HttpOnly`, `SameSite=Strict` e `Secure`;
+- formulários só da mesma origem, login limitado a 5 tentativas por minuto;
+- `noindex` e bloqueado no `robots.txt`;
+- não existe no export do GitHub Pages.
 
-| Caminho | Função |
+| Seção | O que faz |
 | --- | --- |
-| `lib/commerce/catalog.ts`, `cart.ts`, `recommendations.ts` | Livro de preços, carrinho, preço por 100 g e upsell/cross-sell. Usados no navegador e no servidor. |
-| `lib/commerce/rules.ts` + `content/commerce.json` | Regras comerciais do CMS: frete grátis (nulo), quantidade máxima e validade do Pix. |
-| `lib/commerce/server/orders.ts` | Checkout, reserva de estoque, transições, webhook, reconciliação e envio. |
-| `lib/commerce/server/mercadopago.ts`, `shipping.ts`, `notify.ts` | Clientes HTTP do Mercado Pago, Melhor Envio e Resend. |
-| `lib/commerce/server/db.ts` + `db/migrations/*.sql` | PostgreSQL (`pg`) em produção e PGlite em testes, com a mesma SQL. |
-| `lib/commerce/server/security.ts`, `log.ts`, `config.ts` | HMAC, CPF, limitador, logs sem dados pessoais e configuração por ambiente. |
-| `components/commerce/*` | Painel de compra, carrinho, checkout, pedido e kits. |
-| `scripts/ops.ts` | Operação por linha de comando: migração, estoque, pedidos, envio e reconciliação. |
-| `scripts/test-commerce.ts` | Ambiente de testes de ponta a ponta com simuladores. |
+| Visão geral | Pedidos pagos (Pix/cartão), faturamento bruto, descontos Pix, frete cobrado, taxas estimadas de cartão (estimativa), ticket médio, pedidos a enviar e pedidos que pedem atenção. Também mostra o ambiente (sandbox/produção) e o que está ativo. |
+| Pedidos | Filtros (pagamento, a enviar, enviados, encerrados, atenção). Na ficha: itens com preços do momento da compra, totais, endereço, volumes, cobranças, histórico, preparação, etiqueta, rastreio e entrega. |
+| Estoque | Por variante: venda online (ativa, pausada, esgotada ou bloqueada e por quê), disponível, reservado, vendido, ajuste com motivo obrigatório e pausar/retomar. Ajustes ficam em `inventory_adjustments`. |
+| Produtos e lotes | Cafés, lotes, safra, pontuação, janelas e variantes, com o que falta para vender, e o link para editar no Pages CMS. |
 
-## 4. Infraestrutura proposta
+Não é um ERP: não há NF-e, financeiro nem CRM.
 
-| Peça | Proposta | Observação |
-| --- | --- | --- |
-| Hospedagem | **Vercel** (projeto novo apontando para este repositório, comando `npm run build:server`, região de funções `gru1` São Paulo) | Runtime Next.js nativo. O plano Hobby não permite uso comercial: precisa ser **Pro**. Alternativas: Render ou Railway com `npm run start:server`. |
-| Banco | **PostgreSQL gerenciado em São Paulo**: Supabase (região sa-east-1) ou Neon | Dados pessoais no Brasil. Backups diários e PITR no plano pago. |
-| Pagamentos | Mercado Pago Checkout Transparente (Pix e cartão) | Conta PJ da Cura, credenciais de teste e de produção separadas. |
-| Frete | Melhor Envio (Correios e transportadoras) | Conta da Cura, token de API, CEP de origem e medidas da caixa. |
-| E-mail | Resend, com domínio próprio verificado (SPF/DKIM) | Sem chave configurada, nada é enviado e o log registra "skipped". |
-| Domínio | Domínio `.com.br` próprio (Registro.br) | Necessário para e-mail transacional, cookies e confiança. Hoje o site está em `igorbarone.github.io`. |
-| Agendamento | Cron a cada 15 min chamando `npm run ops -- orders:reconcile 60` (job agendado no provedor ou Vercel Cron com rota protegida) | Cancela pedidos sem pagamento e libera estoque. A rota de cron ainda não existe; por ora o comando roda manualmente. |
+## 6. Barista
 
-### Variáveis de ambiente (servidor)
+- A nova ferramenta `consultarCompra` traz embalagens, preço, estoque, desconto Pix e alternativas disponíveis do livro de preços e do estoque ao vivo.
+- Esses dados vêm de um instantâneo de 60 s carregado no servidor, que o modelo só vê quando a pergunta é de compra.
+- Se a loja não está vendendo, a resposta é "em breve", sem preço.
+- O prompt manda usar a ferramenta para qualquer preço; nada é inventado.
+- Receitas continuam no motor do Laboratório.
+- A intenção de comparar usa os nomes do catálogo publicado.
+- O modelo, o esforço, o cache e os limites não mudaram (Haiku 5.5, sem fallback).
 
-Nenhuma delas vai para o repositório ou para o CMS. Use o painel de segredos do provedor de hospedagem.
+## 7. Código
 
-| Variável | Obrigatória | Exemplo / formato |
-| --- | --- | --- |
-| `CURA_COMMERCE` | sim | `enabled` (também no **build**, para ligar a interface da loja) |
-| `SITE_URL` | sim | `https://loja.curacafe.com.br` (sem barra no fim) |
-| `DATABASE_URL` | sim | `postgres://…` (produção) · `pglite:./.cura-data` (homologação local) |
-| `CURA_AUTO_MIGRATE` | não | `true` aplica as migrações na partida; o recomendado é `npm run ops -- migrate` no deploy |
-| `ORDER_TOKEN_SECRET` | sim | ≥ 32 caracteres aleatórios. Se for trocado, os links de pedido já enviados deixam de abrir. |
-| `MP_ENVIRONMENT` | sim | `sandbox` ou `production` |
-| `CURA_ALLOW_LIVE_PAYMENTS` | só para cobrar de verdade | `true`. Sem ela, `MP_ENVIRONMENT=production` **desliga** os pagamentos. |
-| `MP_ACCESS_TOKEN` | sim | access token da conta (teste ou produção) |
-| `MP_PUBLIC_KEY` | para cartão | public key correspondente; sem ela, só Pix |
-| `MP_WEBHOOK_SECRET` | sim | "assinatura secreta" das notificações no painel do Mercado Pago |
-| `MELHOR_ENVIO_TOKEN` | sim | token de aplicação |
-| `MELHOR_ENVIO_API_BASE` | não | `https://sandbox.melhorenvio.com.br` (padrão) ou `https://melhorenvio.com.br` |
-| `MELHOR_ENVIO_USER_AGENT` | sim | `Cura Café (email-tecnico@dominio)`, exigido pelo Melhor Envio |
-| `MELHOR_ENVIO_SERVICES` | não | ids de serviço separados por vírgula, para limitar opções |
-| `SHIPPING_ORIGIN_CEP` | sim | CEP de onde os pedidos saem |
-| `SHIPPING_BOX_CM` | sim | `altura x largura x comprimento`, ex. `12x16x24` (**a confirmar** com a embalagem real) |
-| `SHIPPING_TARE_GRAMS` | sim | peso da caixa e proteção, em gramas (**a confirmar**) |
-| `RESEND_API_KEY`, `EMAIL_FROM` | para e-mail | `Cura Café <pedidos@dominio>` |
-| `CEP_API_BASE` | não | padrão `https://viacep.com.br`; busca de endereço pelo CEP no checkout, feita pelo servidor (só o CEP é enviado) |
-
-`/api/commerce/status/` informa o que está ligado (`pix`, `card`, `shipping`) sem expor nenhum valor.
-
-## 5. Custos recorrentes estimados
-
-Valores de referência a **confirmar nas páginas oficiais e na negociação** antes da decisão. Taxas de pagamento variam com o prazo de recebimento e com o volume.
-
-| Item | Estimativa | Confirmar |
-| --- | --- | --- |
-| Vercel Pro | cerca de US$ 20 por membro/mês, mais excedentes de uso | vercel.com/pricing |
-| Postgres (Supabase Pro ou Neon pago) | cerca de US$ 19–25/mês; existe plano gratuito para homologação | supabase.com/pricing · neon.tech/pricing |
-| Mercado Pago, Pix | taxa percentual por transação (da ordem de 1%) | tabela de taxas da conta, Checkout Transparente |
-| Mercado Pago, cartão | taxa percentual por transação (da ordem de 4–5% com recebimento na hora, menor com prazo maior), mais juros do parcelamento quando repassados | tabela de taxas da conta |
-| Melhor Envio | sem mensalidade; paga-se cada etiqueta | melhorenvio.com.br |
-| Resend | plano gratuito com limite diário; plano pago a partir de cerca de US$ 20/mês | resend.com/pricing |
-| Domínio `.com.br` | cerca de R$ 40/ano | registro.br |
-
-Sem tráfego relevante, a infraestrutura fixa fica na ordem de **US$ 40–50/mês**. O custo variável vem das taxas de pagamento e das etiquetas.
-
-## 6. Segurança, LGPD e qualidade
-
-- **Entrada:** Zod valida todos os campos, incluindo CPF (dígitos verificadores), CEP, UF, telefone, nome e sobrenome. O consentimento é obrigatório. O corpo é limitado a 32 KB.
-- **Preço:** o total é calculado só no servidor, a partir do CMS. Campos extras no corpo são recusados (`strict`).
-- **Autorização:** o pedido só é lido com o token HMAC do link. Sem ele, ou com o id inexistente, a resposta é a mesma (404). A resposta não traz CPF, e-mail, telefone nem endereço completo.
-- **Abuso:** há limitador por IP e rota. Ele fica em memória, então protege uma instância; com várias instâncias será preciso um armazenamento compartilhado (ex. Upstash Redis).
-- **Pagamentos:**
-  - O cartão só existe nos campos seguros do Mercado Pago.
-  - O webhook tem assinatura HMAC, comparação em tempo constante e deduplicação.
-  - A loja confirma o status consultando a API do Mercado Pago.
-  - O valor do pagamento é conferido com o do pedido.
-- **Duplicidade:**
-  - Na loja: chave de idempotência por tentativa de checkout, com hash do corpo; a mesma chave com outro carrinho é recusada.
-  - No Mercado Pago: `X-Idempotency-Key` igual ao id do pedido.
-- **Logs:** nomes, e-mail, CPF, telefone, endereço, tokens e QR Codes são mascarados.
-- **LGPD:**
-  - O checkout coleta só o necessário e explica a finalidade (pedido, pagamento e entrega).
-  - **Pendentes antes da produção:**
-    - Política de privacidade com o controlador (razão social, CNPJ, encarregado/DPO, canal do titular).
-    - Prazo de retenção dos pedidos.
-    - Banner de consentimento antes de qualquer ferramenta de analytics.
-    - Contrato ou termos com os operadores (Mercado Pago, Melhor Envio, Resend, hospedagem).
-- **Cabeçalhos:** o alvo de servidor envia `nosniff`, `Referrer-Policy`, `X-Frame-Options` e `Permissions-Policy`, e as rotas de API usam `Cache-Control: no-store`.
-
-## 7. Operação comercial
-
-| Necessidade | Como funciona hoje |
+| Arquivo | Papel |
 | --- | --- |
-| Estoque | O banco é a fonte de verdade: `npm run ops -- stock:set <SKU> <qtd>` e `stock:list`. Um SKU sem registro está indisponível. O campo de estoque do CMS é só referência editorial. |
-| Pedidos | `orders:list [status]` e `order:events <id>`, sem dados pessoais. Os dados de entrega ficam no banco e são consultados com acesso restrito. |
-| Envio e rastreio | `order:ship <id> <código> [transportadora]` avisa o cliente por e-mail; depois, `order:deliver <id>`. A compra de etiqueta no Melhor Envio continua manual, no painel deles. |
-| Pagamentos pendentes | `orders:reconcile [minutos]` relê o Mercado Pago, cancela pedidos sem pagamento e libera o estoque. |
-| Comunicação | E-mails de pedido recebido (Pix), pagamento confirmado, pagamento não aprovado e pedido enviado. |
-| Recompra | "Comprar novamente" na página do pedido, com os itens que continuam à venda. |
-| Medição | Eventos `view_item`, `add_to_cart`, `remove_from_cart`, `view_cart`, `begin_checkout`, `add_shipping_info`, `add_payment_info` e `purchase` em `window.dataLayer` (formato GA4). `purchase` só é enviado com pagamento confirmado pelo servidor, uma vez por pedido. Nenhuma ferramenta de analytics é carregada antes do consentimento. |
-| Assinaturas | **Não implementadas**, até a aprovação das regras do Clube Cura. |
-| Painel web | Não há. A operação é por CLI em homologação. Um painel com autenticação é o próximo passo depois das primeiras vendas. |
+| `lib/content-schema.ts`, `.pages.yml` | Campos de café, lote e variante (paridade testada). |
+| `lib/commerce/catalog.ts` | Livro de preços, `sellabilityIssues`, janelas de venda. |
+| `lib/commerce/{cart,pricing,packing,rules}.ts` | Carrinho, desconto Pix e frete cobrado, volumes, regras do CMS. |
+| `lib/commerce/server/asaas.ts` | Cliente Asaas e mapa de status. |
+| `lib/commerce/server/shipping.ts` | Cotação por volume e etiquetas no Melhor Envio. |
+| `lib/commerce/server/orders.ts` | Checkout, cobrança, webhook, expiração, reconciliação, logística, visão do pedido, disponibilidade. |
+| `lib/commerce/server/{labels,stock,indicators,admin,admin-auth}.ts` | Etiquetas, estoque auditado, indicadores, sessão do painel. |
+| `app/api/webhooks/asaas`, `app/api/cron/reconcile`, `app/api/admin/*` | Webhook, reconciliação agendada, ações do painel. |
+| `app/admin/**` | Painel. |
+| `db/migrations/003_asaas_fulfillment.sql` | Status logístico, desconto, volumes, prazos, pausa, ajustes e etiquetas. Converte pedidos antigos `shipped`/`delivered` em pago + logística, sem perder histórico. |
+| `scripts/ops.ts` | CLI de operação, incluindo `admin:hash`, `order:label` e `indicators`. |
 
-## 8. Upsell e cross-sell (sem invenção)
+## 8. Variáveis de ambiente (só no servidor)
 
-- **Kit** (ex. Kit descoberta SAMBA + SALSA): é cadastrado em **Kits** no CMS e só é vendido com preço aprovado. O estoque é o de cada SKU do kit.
-- **Embalagem maior:** só é sugerida quando existe e **custa menos por 100 g**. Caso contrário, não aparece como vantagem.
-- **Outro café** e **kits** aparecem no carrinho e na ficha, cada um com o motivo da sugestão.
-- **Frete grátis:** `freeShippingFromCents` fica nulo até ser aprovado. Não há cupons, descontos, contadores ou urgência.
-- **Produtos complementares** (filtros, acessórios): não existem no catálogo, então nada é sugerido.
+Nenhuma vai para o navegador: não há variável `NEXT_PUBLIC_` de pagamento.
 
-## 9. Migração sem interromper o site
+| Variável | Para quê | Obrigatória |
+| --- | --- | --- |
+| `CURA_COMMERCE=enabled`, `DATABASE_URL`, `ORDER_TOKEN_SECRET` (32+), `SITE_URL` (ou o da Vercel) | Loja ligada | sim |
+| `ASAAS_ENVIRONMENT` | `sandbox` (padrão) ou `production` | — |
+| `ASAAS_API_KEY` | Chave da conta, `$aact_hmlg_…` no sandbox e `$aact_prod_…` em produção. Uma chave do outro ambiente é recusada. | para Pix/cartão |
+| `ASAAS_WEBHOOK_TOKEN` (16+) | Token escolhido ao criar o webhook no Asaas, conferido em `asaas-access-token` | para Pix/cartão |
+| `ASAAS_API_BASE`, `ASAAS_USER_AGENT` | Só para sobrescrever (padrões: `https://api-sandbox.asaas.com/v3` e `https://api.asaas.com/v3`) | — |
+| `CURA_ALLOW_LIVE_PAYMENTS=true` | **Única** forma de cobrar de verdade, junto com `ASAAS_ENVIRONMENT=production`. Exige aprovação explícita da equipe. | — |
+| `MELHOR_ENVIO_ENVIRONMENT` | `sandbox` (padrão) ou `production` | — |
+| `MELHOR_ENVIO_TOKEN`, `MELHOR_ENVIO_USER_AGENT` (`Cura Café (email-técnico)`) | Cotação e etiquetas | para frete |
+| `SHIPPING_ORIGIN_CEP` | CEP de origem (dado da equipe) | para frete |
+| `SHIPPING_FROM_NAME`, `SHIPPING_FROM_DOCUMENT` ou `SHIPPING_FROM_COMPANY_DOCUMENT`, `SHIPPING_FROM_STATE_REGISTER`, `SHIPPING_FROM_PHONE`, `SHIPPING_FROM_EMAIL`, `SHIPPING_FROM_STREET`, `SHIPPING_FROM_NUMBER`, `SHIPPING_FROM_COMPLEMENT`, `SHIPPING_FROM_DISTRICT`, `SHIPPING_FROM_CITY`, `SHIPPING_FROM_STATE` | Remetente das etiquetas | para etiquetas |
+| `SHIPPING_NON_COMMERCIAL=true` | Envio com declaração de conteúdo (sem NF-e), só se a equipe confirmar que pode | — |
+| `ADMIN_PASSWORD_HASH`, `ADMIN_SESSION_SECRET` (32+) | Painel | para o painel |
+| `CRON_SECRET` | Protege `/api/cron/reconcile/` (a Vercel Cron envia como Bearer) | recomendado |
+| `RESEND_API_KEY`, `EMAIL_FROM` | E-mails | opcional |
+| `CURA_AUTO_MIGRATE`, `CURA_STOCK_FROM_CMS` | Homologação: migra no primeiro acesso e cria estoque inicial a partir do CMS | opcional |
 
-1. **Homologação:** criar o projeto na hospedagem com credenciais de **teste**, um banco separado e um subdomínio de homologação. O GitHub Pages continua sendo o site público.
-2. Cadastrar ofertas reais (SKU, preço, peso) pelo CMS; aplicar `ops -- migrate` e `ops -- stock:set`.
-3. Validar o roteiro de `docs/COMMERCE-ATIVACAO.md` com compras de teste, Pix e cartões de teste.
-4. **Produção:** com domínio próprio, credenciais de produção, `MP_ENVIRONMENT=production` e, por decisão explícita, `CURA_ALLOW_LIVE_PAYMENTS=true`. O domínio passa a apontar para a loja.
-5. O GitHub Pages pode continuar publicando o export estático como reserva, ou ser desativado depois de estabilizar.
+**Variáveis removidas:** `MP_*`, `NEXT_PUBLIC_MP_PUBLIC_KEY`, `SHIPPING_BOX_CM`, `SHIPPING_TARE_GRAMS`, `MELHOR_ENVIO_SERVICES`. As caixas e os serviços agora ficam nas Regras comerciais do CMS.
 
-## 10. Plano de rollback
+## 9. Segurança e LGPD
 
-| Situação | Ação |
+- **Credenciais:** só em variáveis do servidor; sandbox e produção separados; cobrança real com dupla trava. Testes automatizados usam chaves simuladas, e o `test-commerce` remove do ambiente qualquer `ASAAS_*`, `MELHOR_ENVIO_*` ou `ADMIN_*` do terminal.
+- **Cartão:** digitado só na página do Asaas. O checkout recusa qualquer campo de cartão.
+- **Webhook:** token comparado em tempo constante, deduplicação por id do evento e estado relido no Asaas.
+  - Responde 200 para eventos ignorados, para o Asaas não pausar a fila.
+  - Responde 401 para token errado e 5xx só quando deve haver nova tentativa.
+- **Pedido do cliente:** token HMAC no link. A resposta não traz CPF, e-mail, telefone nem endereço.
+- **Painel:** mostra os dados de entrega só para a sessão autenticada. Os logs mascaram dados pessoais.
+- **Pendências legais antes de vender:** política de privacidade com o controlador e o encarregado, termos de compra, trocas e arrependimento (7 dias), contratos com os operadores (Asaas, Melhor Envio, Resend, hospedagem) e banner de consentimento antes de qualquer analytics.
+
+## 10. Custos (confirmar nas contas da equipe)
+
+| Item | Referência |
 | --- | --- |
-| Falha no checkout ou no pagamento | Remover `CURA_ALLOW_LIVE_PAYMENTS` (ou o `MP_ACCESS_TOKEN`). Os pagamentos desligam na hora e a ficha continua exibindo os produtos. |
-| Loja inteira instável | Apontar o domínio de volta para o GitHub Pages: o export estático segue sendo gerado a cada push na `main`. |
-| Deploy com erro | "Instant rollback" para o deploy anterior no provedor de hospedagem. |
-| Migração de banco | As migrações só adicionam estruturas. Antes de cada nova migração, fazer backup ou snapshot do banco. |
-| Pedidos em andamento | Não são apagados. `orders:reconcile` e o painel do Mercado Pago garantem conferência e estorno. |
+| Asaas | Sem mensalidade no plano básico. Há taxa por Pix recebido e por cartão (percentual + fixo). A premissa interna de 3% no cartão é só para os indicadores. Conferir a tabela da conta. |
+| Melhor Envio | Sem mensalidade; paga-se cada etiqueta com o saldo da carteira. |
+| Vercel | O Hobby serve para homologação; para vender, a Vercel exige o Pro. O cron diário é suportado nos dois. |
+| Neon (Postgres) | O plano gratuito serve para homologação. |
+| Resend | Plano gratuito com limite diário. |
+
+Nenhum serviço pago novo foi introduzido.
 
 ## 11. Testes
 
 | Comando | Cobre |
 | --- | --- |
-| `npm run test:unit` | Livro de preços, carrinho, kits, preço por 100 g, upsell, Pix, cartão aprovado, recusado e em análise, idempotência e concorrência, estoque insuficiente, falha de rede, webhook duplicado e forjado, valor divergente, expiração, reconciliação, envio, CPF, limitador, mascaramento de logs e bloqueio de cobrança real. |
-| `npm run test:commerce` | Build de servidor com catálogo **fictício**, PGlite e simuladores locais do Mercado Pago, Melhor Envio e Resend. Inclui: compra completa por Pix até a confirmação pelo webhook, recompra, estoque escasso, queda do provedor com nova tentativa sem duplicar, cartão recusado, adulteração de total, webhook forjado, privacidade da resposta e axe e overflow em desktop e mobile. |
-| `npm test`, `npm run test:scenarios` | Site estático e cenários editoriais, inclusive "Compra online em breve" no GitHub Pages. |
+| `npm run test:unit` | **Catálogo:** trava de venda, rascunho incompleto, inconsistências, promoção, quantidade mín./máx., janela de venda (fuso de Brasília), kits.<br>**Empacotamento:** caixa menor, divisão acima de 4 kg, unidade grande demais, sem caixas.<br>**Cotação:** SP, RJ e Nordeste com PAC e .Package, ~4 kg em vários volumes, serviço que não atende um volume, queda do provedor, CEP inválido.<br>**Desconto Pix** só nos cafés.<br>**Checkout:** Pix, cartão (página do Asaas, sem dado de cartão), preços do servidor, cotação vencida, idempotência com envios simultâneos, concorrência sem overselling, SKU pausado, falha na criação da cobrança.<br>**Webhook:** pago uma vez, duplicado, fora de ordem, corpo não confiável, valor divergente, falha do provedor, cobrança desconhecida.<br>**Expiração:** remoção no Asaas e estoque devolvido uma vez, pago no prazo final, pago depois de expirar (com e sem estoque), reconciliação.<br>**Logística e etiquetas:** uma por volume, comprada uma vez, retomável, cliques simultâneos.<br>**Operação:** estoque auditado, indicadores, configuração (sandbox, trava de produção, chave do ambiente errado).<br>**Segurança:** token, senha e sessão do painel.<br>**Clientes HTTP:** Asaas e Melhor Envio contra `fetch` simulado.<br>**Barista:** `consultarCompra` e comparação dinâmica. |
+| `npm run test:commerce` | Build de servidor com catálogo **fictício**, PGlite e simuladores HTTP do Asaas, Melhor Envio, ViaCEP e Resend, em desktop e mobile, com axe.<br>**Compra:** Pix completa (desconto recalculado ao trocar o método, webhook forjado e com token errado, duplicado, recompra, privacidade), compra com cartão pela página simulada do Asaas, queda do frete, cotação antiga, dados de cartão recusados, CEP, resposta atrasada.<br>**Painel:** senha, ação sem sessão, robots, indicadores, preparação, etiqueta única, rastreio, entrega, ajuste e pausa de estoque. |
+| `npm test`, `npm run test:scenarios` | Site estático, Experience e cenários editoriais, inclusive "Compra online em breve". |
 
 **Fora do alcance automático:**
-- O Card Payment Brick real depende do script do Mercado Pago.
-- As APIs reais (sandbox) exigem credenciais e acesso de rede.
+- As APIs reais em sandbox exigem as credenciais da equipe. Os contratos foram implementados pela API v3 do Asaas e v2 do Melhor Envio e conferidos com SDKs públicos. A documentação oficial não estava acessível pela rede desta sessão, por isso a primeira rodada em sandbox (roteiro em `COMMERCE-ATIVACAO.md`) é obrigatória antes de produção.
 
-Os dois são validados no roteiro de homologação.
+## 12. Rollback
+
+| Situação | Ação |
+| --- | --- |
+| Problema no pagamento | Remover `ASAAS_API_KEY` ou `CURA_ALLOW_LIVE_PAYMENTS`: o checkout volta a "Compra online em breve" na hora. |
+| Problema no frete | Remover `MELHOR_ENVIO_TOKEN`: sem cotação, sem checkout. |
+| Deploy com erro | "Instant rollback" na Vercel. |
+| Banco | A migração 003 só adiciona colunas e tabelas e converte status legados. Fazer backup antes. |
+| Pedidos em andamento | Nunca apagados. Usar a reconciliação e o painel do Asaas para conferir e estornar. |

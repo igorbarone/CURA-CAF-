@@ -1,75 +1,76 @@
-# Homologação na Vercel — passo a passo
+# Homologação na Vercel: passo a passo
 
-A homologação é um **segundo endereço**, por exemplo `cura-cafe.vercel.app`, rodando a versão loja do mesmo repositório. O site atual no GitHub Pages continua igual. Nada aqui cobra de verdade: o Mercado Pago fica em modo **sandbox**.
+O projeto `cura-caf` na Vercel roda a versão loja deste repositório. O site no GitHub Pages continua igual. Nada aqui cobra de verdade: o Asaas fica em **sandbox** e o Melhor Envio também.
 
-## Etapa 1 — Loja no ar, sem pagamento (≈15 min)
+## Etapa 1: a loja no ar, sem pagamento
 
-Mostra a ficha com embalagens e preços, o carrinho e a página de checkout. Enquanto o Mercado Pago não estiver configurado, o checkout diz "Compra online em breve".
+Já está feito no projeto atual. As variáveis são `CURA_COMMERCE`, `ORDER_TOKEN_SECRET`, `CURA_AUTO_MIGRATE`, `CURA_STOCK_FROM_CMS` e o banco Neon (`DATABASE_URL`).
 
-1. Crie a conta em **vercel.com** entrando com o GitHub. Para testes o plano Hobby basta; para vender de verdade a Vercel exige o plano **Pro**.
-2. **Add New → Project**, escolha o repositório `igorbarone/CURA-CAF-` e clique em **Import**. O `vercel.json` do repositório já define o framework (Next.js), o build (`npm run build:server`) e a região (São Paulo). Não mude essas opções.
-3. Antes do primeiro deploy, abra **Environment Variables** e crie:
+- **Remova** `MP_ENVIRONMENT`: o Mercado Pago saiu da loja.
+- Enquanto o Asaas não estiver configurado, o checkout diz "Compra online em breve".
 
-   | Nome | Valor |
-   | --- | --- |
-   | `CURA_COMMERCE` | `enabled` |
-   | `ORDER_TOKEN_SECRET` | 48 caracteres aleatórios (use o gerador de senhas do navegador ou do gerenciador de senhas). Não compartilhe. |
-   | `MP_ENVIRONMENT` | `sandbox` |
-   | `CURA_AUTO_MIGRATE` | `true` (cria as tabelas no primeiro acesso) |
-   | `CURA_STOCK_FROM_CMS` | `true` (usa o "estoque editorial" do CMS como estoque inicial de teste) |
-
-4. Clique em **Deploy**. O primeiro build pode falhar por falta de banco; é esperado.
-5. **Banco:** no projeto, abra **Storage → Create Database → Neon** (Postgres) e escolha a região **São Paulo** se ela aparecer na lista. Conecte o banco ao projeto: a Vercel cria `DATABASE_URL` sozinha.
-6. **Deployments → ⋯ → Redeploy.**
-7. Abra `https://<seu-projeto>.vercel.app/api/commerce/status/`. Deve aparecer `"enabled": true`.
-
-O endereço da loja (`SITE_URL`) é detectado automaticamente pela Vercel. Só defina `SITE_URL` se usar um domínio próprio.
-
-### Para ver produtos à venda
-
-A loja só vende embalagens com **preço e peso confirmados**. No Pages CMS, em **Ofertas**, crie uma oferta para cada embalagem, com estes campos:
-- lote;
-- SKU;
-- preço em centavos (ex.: `4990` = R$ 49,90);
-- peso em gramas;
-- moagem;
-- estoque editorial (ex.: `20`);
+Para uma variante aparecer à venda, o Pages CMS (**Ofertas**) precisa de:
+- preço;
+- peso líquido;
+- **peso bruto embalado**;
+- **altura, largura e comprimento** da embalagem;
 - estado **Publicado**.
 
-Salvar no CMS dispara um novo deploy da Vercel. Atenção: a oferta publicada também mostra o preço ("a partir de") no site do GitHub Pages, que continua dizendo "Compra online em breve".
+Em **Regras comerciais → Caixas**, cadastre ao menos uma caixa de envio. Salvar no CMS dispara um novo deploy.
 
-## Etapa 2 — Pagamento em sandbox (Mercado Pago)
+## Etapa 2: pagamento em sandbox (Asaas)
 
-1. Em **mercadopago.com.br/developers**, crie uma aplicação do tipo **Checkout Transparente** (pagamentos online).
-2. Em **Credenciais de teste**, copie o **Access Token** e a **Public Key**.
-3. Em **Webhooks**, configure:
-   - URL: `https://<seu-projeto>.vercel.app/api/webhooks/mercadopago/`
-   - evento **Pagamentos**
-   - copie a **assinatura secreta**.
-4. Na Vercel, crie as variáveis `MP_ACCESS_TOKEN`, `MP_PUBLIC_KEY` e `MP_WEBHOOK_SECRET` e faça **Redeploy**.
-5. Crie **contas de teste** (comprador) no painel do Mercado Pago e use os **cartões de teste** da documentação.
-
-**Não crie** `CURA_ALLOW_LIVE_PAYMENTS` nem mude `MP_ENVIRONMENT` para `production`: é isso que garante que não há cobrança real.
-
-## Etapa 3 — Frete em sandbox (Melhor Envio)
-
-1. Crie a conta em **sandbox.melhorenvio.com.br** e gere um token em **Integrações → Permissões de acesso**.
-2. Na Vercel, crie as variáveis:
+1. Crie a conta em **sandbox.asaas.com**. Em **Integrações → Chave de API**, gere a chave; ela começa com `$aact_hmlg_`.
+2. Em **Integrações → Webhooks**, crie um webhook:
+   - URL: `https://cura-caf.vercel.app/api/webhooks/asaas/`
+   - versão da API v3, eventos de **Cobranças**
+   - fila sequencial
+   - **Token de autenticação:** gere 32+ caracteres aleatórios e guarde.
+3. Na Vercel, crie:
 
    | Nome | Valor |
    | --- | --- |
+   | `ASAAS_ENVIRONMENT` | `sandbox` |
+   | `ASAAS_API_KEY` | a chave do sandbox |
+   | `ASAAS_WEBHOOK_TOKEN` | o mesmo token do webhook |
+
+4. Faça **Redeploy**. `GET /api/commerce/status/` passa a mostrar `"pix": true` e `"card": true`.
+
+**Não crie** `CURA_ALLOW_LIVE_PAYMENTS` nem mude `ASAAS_ENVIRONMENT` para `production`. Uma chave de produção com o ambiente sandbox é recusada pela loja.
+
+## Etapa 3: frete em sandbox (Melhor Envio)
+
+1. Crie a conta em **sandbox.melhorenvio.com.br** e gere um token em **Integrações → Permissões de acesso**. Marque cotação, carrinho, compra, geração, impressão e rastreio de etiquetas.
+2. Na Vercel, crie:
+
+   | Nome | Valor |
+   | --- | --- |
+   | `MELHOR_ENVIO_ENVIRONMENT` | `sandbox` |
    | `MELHOR_ENVIO_TOKEN` | o token |
-   | `MELHOR_ENVIO_USER_AGENT` | `Cura Café (seu-email@dominio)` |
-   | `SHIPPING_ORIGIN_CEP` | CEP de onde os pedidos sairão |
-   | `SHIPPING_BOX_CM` | medidas da caixa, `alturaxlarguraxcomprimento`, ex. `12x16x24` |
-   | `SHIPPING_TARE_GRAMS` | peso da caixa e proteção, ex. `150` |
+   | `MELHOR_ENVIO_USER_AGENT` | `Cura Café (email-técnico@dominio)` |
+   | `SHIPPING_ORIGIN_CEP` | CEP de onde os pedidos saem |
 
-3. **Redeploy**. Na loja, o carrinho passa a calcular o frete pelo CEP e o checkout fica completo.
+3. Para etiquetas, defina também os dados do remetente: `SHIPPING_FROM_NAME`, `SHIPPING_FROM_DOCUMENT` (CPF) ou `SHIPPING_FROM_COMPANY_DOCUMENT` (CNPJ), `SHIPPING_FROM_PHONE`, `SHIPPING_FROM_EMAIL`, `SHIPPING_FROM_STREET`, `SHIPPING_FROM_NUMBER`, `SHIPPING_FROM_DISTRICT`, `SHIPPING_FROM_CITY` e `SHIPPING_FROM_STATE`.
+4. Faça **Redeploy**.
 
-## Etapa 4 (opcional) — E-mails
+## Etapa 4: painel e reconciliação
 
-Crie uma conta na **Resend**, verifique um domínio e defina `RESEND_API_KEY` e `EMAIL_FROM` (`Cura Café <pedidos@seudominio>`). Sem isso, a loja funciona normalmente, só não envia e-mails.
+1. No terminal do projeto, rode `npm run ops -- admin:hash`. O comando pede a senha e imprime `ADMIN_PASSWORD_HASH=…`. A senha não aparece na tela.
+2. Na Vercel, crie `ADMIN_PASSWORD_HASH` (o valor impresso) e `ADMIN_SESSION_SECRET` (48 caracteres aleatórios).
+3. Crie `CRON_SECRET` (aleatório). O `vercel.json` agenda a reconciliação diária e a Vercel envia esse segredo sozinha.
+4. Faça **Redeploy** e acesse `https://cura-caf.vercel.app/admin/`.
 
-## O que testar em seguida
+## Etapa 5 (opcional): e-mails
 
-Siga a seção 3 de [`COMMERCE-ATIVACAO.md`](COMMERCE-ATIVACAO.md): compra por Pix, cartão aprovado e recusado, notificação repetida, Pix vencido, estoque esgotado e envio com rastreio.
+Defina `RESEND_API_KEY` e `EMAIL_FROM`. Sem eles, a loja funciona normalmente, só não envia e-mails.
+
+## O que testar
+
+Siga a seção 3 de [`COMMERCE-ATIVACAO.md`](COMMERCE-ATIVACAO.md):
+- frete para SP, RJ e Nordeste;
+- Pix com desconto;
+- cartão pela página do Asaas;
+- webhook repetido;
+- Pix vencido;
+- SKU esgotado;
+- etiqueta e rastreio.
