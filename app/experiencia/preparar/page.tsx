@@ -10,7 +10,7 @@ export const metadata: Metadata = metadataFor(
 );
 
 export default function BrewPage() {
-  const { methods, coffees, diagnosis } = getExperience();
+  const { methods, coffees, diagnosis, taste } = getExperience();
   return (
     <div className="wrap xp-page">
       <header className="xp-page-head">
@@ -23,7 +23,12 @@ export default function BrewPage() {
           passo a passo e cronometramos cada despejo.
         </p>
       </header>
-      <BrewLab methods={methods} coffees={coffees} diagnosis={diagnosis} />
+      <BrewLab
+        methods={methods}
+        coffees={coffees}
+        diagnosis={diagnosis}
+        taste={taste}
+      />
     </div>
   );
 }

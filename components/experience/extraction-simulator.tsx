@@ -34,51 +34,83 @@ export function ExtractionSimulator() {
         ...current,
         [key]: Number(event.target.value),
       }));
-  const sliders: [
-    keyof ExtractionInput,
-    string,
-    number,
-    number,
-    number,
-    string,
-  ][] = [
-    ["grind", "Moagem", 1, 5, 1, grindLabels[input.grind]],
-    [
-      "temperature",
-      "Temperatura da água",
-      80,
-      100,
-      1,
-      `${input.temperature} °C`,
-    ],
-    ["seconds", "Tempo de contato", 60, 360, 15, formatClock(input.seconds)],
-    [
-      "ratio",
-      "Proporção café/água",
-      12,
-      20,
-      0.5,
-      `1:${formatNumber(input.ratio)}`,
-    ],
+  const sliders: {
+    key: keyof ExtractionInput;
+    label: string;
+    unit: string;
+    min: number;
+    max: number;
+    step: number;
+    value: string;
+    help: string;
+  }[] = [
+    {
+      key: "grind",
+      label: "Moagem",
+      unit: "de 1 (muito fina) a 5 (muito grossa)",
+      min: 1,
+      max: 5,
+      step: 1,
+      value: grindLabels[input.grind],
+      help: "Mais fina extrai mais rápido.",
+    },
+    {
+      key: "temperature",
+      label: "Temperatura da água",
+      unit: "graus Celsius",
+      min: 80,
+      max: 100,
+      step: 1,
+      value: `${input.temperature} °C`,
+      help: "Mais quente extrai mais.",
+    },
+    {
+      key: "seconds",
+      label: "Tempo de contato",
+      unit: "minutos e segundos",
+      min: 60,
+      max: 360,
+      step: 15,
+      value: formatClock(input.seconds),
+      help: "Mais tempo extrai mais.",
+    },
+    {
+      key: "ratio",
+      label: "Proporção café/água",
+      unit: "gramas de água por grama de café",
+      min: 12,
+      max: 20,
+      step: 0.5,
+      value: `1:${formatNumber(input.ratio)}`,
+      help: "Mais água dilui a bebida.",
+    },
   ];
   return (
     <div className="xp-sim">
       <div className="xp-sim-controls">
-        {sliders.map(([key, label, min, max, step, value]) => (
-          <label key={key} className="xp-range">
-            <span>
-              {label} <output className="mono">{value}</output>
-            </span>
+        {sliders.map((slider) => (
+          <div key={slider.key} className="xp-range">
+            <label htmlFor={`sim-${slider.key}`}>
+              {slider.label}{" "}
+              <output htmlFor={`sim-${slider.key}`} className="mono">
+                {slider.value}
+              </output>
+            </label>
             <input
+              id={`sim-${slider.key}`}
               type="range"
-              min={min}
-              max={max}
-              step={step}
-              value={input[key]}
-              onChange={set(key)}
-              aria-valuetext={value}
+              min={slider.min}
+              max={slider.max}
+              step={slider.step}
+              value={input[slider.key]}
+              onChange={set(slider.key)}
+              aria-valuetext={`${slider.value} (${slider.unit})`}
+              aria-describedby={`sim-${slider.key}-help`}
             />
-          </label>
+            <span id={`sim-${slider.key}-help`} className="xp-small">
+              {slider.help} Escala: {slider.unit}.
+            </span>
+          </div>
         ))}
         <button
           type="button"
@@ -92,7 +124,7 @@ export function ExtractionSimulator() {
         <div
           className="xp-chart"
           role="img"
-          aria-label={`Extração estimada ${formatNumber(result.extraction)}%, concentração ${formatNumber(result.strength)}%`}
+          aria-label={`Gráfico: rendimento de extração estimado ${Math.round(result.extraction)}%, concentração ${formatNumber(Math.round(result.strength * 20) / 20)}%`}
         >
           <span
             className="xp-chart-ideal"
@@ -116,8 +148,9 @@ export function ExtractionSimulator() {
         </div>
         <div aria-live="polite">
           <p className="xp-sim-numbers mono">
-            Extração ≈ {formatNumber(result.extraction)}% · Concentração ≈{" "}
-            {formatNumber(result.strength)}%
+            Rendimento de extração ≈ {Math.round(result.extraction)}% ·
+            Concentração (TDS) ≈{" "}
+            {formatNumber(Math.round(result.strength * 20) / 20)}%
           </p>
           <p>{extractionCopy[result.extractionLevel]}</p>
           <p>{extractionCopy[result.strengthLevel]}</p>

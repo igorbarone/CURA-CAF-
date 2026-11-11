@@ -51,6 +51,7 @@ export function OriginJourney({
         <h2 id="terra-title">A terra</h2>
         <div className="xp-stage-grid">
           <div>
+            <p className="xp-context-tag mono">CONTEXTO GERAL</p>
             <h3>{journey.terroir.title}</h3>
             <p>{journey.terroir.text}</p>
             <blockquote className="xp-quote">
@@ -59,7 +60,7 @@ export function OriginJourney({
           </div>
           {land.length > 0 ? (
             <div className="xp-origin-card xp-dark">
-              <p className="eyebrow">DE ONDE VEM {coffee?.name}</p>
+              <p className="eyebrow">DADOS DO LOTE · {coffee?.name}</p>
               <dl className="xp-dl">
                 {land.map(([label, value]) => (
                   <div key={label}>
@@ -140,6 +141,7 @@ export function OriginJourney({
       >
         <p className="eyebrow">ETAPA 3</p>
         <h2 id="colheita-title">A colheita</h2>
+        <p className="xp-context-tag mono">CONTEXTO GERAL</p>
         <p className="xp-lead">
           Do pé de café ao grão verde: toque em cada etapa do ciclo.
         </p>
@@ -148,6 +150,7 @@ export function OriginJourney({
       <section id="torra" className="xp-stage" aria-labelledby="torra-title">
         <p className="eyebrow">ETAPA 4</p>
         <h2 id="torra-title">A torra</h2>
+        <p className="xp-context-tag mono">CONTEXTO GERAL</p>
         <p className="xp-lead">
           A torra transforma o grão verde em café aromático. Compare os níveis.
         </p>

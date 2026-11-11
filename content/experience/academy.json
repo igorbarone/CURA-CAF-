@@ -14,8 +14,9 @@
           "title": "O que é café especial?",
           "summary": "Um café avaliado por provadores e reconhecido pela qualidade da bebida.",
           "body": [
-            "Café especial é aquele que passa por uma avaliação sensorial e alcança uma pontuação mínima. Na metodologia da SCA (Specialty Coffee Association), provadores treinados analisam aroma, sabor, acidez, corpo, doçura, equilíbrio e outros atributos, e dão uma nota de 0 a 100.",
-            "Cafés com 80 pontos ou mais são considerados especiais. Para chegar lá, é preciso cuidado em todas as etapas: cultivo, colheita, secagem, armazenamento e torra."
+            "Café especial é um café de qualidade diferenciada em todas as etapas: cultivo, colheita, secagem, armazenamento e torra. Para reconhecê-lo, provadores treinados avaliam o café de forma padronizada.",
+            "Por muitos anos, a referência mais conhecida foi a escala de 0 a 100 da SCA (Specialty Coffee Association): cafés com 80 pontos ou mais eram considerados especiais. Essa escala continua muito usada no mercado e nos rótulos.",
+            "Hoje a SCA também trabalha com o Coffee Value Assessment (CVA), que descreve o café por vários tipos de atributo, físicos, sensoriais e extrínsecos (como a origem e a forma de produção), em vez de resumir tudo em uma nota."
           ],
           "example": "É parecido com uma prova de vinhos: pessoas treinadas provam, comparam e registram o que percebem.",
           "keyIdea": "Especial não é uma marca nem um preço: é um resultado de avaliação."
@@ -27,7 +28,7 @@
           "body": [
             "O café tradicional é o mais comum no mercado: costuma ser feito para ter sabor estável e intenso, muitas vezes com torra mais escura.",
             "Gourmet é um termo usado no mercado brasileiro para cafés de qualidade superior ao tradicional, com grãos mais selecionados. Na Cura, DA CASA é um blend gourmet: o café do dia a dia.",
-            "O café especial vai além: cada lote é avaliado por provadores e precisa alcançar pelo menos 80 pontos na escala da SCA. SAMBA e SALSA são cafés especiais da Linha Origem."
+            "O café especial vai além: cada lote é avaliado por provadores. Na escala de 0 a 100 usada historicamente pela SCA, especiais são os cafés com 80 pontos ou mais. SAMBA e SALSA são cafés especiais da Linha Origem."
           ],
           "keyIdea": "Cada categoria atende a um momento. O importante é saber o que você está escolhendo."
         },
@@ -36,8 +37,9 @@
           "title": "O que significa um café de 84 ou 86 pontos?",
           "summary": "É a nota da avaliação sensorial, numa escala de 0 a 100.",
           "body": [
-            "A partir de 80 pontos, o café é considerado especial. De 80 a 84,99, a qualidade é classificada como muito boa; de 85 a 89,99, como excelente; e a partir de 90, como excepcional.",
-            "O SAMBA tem 84 pontos e o SALSA tem 86 pontos, segundo os rótulos oficiais. Uma pontuação maior não quer dizer que você vai gostar mais: ela indica a avaliação técnica. O seu paladar continua sendo o melhor guia."
+            "É a nota que o lote recebeu numa prova sensorial, na escala de 0 a 100 usada historicamente pela SCA. A partir de 80 pontos, o café é tratado como especial; de 80 a 84,99, costuma ser classificado como muito bom; de 85 a 89,99, como excelente; a partir de 90, como excepcional.",
+            "O SAMBA tem 84 pontos e o SALSA tem 86 pontos, segundo os rótulos oficiais. Essas são as pontuações dos lotes. A SCA hoje também usa o Coffee Value Assessment, que descreve o café por vários atributos em vez de uma nota só.",
+            "Uma pontuação maior não quer dizer que você vai gostar mais: ela indica a avaliação técnica. O seu paladar continua sendo o melhor guia."
           ],
           "example": "Uma nota alta numa avaliação de restaurante não garante que é o seu prato favorito. Com café é igual.",
           "keyIdea": "Pontuação mostra qualidade técnica. Preferência é pessoal."
@@ -151,8 +153,8 @@
           "title": "Como degustar, em quatro passos",
           "summary": "Cheirar, provar, sentir e lembrar.",
           "body": [
-            "1. Cheire o café antes de beber, com o nariz perto da xícara. 2. Dê um gole e espalhe pela boca. 3. Perceba o que acontece na ponta da língua, nas laterais e depois de engolir. 4. Prove de novo quando o café amornar: muitas sensações ficam mais claras.",
-            "Não existe resposta errada. O vocabulário vem com a prática, comparando com sabores que você já conhece."
+            "1. Cheire o café antes de beber, com o nariz perto da xícara. 2. Dê um gole e deixe a bebida passar por toda a boca. 3. Perceba o conjunto: doçura, acidez, corpo, amargor e o que fica depois de engolir. 4. Prove de novo quando o café amornar: muitas sensações ficam mais claras.",
+            "Exercício: prove a mesma xícara quente e, minutos depois, morna. Anote o que mudou. Não existe resposta errada: o vocabulário vem com a prática, comparando com sabores que você já conhece."
           ],
           "keyIdea": "Degustar é treinar a atenção, não acertar uma resposta."
         }
@@ -172,27 +174,30 @@
           "title": "Extração",
           "summary": "O processo de a água dissolver compostos do café moído.",
           "body": [
-            "Preparar café é extrair: a água dissolve parte do pó e leva esses compostos para a xícara. Nem tudo sai ao mesmo tempo. Primeiro saem ácidos e compostos aromáticos; depois, açúcares e compostos que dão doçura e corpo; por último, compostos mais amargos e adstringentes.",
+            "Preparar café é extrair: a água dissolve parte do pó e leva esses compostos para a xícara.",
+            "De forma simplificada, compostos ácidos e aromáticos tendem a se dissolver mais cedo; açúcares e compostos de doçura e corpo, em seguida; e compostos mais amargos e adstringentes, mais tarde. Na prática essas fases se sobrepõem, e torra, moagem e temperatura mudam esse equilíbrio.",
             "Uma boa xícara busca extrair na medida: o suficiente para trazer doçura e equilíbrio, sem avançar demais para o amargor."
           ],
-          "keyIdea": "Ácido primeiro, doce no meio, amargo no fim."
+          "keyIdea": "Pista útil, não regra: ácido cedo, doce no meio, amargo mais tarde."
         },
         {
           "id": "solubilidade",
           "title": "Solubilidade",
-          "summary": "Cerca de 30% da massa do café torrado pode ser dissolvida pela água.",
+          "summary": "Só parte do café torrado se dissolve. TDS e rendimento medem coisas diferentes.",
           "body": [
-            "Apenas parte do grão torrado é solúvel. Na prática, um preparo equilibrado costuma extrair por volta de 18% a 22% da massa do café. Abaixo disso, a bebida tende a ficar azeda e rala; acima, amarga e adstringente.",
-            "Essa faixa é uma referência técnica, medida com refratômetro. Em casa, o paladar é o melhor instrumento."
+            "Apenas parte da massa do café torrado é solúvel em água: cerca de 30%. Desse total, um coado equilibrado costuma dissolver por volta de 18% a 22% da massa do café. Essa é uma faixa de referência clássica para coados, não uma regra para todo método.",
+            "TDS (sólidos totais dissolvidos) é a concentração da bebida, medida com um refratômetro: num coado típico, algo entre 1,15% e 1,45%. Rendimento de extração é outra coisa: a porcentagem do pó que foi parar na xícara. Ele é calculado: rendimento = TDS × massa da bebida ÷ massa de café.",
+            "Exemplo: 250 g de bebida a 1,4% de TDS têm 3,5 g de café dissolvido. Com 18 g de pó, o rendimento é 3,5 ÷ 18 ≈ 19,4%. Em casa, sem refratômetro, o paladar e o tempo de preparo são as melhores pistas."
           ],
-          "keyIdea": "Extrair tudo não é o objetivo: equilíbrio é."
+          "keyIdea": "TDS mede a força; rendimento mede quanto do pó foi extraído.",
+          "example": "250 g × 1,4% = 3,5 g dissolvidos; 3,5 g ÷ 18 g de pó ≈ 19,4% de rendimento."
         },
         {
           "id": "temperatura",
           "title": "Temperatura",
           "summary": "Água mais quente extrai mais rápido.",
           "body": [
-            "A temperatura dá energia à extração. Para métodos coados, a referência comum é água entre 90 °C e 96 °C, o que em casa significa ferver e esperar cerca de 30 segundos.",
+            "A temperatura dá energia à extração. Para métodos coados, a referência comum é água entre 90 °C e 96 °C. Ferver e esperar cerca de 30 segundos é um atalho doméstico: o resultado varia com a chaleira, a quantidade de água e a altitude.",
             "Água mais fria extrai menos e pode deixar a bebida azeda; água em ebulição constante tende a acentuar o amargor. O cold brew é a exceção: compensa a água fria com muitas horas de contato."
           ],
           "keyIdea": "Temperatura acelera ou freia a extração."
@@ -243,10 +248,11 @@
           "title": "Subextração e superextração",
           "summary": "Extrair de menos ou de mais.",
           "body": [
-            "Subextração: azedo, ralo, sem doçura, final curto. Causas comuns: moagem grossa, água fria, tempo curto, proporção com água demais para o pouco tempo de contato.",
-            "Superextração: amargo, áspero, seca a boca. Causas comuns: moagem fina, água muito quente, tempo longo."
+            "Subextração (extrair de menos) costuma aparecer como acidez áspera, bebida rala, pouca doçura e final curto. Causas comuns: moagem grossa, água fria, tempo curto.",
+            "Superextração (extrair demais) costuma aparecer como amargor e sensação de secar a boca. Causas comuns: moagem fina, água muito quente, tempo longo.",
+            "São pistas, não diagnósticos fechados: torra escura também traz amargor, e a água pode passar por caminhos preferenciais no pó (canalização), extraindo uma parte demais e outra de menos. Por isso, mude uma variável por vez e prove de novo."
           ],
-          "keyIdea": "Azedo pede mais extração; amargo pede menos."
+          "keyIdea": "Pista: azedo costuma pedir mais extração; amargo, menos."
         },
         {
           "id": "influencia-da-agua",
@@ -284,14 +290,14 @@
       "id": "docura",
       "name": "Doçura",
       "definition": "Sensação agradável que lembra açúcar, mel, caramelo ou frutas maduras, mesmo sem adoçar.",
-      "howTo": "Prove sem açúcar e perceba a ponta da língua e a sensação que fica depois de engolir.",
+      "howTo": "Prove sem açúcar e perceba se a bebida parece macia e arredondada, e a sensação que fica depois de engolir.",
       "analogy": "A doçura natural de uma fruta bem madura."
     },
     {
       "id": "acidez",
       "name": "Acidez",
       "definition": "É a sensação viva e refrescante que alguns cafés apresentam, semelhante à encontrada em determinadas frutas.",
-      "howTo": "Perceba se a boca saliva e se as laterais da língua formigam levemente. Pense em frutas: é mais laranja, maçã ou limão?",
+      "howTo": "Perceba se a boca saliva e se a bebida parece viva e refrescante. Pense em frutas: lembra mais laranja, maçã ou limão?",
       "analogy": "O frescor de uma tangerina."
     },
     {
@@ -304,8 +310,8 @@
     {
       "id": "amargor",
       "name": "Amargor",
-      "definition": "Sensação percebida principalmente no fundo da língua. Em equilíbrio é agradável; em excesso, domina a xícara.",
-      "howTo": "Perceba se o amargor aparece junto com outras sensações ou se cobre tudo.",
+      "definition": "Sensação conhecida do café e do chocolate amargo. Em equilíbrio é agradável; em excesso, domina a xícara.",
+      "howTo": "Perceba se o amargor aparece junto com outras sensações ou se cobre tudo, inclusive depois de engolir.",
       "analogy": "O amargo agradável do chocolate meio amargo."
     },
     {
@@ -318,7 +324,7 @@
     {
       "id": "equilibrio",
       "name": "Equilíbrio",
-      "definition": "Como as sensações convivem: nenhuma domina as outras de forma desagradável.",
+      "definition": "Uma impressão do conjunto: como as sensações convivem, sem que nenhuma domine as outras de forma desagradável.",
       "howTo": "Pense no conjunto. Doçura, acidez, corpo e amargor parecem em harmonia?",
       "analogy": "Uma música em que nenhum instrumento abafa os outros."
     }

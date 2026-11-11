@@ -25,8 +25,10 @@ export function RoastLevels({
         normalize(roast.name).includes(normalize(coffeeRoast)),
       )
     : -1;
-  const [active, setActive] = useState(own >= 0 ? own : 1);
-  const roast = roasts[active];
+  // Without a published roast, nothing is pre-selected: the scale is a
+  // general comparison and must not look like this coffee's roast.
+  const [active, setActive] = useState<number | null>(own >= 0 ? own : null);
+  const roast = active === null ? null : roasts[active];
   return (
     <div className="xp-roast">
       <div
@@ -51,24 +53,35 @@ export function RoastLevels({
           </button>
         ))}
       </div>
-      <dl className="xp-dl xp-roast-detail" aria-live="polite">
-        <div>
-          <dt>Aroma</dt>
-          <dd>{roast.aroma}</dd>
-        </div>
-        <div>
-          <dt>Sabor</dt>
-          <dd>{roast.flavor}</dd>
-        </div>
-        <div>
-          <dt>Corpo</dt>
-          <dd>{roast.body}</dd>
-        </div>
-        <div>
-          <dt>Amargor</dt>
-          <dd>{roast.bitterness}</dd>
-        </div>
-      </dl>
+      {!coffeeRoast && coffeeName && (
+        <p className="xp-small">
+          Comparação educativa: o rótulo do {coffeeName} não informa a torra.
+        </p>
+      )}
+      {roast ? (
+        <dl className="xp-dl xp-roast-detail" aria-live="polite">
+          <div>
+            <dt>Aroma</dt>
+            <dd>{roast.aroma}</dd>
+          </div>
+          <div>
+            <dt>Sabor</dt>
+            <dd>{roast.flavor}</dd>
+          </div>
+          <div>
+            <dt>Corpo</dt>
+            <dd>{roast.body}</dd>
+          </div>
+          <div>
+            <dt>Amargor</dt>
+            <dd>{roast.bitterness}</dd>
+          </div>
+        </dl>
+      ) : (
+        <p className="xp-small" aria-live="polite">
+          Toque em um nível de torra para comparar.
+        </p>
+      )}
       <p className="xp-small">{note}</p>
     </div>
   );

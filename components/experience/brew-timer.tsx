@@ -34,24 +34,35 @@ function beep() {
 }
 
 /**
- * Brew timer. Elapsed time is derived from timestamps (not from counting
- * ticks), so it stays correct when the browser throttles a background tab.
+ * Brew timer connected to the recipe steps. Elapsed time is derived from
+ * timestamps (not from counting ticks), so it stays correct when the browser
+ * throttles a background tab. With several rounds, each round has its own
+ * run and the timer offers the next one.
  */
 export function BrewTimer({
   schedule,
   totalSeconds,
   methodId,
+  startButton,
+  startHint,
+  rounds,
+  roundLabel,
   onStepChange,
   onFinish,
 }: {
   schedule: TimedStep[];
   totalSeconds: number;
   methodId: string;
+  startButton: string;
+  startHint: string;
+  rounds: number;
+  roundLabel: string;
   onStepChange?: (index: number) => void;
   onFinish?: () => void;
 }) {
   const [status, setStatus] = useState<Status>("idle");
   const [elapsed, setElapsed] = useState(0);
+  const [round, setRound] = useState(1);
   const [sound, setSound] = useState(false);
   const [alert, setAlert] = useState("");
   const startedAt = useRef(0);
@@ -60,16 +71,20 @@ export function BrewTimer({
   const soundRef = useRef(sound);
   soundRef.current = sound;
 
-  const reset = useCallback(() => {
-    setStatus("idle");
-    setElapsed(0);
-    setAlert("");
-    offset.current = 0;
-    lastStep.current = -1;
-    onStepChange?.(-1);
-  }, [onStepChange]);
+  const reset = useCallback(
+    (nextRound = 1) => {
+      setStatus("idle");
+      setElapsed(0);
+      setAlert("");
+      setRound(nextRound);
+      offset.current = 0;
+      lastStep.current = -1;
+      onStepChange?.(-1);
+    },
+    [onStepChange],
+  );
   // A new recipe (other method or amounts) restarts the timer.
-  useEffect(() => reset(), [schedule, reset]);
+  useEffect(() => reset(1), [schedule, reset]);
 
   useEffect(() => {
     if (status !== "running") return;
@@ -81,7 +96,7 @@ export function BrewTimer({
         lastStep.current = current;
         onStepChange?.(current);
         setAlert(
-          `${formatClock(step.at)} · ${step.title}${step.targetGrams ? `: até ${formatNumber(step.targetGrams)} g` : ""}`,
+          `${formatClock(step.at)} · ${step.title}${step.targetGrams ? `: até ${formatNumber(step.targetGrams)} g na balança` : ""}`,
         );
         if (soundRef.current) {
           beep();
@@ -90,19 +105,36 @@ export function BrewTimer({
       }
       if (seconds >= totalSeconds) {
         setStatus("done");
-        setAlert("Tempo concluído. Hora de degustar!");
+        const last = round >= rounds;
+        setAlert(
+          last
+            ? "Tempo concluído. Hora de degustar!"
+            : `${roundLabel === "extração" ? "Extração" : "Rodada"} ${round} concluída.`,
+        );
         if (soundRef.current) beep();
-        trackExperience("tutorial_complete", {
-          method: methodId,
-          via: "timer",
-        });
-        onFinish?.();
+        if (last) {
+          trackExperience("tutorial_complete", {
+            method: methodId,
+            via: "timer",
+          });
+          onFinish?.();
+        }
       }
     };
     tick();
     const id = window.setInterval(tick, 250);
     return () => window.clearInterval(id);
-  }, [status, schedule, totalSeconds, methodId, onStepChange, onFinish]);
+  }, [
+    status,
+    schedule,
+    totalSeconds,
+    methodId,
+    onStepChange,
+    onFinish,
+    round,
+    rounds,
+    roundLabel,
+  ]);
 
   const { step, next, secondsToNext } = timerPosition(
     schedule,
@@ -110,8 +142,14 @@ export function BrewTimer({
   );
   const progress = totalSeconds ? elapsed / totalSeconds : 0;
   const circumference = 2 * Math.PI * 54;
+  const label = roundLabel === "extração" ? "Extração" : "Rodada";
   return (
     <div className={`xp-timer is-${status}`}>
+      {rounds > 1 && (
+        <p className="xp-timer-round mono">
+          {label.toLocaleUpperCase("pt-BR")} {round} DE {rounds}
+        </p>
+      )}
       <div className="xp-timer-dial">
         <svg viewBox="0 0 120 120" aria-hidden="true">
           <circle cx="60" cy="60" r="54" className="xp-timer-track" />
@@ -139,7 +177,12 @@ export function BrewTimer({
           />
         </svg>
         <div className="xp-timer-readout">
-          <span className="xp-timer-clock mono" role="timer" aria-live="off">
+          <span
+            className="xp-timer-clock mono"
+            role="timer"
+            aria-live="off"
+            aria-label={`Tempo decorrido ${formatClock(elapsed)}`}
+          >
             {formatClock(elapsed)}
           </span>
           <span className="mono xp-timer-total">
@@ -150,12 +193,12 @@ export function BrewTimer({
       <div className="xp-timer-info">
         <p className="xp-timer-now">
           {status === "idle" ? (
-            "Prepare tudo e toque em iniciar no primeiro despejo."
+            startHint
           ) : step ? (
             <>
               <strong>{step.title}</strong>
               {step.targetGrams
-                ? ` · até ${formatNumber(step.targetGrams)} g`
+                ? ` · até ${formatNumber(step.targetGrams)} g na balança`
                 : ""}
             </>
           ) : null}
@@ -189,6 +232,14 @@ export function BrewTimer({
             >
               Pausar
             </button>
+          ) : status === "done" && round < rounds ? (
+            <button
+              type="button"
+              className="button"
+              onClick={() => reset(round + 1)}
+            >
+              Próxima {roundLabel}
+            </button>
           ) : (
             <button
               type="button"
@@ -196,19 +247,19 @@ export function BrewTimer({
               disabled={status === "done"}
               onClick={() => {
                 startedAt.current = Date.now();
-                if (status === "idle")
+                if (status === "idle" && round === 1)
                   trackExperience("timer_start", { method: methodId });
                 setStatus("running");
               }}
             >
-              {status === "paused" ? "Continuar" : "Iniciar"}
+              {status === "paused" ? "Continuar" : startButton}
             </button>
           )}
           <button
             type="button"
             className="xp-button-ghost"
-            onClick={reset}
-            disabled={status === "idle"}
+            onClick={() => reset(1)}
+            disabled={status === "idle" && round === 1}
           >
             Reiniciar
           </button>

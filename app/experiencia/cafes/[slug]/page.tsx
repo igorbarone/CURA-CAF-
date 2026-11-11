@@ -11,6 +11,7 @@ import { SensoryProfile } from "../../../../components/experience/sensory-profil
 import { OriginJourney } from "../../../../components/experience/origin-journey";
 import { ProductCta } from "../../../../components/experience/product-cta";
 import { RememberCoffee } from "../../../../components/experience/remember-coffee";
+import { LotSummary } from "../../../../components/experience/lot-summary";
 import { EMPTY_CATALOG_ROUTE } from "../../../../lib/catalog-model";
 import { methodFit } from "../../../../lib/experience/brew";
 import type { ExperienceCoffee } from "../../../../lib/experience/coffee";
@@ -119,6 +120,8 @@ export default async function CoffeeExperiencePage({ params }: Props) {
         </div>
       </section>
 
+      <LotSummary coffee={coffee} labelMethods={suggested} />
+
       <section className="wrap xp-section" aria-labelledby="brew-title">
         <div className="xp-section-head">
           <p className="eyebrow">RECOMENDAÇÕES DE PREPARO</p>
@@ -206,6 +209,12 @@ export default async function CoffeeExperiencePage({ params }: Props) {
             <ProductCta coffee={coffee} context="cafe-experiencia" />
             <Link className="xp-text-link" href="/experiencia/paladar/">
               Encontre o café ideal para você
+            </Link>
+            <Link
+              className="xp-text-link"
+              href={`/experiencia/barista/?cafe=${coffee.slug}`}
+            >
+              Pergunte ao Barista sobre o {coffee.name}
             </Link>
           </div>
         </div>

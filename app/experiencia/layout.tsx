@@ -7,6 +7,11 @@ import {
   ExperienceTopNav,
 } from "../../components/experience/experience-nav";
 import { EntryTracker } from "../../components/experience/entry-tracker";
+import {
+  CoffeeContextBar,
+  CoffeeContextProvider,
+} from "../../components/experience/coffee-context";
+import { getExperienceCoffees } from "../../lib/experience/content";
 
 // Reached only through the QR code printed on every package (no public links,
 // not in the sitemap). noindex keeps it out of search results; it is NOT an
@@ -23,16 +28,23 @@ export default function ExperienceLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const coffees = getExperienceCoffees().map(({ slug, name }) => ({
+    slug,
+    name,
+  }));
   return (
-    <div className="xp-shell">
-      <Header />
-      <ExperienceTopNav />
-      <main id="conteudo" className="xp-main">
-        {children}
-      </main>
-      <Footer />
-      <ExperienceBottomNav />
-      <EntryTracker />
-    </div>
+    <CoffeeContextProvider coffees={coffees}>
+      <div className="xp-shell">
+        <Header />
+        <ExperienceTopNav />
+        <CoffeeContextBar />
+        <main id="conteudo" className="xp-main">
+          {children}
+        </main>
+        <Footer />
+        <ExperienceBottomNav />
+        <EntryTracker />
+      </div>
+    </CoffeeContextProvider>
   );
 }
