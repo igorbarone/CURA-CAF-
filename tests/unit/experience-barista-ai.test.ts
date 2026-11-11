@@ -598,3 +598,20 @@ test("handler bounds the context sent to the model (last 10 messages, trimmed re
   const last = sent.at(-1)?.content as Anthropic.Beta.BetaTextBlockParam[];
   assert.equal(last.at(-1)?.text, "pergunta 14");
 });
+
+test("replies render light markdown as safe text segments (no raw asterisks)", async () => {
+  const { formatReply } = await import("../../lib/experience/reply-format");
+  assert.deepEqual(formatReply("Use **15,5 g de café** para 250 ml."), [
+    { text: "Use ", bold: false },
+    { text: "15,5 g de café", bold: true },
+    { text: " para 250 ml.", bold: false },
+  ]);
+  assert.deepEqual(formatReply("## Receita\n- moagem *média*"), [
+    { text: "Receita\n• moagem média", bold: false },
+  ]);
+  assert.deepEqual(
+    formatReply("<b>x</b>"),
+    [{ text: "<b>x</b>", bold: false }],
+    "HTML stays text",
+  );
+});
