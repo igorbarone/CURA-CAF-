@@ -14,6 +14,7 @@ import { parseLabSearch, type LabState } from "../../lib/experience/lab-link";
 import { brewParamsSchema } from "../../lib/experience/journal";
 import { STORAGE, readLocal } from "../../lib/experience/storage";
 import { trackExperience } from "../../lib/experience/analytics";
+import { formatReply } from "../../lib/experience/reply-format";
 import { useCoffeeContext } from "./coffee-context";
 
 type Mode = "checking" | "ai" | "guided";
@@ -52,6 +53,12 @@ const AI_STARTERS = [
 ];
 const base = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const HISTORY_KEY = "cura-experience-barista";
+
+function renderInline(text: string) {
+  return formatReply(text).map((segment, index) =>
+    segment.bold ? <strong key={index}>{segment.text}</strong> : segment.text,
+  );
+}
 
 function sessionId() {
   try {
@@ -406,7 +413,9 @@ export function BaristaChat({ data }: { data: BaristaData }) {
                 ) : (
                   message.text
                     .split(/\n{2,}/)
-                    .map((paragraph, index) => <p key={index}>{paragraph}</p>)
+                    .map((paragraph, index) => (
+                      <p key={index}>{renderInline(paragraph)}</p>
+                    ))
                 )}
                 {message.actions && message.actions.length > 0 && (
                   <div className="xp-msg-actions">
