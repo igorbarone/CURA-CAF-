@@ -56,6 +56,9 @@ test("all official profile families are available without restricting coffee ide
     "cura-logo.svg",
     "cura-logo-negativo.svg",
     "cura-simbolo.svg",
+    "cura-logo-transparente.svg",
+    "cura-logo-negativo-transparente.svg",
+    "cura-simbolo-transparente.svg",
   ]) {
     const svg = readFileSync(`public/brand/${name}`, "utf8");
     assert.match(svg, /<svg/);

@@ -66,6 +66,9 @@ async function addFromProduct(
 }
 
 test.beforeEach(async ({ page }) => {
+  // COMMERCE_THEME=black runs the whole journey in the black theme.
+  if (process.env.COMMERCE_THEME === "black")
+    await page.addInitScript(() => localStorage.setItem("cura-theme", "black"));
   await page.goto("./");
   await page.evaluate(() => {
     localStorage.clear();

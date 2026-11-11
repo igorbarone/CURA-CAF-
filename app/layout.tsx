@@ -11,6 +11,7 @@ import "@fontsource/dm-mono/400.css";
 import "@fontsource/dm-mono/500.css";
 import "@fontsource-variable/newsreader/wght-italic.css";
 import "./globals.css";
+import { themeScript } from "../components/theme-toggle";
 export const metadata: Metadata = {
   icons: {
     icon: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/brand/cura-simbolo.svg`,
@@ -38,7 +39,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>
         <SelectionProvider
           validIds={getCatalog().flatMap((entry) =>
