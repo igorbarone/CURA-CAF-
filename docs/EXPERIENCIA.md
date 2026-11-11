@@ -1,6 +1,6 @@
 # CURA Experience — Fase 1 (MVP)
 
-Plataforma educativa acessada pelo QR Code único das embalagens. Integrada ao site: mesmo Next.js, Header/Footer, tema Black, tokens de cor, tipografia, catálogo e rotas de produto. Não há checkout paralelo, cadastro ou login.
+Plataforma educativa acessada **exclusivamente** pelo QR Code único das embalagens. Integrada ao site: mesmo Next.js, Header/Footer, tema Black, tokens de cor, tipografia, catálogo e rotas de produto. Não há checkout paralelo, cadastro ou login.
 
 ## QR Code
 
@@ -14,6 +14,13 @@ https://<domínio-da-cura>/experiencia/?origem=qr
 - Recomendação: apontar o QR para um domínio próprio da Cura (ex.: `cura.cafe/experiencia/?origem=qr`), não para `*.vercel.app`, para que uma troca de hospedagem não invalide as embalagens já impressas.
 - `?origem=qr` (ou `utm_medium=qr`) marca a visita na sessão da aba. Os links comerciais passam a levar `utm_source=embalagem&utm_medium=qr&utm_campaign=cura-experience`, para atribuir conversões sem coletar dados pessoais.
 
+## Acesso e descoberta
+
+- Não há link público de entrada: menu, home, rodapé, fichas de produto e sitemap não apontam para `/experiencia`. A entrada é o QR Code.
+- Todas as embalagens usam o mesmo QR. Não há autenticação, senha, cadastro nem validação de compra nesta versão. Se alguém compartilhar o link, tudo bem.
+- Todas as rotas `/experiencia/**` recebem `<meta name="robots" content="noindex, nofollow">` pelo layout. Isso só evita indexação em buscadores: **não é mecanismo de segurança nem restrição de acesso**. O `robots.txt` não bloqueia a rota, porque o buscador precisa ler a página para respeitar o `noindex`.
+- Os links internos da experiência (entre suas páginas) e os de recompra para `/cafes/{slug}/` continuam normais.
+
 ## Rotas
 
 | Rota | Conteúdo |
@@ -26,7 +33,7 @@ https://<domínio-da-cura>/experiencia/?origem=qr
 | `/experiencia/barista/` | Barista Cura (respostas estruturadas) |
 | `/experiencia/paladar/` | Quiz "Descubra seu paladar" |
 
-Navegação: barra superior no desktop e barra inferior fixa no celular (Início, Meu Café, Aprender, Preparar, Barista). O guia de preparo está a um toque. A ficha de produto (`/cafes/{slug}/`) ganhou uma faixa que leva à experiência do café.
+Navegação: barra superior no desktop e barra inferior fixa no celular (Início, Meu Café, Aprender, Preparar, Barista). O guia de preparo está a um toque.
 
 ## Dados e regra de não inventar
 
@@ -87,7 +94,7 @@ Só no navegador, todo acesso com try/catch: último café aberto, última recei
 ## Testes
 
 - `tests/unit/experience.test.ts`: calculadora, receitas de todos os métodos, cronograma da V60, cronômetro, encaixe com o rótulo, projeção sem dados inventados, diagnóstico, quiz, Barista e atribuição de QR.
-- `tests/experience.spec.ts`: axe WCAG A/AA nos temas creme e Black, ausência de erros de console e de rolagem horizontal em todas as rotas (desktop e celular), entrada pelo QR, ficha do café com link UTM, laboratório completo com relógio simulado (iniciar, pausar, continuar, reiniciar), Barista, quiz, barra inferior e movimento reduzido.
+- `tests/experience.spec.ts`: axe WCAG A/AA nos temas creme e Black, ausência de erros de console e de rolagem horizontal em todas as rotas (desktop e celular), entrada pelo QR, ficha do café com link UTM, laboratório completo com relógio simulado (iniciar, pausar, continuar, reiniciar), Barista, quiz, barra inferior, movimento reduzido, `noindex` em todas as rotas e ausência de links públicos e de entradas no sitemap.
 
 ## Decisões
 

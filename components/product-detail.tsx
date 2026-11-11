@@ -182,19 +182,6 @@ export function ProductDetail({
             </div>
           </dl>
         </section>
-        <aside className="xp-product-band" aria-labelledby="xp-band-title">
-          <p className="eyebrow">CURA EXPERIENCE</p>
-          <h2 id="xp-band-title">
-            Da terra à sua xícara: <em>prepare o {coffee.name}.</em>
-          </h2>
-          <p>
-            Receita calculada para o seu equipamento, passo a passo com
-            cronômetro e a jornada da origem deste café.
-          </p>
-          <Link className="button" href={`/experiencia/cafes/${coffee.slug}/`}>
-            Abrir a experiência <Arrow />
-          </Link>
-        </aside>
         <section
           className="product-details origin-details"
           id="origem"

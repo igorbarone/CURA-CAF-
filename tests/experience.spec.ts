@@ -234,3 +234,39 @@ test("reduced motion disables the opening animation", async ({ page }) => {
     .evaluate((element) => getComputedStyle(element).animationName);
   expect(animation).toBe("none");
 });
+
+test("every experience route is noindex (discoverability only, not access control)", async ({
+  page,
+}) => {
+  for (const path of pages) {
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(200);
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      "content",
+      /noindex/,
+    );
+  }
+});
+
+test("the experience is reachable only by the QR link: no public entry points", async ({
+  page,
+  request,
+}) => {
+  const publicPages = [
+    "./",
+    "cafes/",
+    ...coffees.map((coffee) => `cafes/${coffee.slug}/`),
+    "descubra/",
+    "comparar/",
+    "historia/",
+    "clube/",
+    "empresas/",
+  ];
+  for (const path of publicPages) {
+    await page.goto(path);
+    await expect(page.locator('a[href*="/experiencia"]')).toHaveCount(0);
+  }
+  const sitemap = await (await request.get("sitemap.xml")).text();
+  expect(sitemap).toContain("<urlset");
+  expect(sitemap).not.toContain("experiencia");
+});
