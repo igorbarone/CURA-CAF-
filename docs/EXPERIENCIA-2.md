@@ -48,9 +48,24 @@ O fluxo tem 4 decisões: café, equipamento, quantidade (só os modos que o mét
 - **Interface híbrida:** a experiência inteira funciona sem IA. A página do Barista pergunta ao servidor se a IA está ativa (`GET /api/barista`) e mostra claramente "BARISTA COM IA" ou "MODO GUIADO · SEM IA". Se a IA falhar, a mensagem diz isso e oferece o modo guiado; nada simulado é apresentado como IA. No export estático (GitHub Pages), o modo é sempre guiado.
 - **Contexto entre funcionalidades:** o café escolhido vale para toda a experiência (barra "Seu café"). O diagnóstico do Laboratório abre o Barista com a receita e o sintoma na URL e uma pergunta editável já preenchida. O modelo recebe esse contexto como dado (`<contexto_da_sessao>`), separado das instruções.
 
-### Modelo
-- Padrão: **`claude-opus-5-5`** com `effort: low` (o mais capaz para seguir regras e usar ferramentas em português), com fallback de recusa no servidor (`fallbacks: "default"`).
-- O briefing pedia um modelo econômico. A alternativa mais barata é **`claude-haiku-5-5`** (cerca de 40 vezes mais barata), configurável em `BARISTA_MODEL`. Ela não tem fallback de recusa no servidor. Antes de trocar, rode `npm run eval:barista` com o modelo candidato. **A escolha é da equipe; nenhum dos dois foi validado com chamadas reais nesta entrega** (ver Testes).
+### Modelo: Claude Haiku 5.5, configurado para o menor custo
+- **Padrão: `claude-haiku-5-5`.** O identificador vale exatamente assim: sem data e sem apelido, o mesmo que consta nos tipos do SDK fixado (1.3.0). É o modelo atual de menor preço: US$ 0,10 por milhão de tokens de entrada e US$ 0,50 de saída, para prompts de até 100 mil tokens.
+- **Sem fallback automático.** O Barista nunca envia `fallbacks` nem `betas`; o Haiku 5.5 também não tem fallback de recusa no servidor. Uma recusa (`stop_reason: "refusal"`) vira uma resposta curta e educada, e a conversa segue. Não há escalonamento para Opus ou Sonnet. `BARISTA_MODEL` continua configurável, mas a troca é sempre manual.
+- **Economia de tokens sem perder qualidade** (seguindo as recomendações do fabricante para o Haiku 5.5):
+  - `effort: "low"`, o nível indicado para chat e tarefas curtas com ferramentas. O raciocínio fica adaptativo e mínimo. Ele não é desligado, porque desligá-lo pode fazer o modelo pular chamadas de ferramenta.
+  - Cache de prompt em dois pontos. As instruções e as ferramentas (≈ 2.500 tokens) são idênticas para todos os visitantes e são lidas a 0,1× do preço, dentro da janela de 5 minutos; o mínimo cacheável do Haiku 5.5 é de 512 tokens. A conversa também vai para o cache automaticamente (`cache_control` no topo do pedido), e a segunda chamada do laço de ferramentas relê a primeira.
+  - `max_tokens` de 1000. O raciocínio conta nesse limite, mas o `low` deixa espaço para a resposta. Se o limite for atingido, nenhuma ferramenta é executada sobre um pedido cortado.
+  - Contexto limitado: as 10 últimas mensagens, com as respostas anteriores do Barista cortadas em 800 caracteres. Resultados de ferramentas ficam em até 4.000 caracteres.
+  - Os números de receita continuam vindo do motor (ferramentas), então não se gastam tokens com o modelo fazendo contas.
+- **Funcionalidades preservadas:** memória da sessão (histórico e `<contexto_da_sessao>`), interpretação de perguntas abertas, as 9 ferramentas, streaming, cancelamento e ações para o Laboratório.
+- **Requisitos do Haiku 5.5 atendidos:**
+  - não envia `temperature`, `top_p` nem `top_k`;
+  - não usa preenchimento de resposta (prefill) e as mensagens terminam com o usuário;
+  - não força `tool_choice`;
+  - lê os blocos pelo tipo, porque a resposta pode começar com raciocínio;
+  - devolve os blocos de raciocínio sem alteração dentro do laço;
+  - o histórico é só acrescentado, nunca editado.
+- **Validação real:** ainda não houve chamada ao modelo nesta entrega, por falta de credencial. Com a chave, `npm run eval:barista` roda 13 casos e informa o custo estimado. Se algum caso de seguir regras falhar, o primeiro ajuste é `BARISTA_EFFORT=medium`, que custa mais tokens de saída. Não troque de modelo antes de tentar esse ajuste.
 
 ### Ativação (Vercel, alvo servidor)
 1. **Banco:** use o Postgres já usado pela loja (`DATABASE_URL` ou `POSTGRES_URL`). A tabela `barista_usage` é criada automaticamente e também consta em `db/migrations/002_barista_usage.sql`.
@@ -58,31 +73,42 @@ O fluxo tem 4 decisões: café, equipamento, quantidade (só os modos que o mét
    - `BARISTA_AI=enabled`
    - `ANTHROPIC_API_KEY=<chave>`
    - `BARISTA_HASH_SECRET=<32+ caracteres aleatórios>`
-   - opcional: `BARISTA_MODEL=claude-haiku-5-5`
+   - `BARISTA_MODEL` é opcional: o padrão já é `claude-haiku-5-5`
 3. **Limites opcionais** (os padrões estão entre parênteses):
    - `BARISTA_LIMIT_IP_PER_MINUTE` (6), `BARISTA_LIMIT_IP_PER_DAY` (60), `BARISTA_LIMIT_SESSION_PER_DAY` (40)
    - `BARISTA_DAILY_REQUESTS` (1000), `BARISTA_DAILY_INPUT_TOKENS` (4.000.000), `BARISTA_DAILY_OUTPUT_TOKENS` (400.000)
-   - `BARISTA_MAX_OUTPUT_TOKENS` (1500), `BARISTA_MAX_STEPS` (4), `BARISTA_TIMEOUT_MS` (30000), `BARISTA_MAX_CONCURRENCY` (6), `BARISTA_EFFORT` (low)
+   - `BARISTA_MAX_OUTPUT_TOKENS` (1000), `BARISTA_MAX_STEPS` (4), `BARISTA_TIMEOUT_MS` (30000), `BARISTA_MAX_CONCURRENCY` (6), `BARISTA_EFFORT` (low)
+   - `BARISTA_HISTORY_MESSAGES` (10), `BARISTA_HISTORY_CHARS` (800)
 4. **Orçamento no provedor:** configure no Console da Anthropic um limite de gasto mensal para a organização ou o workspace da chave. Alertas de gasto avisam, mas não bloqueiam por si; o bloqueio local é o limite diário de tokens acima.
 5. Faça o deploy de preview, rode `npm run eval:barista` com a chave e revise as respostas antes de publicar.
 
 Sem `BARISTA_AI=enabled`, sem chave ou sem um armazenamento durável, a IA fica desligada, o status informa o motivo (`disabled`, `missing_credentials`, `missing_rate_limit_store`) e a experiência segue no modo guiado. `BARISTA_ALLOW_MEMORY_LIMITS=true` existe só para desenvolvimento local.
 
-## 4. Custos (estimativa com premissas explícitas)
+## 4. Custos com Claude Haiku 5.5 (estimativa com premissas explícitas)
 
 **Premissas**
-- Prefixo fixo (instruções + definições das ferramentas): 2.955 + 4.383 caracteres, ≈ 2.300 tokens.
-- Uma resposta típica faz duas chamadas ao modelo (uma de ferramenta e uma de resposta), com histórico médio de ≈ 600 tokens e resultado de ferramenta de ≈ 600 tokens. Total por resposta: **≈ 6.700 tokens de entrada e ≈ 500 de saída**, incluindo o raciocínio em esforço baixo.
-- Não contamos economia de cache de prompt: o prefixo provavelmente fica abaixo do mínimo cacheável.
-- Preços de tabela da Anthropic consultados em 03/11/2026, em US$ por milhão de tokens (entrada/saída): Opus 5.5 4/20, Sonnet 5.5 2/10, Haiku 5.5 0,10/0,50. **Confirme na página de preços vigente antes de decidir.**
+- Preços de tabela da Anthropic para o Haiku 5.5 (prompts de até 100 mil tokens), em US$ por milhão de tokens: entrada 0,10; saída 0,50; leitura de cache 0,01 (0,1×); gravação de cache de 5 minutos 0,125 (1,25×). **Confirme na página de preços vigente antes de orçar.**
+- Prefixo medido de 3.148 caracteres de instruções e 4.383 de definições de ferramentas, ≈ 2.500 tokens. O tokenizer do Haiku 5.5 conta cerca de 30% mais tokens que o do Haiku 4.5, e a contagem exata exige `count_tokens` com a chave.
+- Resposta típica: duas chamadas ao modelo (ferramenta e resposta), histórico de ≈ 500 tokens e resultado de ferramenta de ≈ 600. Sem cache, isso daria ≈ 6.900 tokens de entrada.
+- Saída de ≈ 400 tokens por resposta (raciocínio em `low` + chamada de ferramenta + resposta curta).
 
-| Respostas por mês | Opus 5.5 (≈ US$ 0,037 cada) | Sonnet 5.5 (≈ US$ 0,018) | Haiku 5.5 (≈ US$ 0,0009) |
-|---|---:|---:|---:|
-| 1.000 | ≈ US$ 37 | ≈ US$ 18 | ≈ US$ 0,90 |
-| 10.000 | ≈ US$ 370 | ≈ US$ 184 | ≈ US$ 9 |
-| 50.000 | ≈ US$ 1.850 | ≈ US$ 920 | ≈ US$ 46 |
+| Situação | Entrada faturável* | Custo por resposta |
+|---|---:|---:|
+| Cache quente (prefixo usado por alguém nos últimos 5 min) | ≈ 2.200 tokens | **≈ US$ 0,0004** |
+| Cache frio (primeira pergunta depois de 5 min sem uso) | ≈ 5.100 tokens | ≈ US$ 0,0007 |
 
-**Teto com os limites padrão:** 4 milhões de tokens de entrada e 400 mil de saída por dia, o que equivale a cerca de US$ 24/dia no Opus 5.5 (≈ US$ 720/mês) ou cerca de US$ 0,60/dia no Haiku 5.5. Ao atingir o teto, a IA responde "limite de hoje" e o modo guiado continua. A execução das funções na Vercel depende do plano contratado e não está incluída aqui.
+\* Entrada ponderada: leitura de cache a 0,1× e gravação a 1,25×. É a mesma conta usada no orçamento diário.
+
+| Respostas por mês | Custo estimado (US$ 0,0004 a 0,0007 por resposta) |
+|---|---:|
+| 1.000 | ≈ US$ 0,40 a 0,70 |
+| 10.000 | ≈ US$ 4 a 7 |
+| 50.000 | ≈ US$ 20 a 36 |
+| 100.000 | ≈ US$ 40 a 71 |
+
+Para comparação, com as mesmas premissas e sem cache, o Opus 5.5 custaria ≈ US$ 0,037 por resposta, entre 50 e 90 vezes mais.
+
+**Teto com os limites padrão:** até 1.000 respostas por dia, 4 milhões de tokens de entrada faturável e 400 mil de saída, ou seja, no máximo ≈ US$ 0,60/dia (≈ US$ 18/mês). O orçamento diário já conta os tokens de cache pelo peso real, e os limites por IP, por sessão e por concorrência continuam iguais. Ao atingir o teto, a IA responde "limite de hoje" e o modo guiado continua. A execução das funções na Vercel depende do plano contratado e não está incluída aqui.
 
 ## 5. Segurança e privacidade
 
@@ -144,10 +170,15 @@ Os dados são validados na leitura, e navegação privada ou armazenamento bloqu
 
 ## 8. Testes
 
-- **Unitários** (`npm run test:unit`, 102 no total), incluindo:
+- **Unitários** (`npm run test:unit`, 106 no total), incluindo:
   - motor de receitas (14);
   - Barista guiado com as 10 perguntas obrigatórias, o caso Oster e o caso DA CASA (15);
-  - camada de IA com modelo simulado: ferramentas, validação, recusa, limite de passos, configuração, limites e orçamento, origem, payload, streaming, 429 e tempo limite (9);
+  - camada de IA com modelo e cliente simulados (13), cobrindo:
+    - o pedido exato ao Haiku 5.5: `claude-haiku-5-5`, `effort: low`, `max_tokens` 1000 e `cache_control`, sem `fallbacks`, `betas`, `temperature`/`top_p`/`top_k`, `thinking` ou `tool_choice`;
+    - os blocos de raciocínio devolvidos sem alteração no laço;
+    - o orçamento ponderado pelo cache;
+    - o histórico limitado;
+    - ferramentas, validação, recusa, limite de passos, limites e orçamento, origem, payload, streaming, 429 e tempo limite;
   - diário e receitas salvas (4).
 - **End-to-end** (`npm test`, Playwright em desktop e celular):
   - acessibilidade WCAG A/AA nos temas creme e Black em todas as rotas;
@@ -160,4 +191,4 @@ Os dados são validados na leitura, e navegação privada ou armazenamento bloqu
   - simulador e quiz;
   - telas de 320 e 375 px;
   - navegação inferior, `noindex` e ausência de links públicos.
-- **Avaliação da IA real** (`npm run eval:barista`): 13 casos, incluindo os da auditoria e uma tentativa de injeção. **Não foi executada** por falta de credencial nesta sessão; sem chave, o script informa isso e não faz chamadas.
+- **Avaliação da IA real** (`npm run eval:barista`): 13 casos, incluindo os da auditoria e uma tentativa de injeção. Por padrão usa `claude-haiku-5-5` e mostra o custo estimado. **Não foi executada** por falta de credencial nesta sessão; sem chave, o script informa isso e não faz chamadas.

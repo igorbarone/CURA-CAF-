@@ -10,6 +10,8 @@ import {
   type BaristaData,
 } from "../../lib/experience/barista-tools";
 import {
+  anthropicModel,
+  billableInput,
   runBaristaTurn,
   systemPrompt,
   toolDefinitions,
@@ -255,18 +257,132 @@ test("configuration keeps the AI off until every requirement is met", () => {
     DATABASE_URL: "postgres://x",
   });
   assert.equal(ok.enabled, true);
-  assert.equal(ok.model, "claude-opus-5-5");
+  assert.equal(ok.model, "claude-haiku-5-5");
   assert.equal(ok.effort, "low");
-  assert.equal(ok.fallbacks, true);
+  assert.equal(ok.maxOutputTokens, 1000);
+  assert.equal(ok.historyMessages, 10);
   assert.equal(ok.store, "postgres");
-  const haiku = readBaristaConfig({
+  assert.equal(
+    "fallbacks" in ok,
+    false,
+    "no automatic fallback to another model",
+  );
+  const memory = readBaristaConfig({
     BARISTA_AI: "enabled",
     ANTHROPIC_API_KEY: "k",
     BARISTA_ALLOW_MEMORY_LIMITS: "true",
-    BARISTA_MODEL: "claude-haiku-5-5",
   });
-  assert.equal(haiku.fallbacks, false, "no server-side fallback for Haiku");
-  assert.equal(haiku.store, "memory");
+  assert.equal(memory.store, "memory");
+});
+
+/** Fake Anthropic client: records the request and replays a scripted reply. */
+function fakeClient(reply: Partial<Anthropic.Beta.BetaMessage>) {
+  const calls: { params: Record<string, unknown>; options: unknown }[] = [];
+  const client = {
+    beta: {
+      messages: {
+        stream(params: Record<string, unknown>, options: unknown) {
+          calls.push({ params, options });
+          const listeners: ((delta: string) => void)[] = [];
+          return {
+            on(event: string, listener: (delta: string) => void) {
+              if (event === "text") listeners.push(listener);
+              return this;
+            },
+            async finalMessage() {
+              for (const block of reply.content ?? [])
+                if (block.type === "text")
+                  listeners.forEach((listener) => listener(block.text));
+              return { stop_reason: "end_turn", usage, content: [], ...reply };
+            },
+          };
+        },
+      },
+    },
+  };
+  return { client: client as unknown as Anthropic, calls };
+}
+
+test("Haiku 5.5 request: exact model id, low effort, caching, no fallbacks or sampling params", async () => {
+  const config = readBaristaConfig({
+    BARISTA_AI: "enabled",
+    ANTHROPIC_API_KEY: "k",
+    BARISTA_ALLOW_MEMORY_LIMITS: "true",
+  });
+  const { client, calls } = fakeClient({ content: [text("Olá!")] });
+  const { textOut } = await run(anthropicModel(config, client), "Oi");
+  assert.equal(textOut, "Olá!");
+  const params = calls[0].params;
+  assert.equal(params.model, "claude-haiku-5-5");
+  assert.equal(params.max_tokens, 1000);
+  assert.deepEqual(params.output_config, { effort: "low" });
+  assert.deepEqual(params.cache_control, { type: "ephemeral" });
+  for (const key of [
+    "fallbacks",
+    "betas",
+    "temperature",
+    "top_p",
+    "top_k",
+    "thinking",
+    "tool_choice",
+    "speed",
+  ])
+    assert.equal(key in params, false, `${key} must not be sent`);
+  const system = params.system as Anthropic.Beta.BetaTextBlockParam[];
+  assert.deepEqual(system[0].cache_control, { type: "ephemeral" });
+  // Messages end with a user turn (no prefill) and tools stream their input.
+  const messages = params.messages as Anthropic.Beta.BetaMessageParam[];
+  assert.equal(messages.at(-1)?.role, "user");
+  assert.ok(
+    (params.tools as Anthropic.Beta.BetaTool[]).every(
+      (tool) => tool.eager_input_streaming === true,
+    ),
+  );
+});
+
+test("thinking blocks are passed back unmodified inside the tool loop", async () => {
+  const thinking = {
+    type: "thinking",
+    thinking: "",
+    signature: "sig-123",
+  } as unknown as Anthropic.Beta.BetaContentBlock;
+  const { model, requests } = scripted([
+    () => ({
+      content: [thinking, toolUse("listarCafes", {})],
+      stop_reason: "tool_use",
+    }),
+    () => ({
+      content: [text("Temos SAMBA, SALSA e DA CASA.")],
+      stop_reason: "end_turn",
+    }),
+  ]);
+  await run(model, "Quais cafés vocês têm?");
+  const assistant = requests[1].messages.find((m) => m.role === "assistant");
+  assert.ok(assistant);
+  assert.deepEqual((assistant.content as unknown[])[0], {
+    type: "thinking",
+    thinking: "",
+    signature: "sig-123",
+  });
+});
+
+test("budget counts cache writes at 1.25× and reads at 0.1×", () => {
+  assert.equal(
+    billableInput({
+      input_tokens: 100,
+      cache_creation_input_tokens: 2000,
+      cache_read_input_tokens: 0,
+    }),
+    2600,
+  );
+  assert.equal(
+    billableInput({
+      input_tokens: 100,
+      cache_creation_input_tokens: 0,
+      cache_read_input_tokens: 2000,
+    }),
+    300,
+  );
 });
 
 test("limits: per IP minute, per session day, global budget", async () => {
@@ -459,4 +575,26 @@ test("handler: provider failure and timeout become friendly error events", async
     .split("\n")
     .map((l) => JSON.parse(l));
   assert.equal(timed.at(-1).code, "timeout");
+});
+
+test("handler bounds the context sent to the model (last 10 messages, trimmed replies)", async () => {
+  const { model, requests } = scripted([
+    () => ({ content: [text("ok")], stop_reason: "end_turn" }),
+  ]);
+  const h = handler(model);
+  const messages = Array.from({ length: 15 }, (_, i) =>
+    i % 2 === 0
+      ? { role: "user", content: `pergunta ${i}` }
+      : { role: "assistant", content: "x".repeat(1500) },
+  );
+  const response = await h.POST(post({ ...valid, messages }));
+  await response.text();
+  const sent = requests[0].messages;
+  assert.ok(sent.length <= 10);
+  assert.equal(sent[0].role, "user");
+  for (const message of sent)
+    if (message.role === "assistant")
+      assert.ok((message.content as string).length <= 800);
+  const last = sent.at(-1)?.content as Anthropic.Beta.BetaTextBlockParam[];
+  assert.equal(last.at(-1)?.text, "pergunta 14");
 });

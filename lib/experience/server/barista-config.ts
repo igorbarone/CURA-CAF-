@@ -18,8 +18,9 @@ const schema = z.object({
     .regex(/^[a-z0-9.-]+$/)
     .optional(),
   BARISTA_EFFORT: z.enum(["low", "medium", "high"]).optional(),
-  BARISTA_FALLBACKS: z.enum(["on", "off"]).optional(),
-  BARISTA_MAX_OUTPUT_TOKENS: int(1500),
+  BARISTA_MAX_OUTPUT_TOKENS: int(1000),
+  BARISTA_HISTORY_MESSAGES: int(10),
+  BARISTA_HISTORY_CHARS: int(800),
   BARISTA_MAX_STEPS: int(4),
   BARISTA_TIMEOUT_MS: int(30000),
   BARISTA_MAX_CONCURRENCY: int(6),
@@ -34,7 +35,10 @@ const schema = z.object({
   DATABASE_URL: z.string().optional(),
   POSTGRES_URL: z.string().optional(),
 });
-export const DEFAULT_BARISTA_MODEL = "claude-opus-5-5";
+// Claude Haiku 5.5: the lowest-cost current model ($0.10 / $0.50 per MTok
+// for prompts up to 100K tokens). It has no server-side refusal fallback, and
+// the Barista never sends one: no automatic escalation to a pricier model.
+export const DEFAULT_BARISTA_MODEL = "claude-haiku-5-5";
 export type BaristaConfig = ReturnType<typeof readBaristaConfig>;
 
 export function readBaristaConfig(
@@ -53,17 +57,16 @@ export function readBaristaConfig(
         : !databaseUrl && !memoryLimits
           ? "missing_rate_limit_store"
           : null;
-  // Server-side refusal fallbacks exist for the Opus/Sonnet/Fable families.
-  const fallbackCapable = /^claude-(opus|sonnet|fable)-/.test(model);
   return {
     enabled: reason === null,
     reason,
     model,
     effort: raw.BARISTA_EFFORT ?? "low",
-    fallbacks: raw.BARISTA_FALLBACKS
-      ? raw.BARISTA_FALLBACKS === "on" && fallbackCapable
-      : fallbackCapable,
+    // Thinking counts toward max_tokens; at low effort 1000 leaves room for a
+    // short reply. Hitting it ends the answer honestly (never runs a tool).
     maxOutputTokens: Math.min(raw.BARISTA_MAX_OUTPUT_TOKENS, 4000),
+    historyMessages: Math.min(raw.BARISTA_HISTORY_MESSAGES, 20),
+    historyChars: Math.min(raw.BARISTA_HISTORY_CHARS, 2000),
     maxSteps: Math.min(raw.BARISTA_MAX_STEPS, 6),
     timeoutMs: Math.min(raw.BARISTA_TIMEOUT_MS, 60000),
     maxConcurrency: raw.BARISTA_MAX_CONCURRENCY,

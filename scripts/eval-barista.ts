@@ -138,8 +138,17 @@ async function main() {
       `${problems.length ? "FALHOU" : "ok    "} ${item.question}\n        ferramentas: ${used.join(", ") || "nenhuma"}\n        ${text.replace(/\s+/g, " ").slice(0, 220)}${problems.length ? `\n        ${problems.join("; ")}` : ""}`,
     );
   }
+  // Haiku 5.5 list prices (prompt ≤ 100K tokens), USD per million tokens.
+  // Input is already weighted for cache writes/reads (billableInput).
+  const cost =
+    config.model === "claude-haiku-5-5"
+      ? (input * 0.1 + output * 0.5) / 1e6
+      : null;
   console.log(
-    `\n${cases.length - failures}/${cases.length} casos ok · modelo ${config.model} · tokens: ${input} entrada, ${output} saída`,
+    `\n${cases.length - failures}/${cases.length} casos ok · modelo ${config.model} · tokens: ${input} entrada (ponderada pelo cache), ${output} saída` +
+      (cost !== null
+        ? ` · custo estimado ≈ US$ ${cost.toFixed(4)} (≈ US$ ${(cost / cases.length).toFixed(5)} por resposta)`
+        : ""),
   );
   if (failures) process.exitCode = 1;
 }
