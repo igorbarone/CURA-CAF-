@@ -9,6 +9,7 @@ import { EditorialTopics } from "../components/editorial-topics";
 import { ProducerFeature } from "../components/producer-feature";
 import { CoffeeCard } from "../components/coffee-card";
 import { getHomeSelection } from "../lib/coffees";
+import { OriginConsole } from "../components/origin-console";
 import { KitShelf } from "../components/commerce/kit-shelf";
 import { commerceEnabled } from "../lib/commerce/client";
 import { getEditorial } from "../lib/editorial";
@@ -58,23 +59,10 @@ export default function Home() {
               ENCONTRADO. ESCOLHIDO. EXPLICADO.
             </p>
           </div>
-          <div className="hero-art">
-            <div className="hero-art-top">
-              <span className="eyebrow">ORIGEM → ESCOLHA → CIDADE</span>
-              <span className="choice-dot" />
-            </div>
-
-            <Journey />
-            <div className="hero-editorial-note">
-              <p className="origin-signature">
-                <em>{hero.originSignature}</em>
-              </p>
-              <span className="mono">CURADORIA BRASILEIRA</span>
-            </div>
-            <p className="hero-art-caption">
-              Encontrado. Escolhido. Explicado.
-            </p>
-          </div>
+          <OriginConsole
+            coffees={entries.map((entry) => projectCoffee(entry))}
+            signature={hero.originSignature}
+          />
         </section>
         <div className="manifesto-strip">
           <p>{hero.artLabel}</p>

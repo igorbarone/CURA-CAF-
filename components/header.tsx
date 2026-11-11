@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSelection } from "./selection-provider";
 import { useOptionalCart } from "./commerce/cart-provider";
 import { Brand } from "./brand";
+import { ThemeToggle } from "./theme-toggle";
 const links = [
   ["/cafes/", "Nossos cafés"],
   ["/#curadoria", "A curadoria"],
@@ -29,18 +30,21 @@ export function Header() {
             </Link>
           ))}
         </nav>
-        <Link className="header-cart" href="/carrinho/">
-          Carrinho{" "}
-          <span className="mono">
-            {cart
-              ? cart.itemCount
-                ? `${cart.itemCount} ${cart.itemCount === 1 ? "item" : "itens"}`
-                : "vazio"
-              : ids.length
-                ? `${ids.length} na seleção · demonstração`
-                : "Em breve"}
-          </span>
-        </Link>
+        <div className="header-tools">
+          <ThemeToggle />
+          <Link className="header-cart" href="/carrinho/">
+            Carrinho{" "}
+            <span className="mono">
+              {cart
+                ? cart.itemCount
+                  ? `${cart.itemCount} ${cart.itemCount === 1 ? "item" : "itens"}`
+                  : "vazio"
+                : ids.length
+                  ? `${ids.length} na seleção · demonstração`
+                  : "Em breve"}
+            </span>
+          </Link>
+        </div>
         <details
           className="mobile-menu"
           onKeyDown={(event) => {

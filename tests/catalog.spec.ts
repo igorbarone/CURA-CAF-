@@ -138,7 +138,9 @@ test("home to catalog to product to cart, and back to the editorial home", async
       "Não recebemos pedidos, reservas ou pagamentos por este site.",
     ),
   ).toBeVisible();
-  await expect(page.getByRole("button")).toHaveCount(0);
+  // The header's black-theme switch is the only button allowed on the page.
+  await expect(page.locator("#conteudo").getByRole("button")).toHaveCount(0);
+  await expect(page.getByRole("button")).toHaveCount(1);
   await expect(page.locator("form")).toHaveCount(0);
   if (info.project.name === "mobile")
     await page.locator(".mobile-menu summary").click();
