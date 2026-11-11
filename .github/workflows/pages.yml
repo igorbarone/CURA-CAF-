@@ -22,7 +22,19 @@ jobs:
       - run: npm run lint
       - run: npm run validate:content
       - run: npm run test:unit
-      - run: npx playwright install --with-deps chromium
+      # The runner image already has Chromium's system libraries; --with-deps
+      # only adds optional fonts from the Ubuntu mirror. If the mirror is
+      # unreachable (transient apt/DNS failure), retry and then install just
+      # the browser so the run does not fail for an infrastructure reason.
+      - name: Install Playwright Chromium
+        run: |
+          for attempt in 1 2; do
+            npx playwright install --with-deps chromium && exit 0
+            echo "::warning::playwright install --with-deps falhou (tentativa $attempt)"
+            sleep 20
+          done
+          echo "::warning::Espelho apt indisponível; instalando só o Chromium"
+          npx playwright install chromium
       - run: npm run test:scenarios
       - run: npm test
       - uses: actions/upload-pages-artifact@v3

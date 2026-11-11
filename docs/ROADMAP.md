@@ -78,3 +78,9 @@ Build sem erros, navegação mobile, contraste legível, sem dados fictícios tr
 - [x] Webhook assinado e idempotente, estoque atômico, logs sem dados pessoais, eventos do funil
 - [x] Testes de compra de ponta a ponta com simuladores no CI
 - [ ] Painel administrativo, etiqueta automática, cupons, consentimento de analytics
+
+## CURA Experience
+- [x] Fase 1: `/experiencia` (QR permanente), Meu Café com Jornada da Origem, Academia Cura, Laboratório de Preparo (calculadora, cronômetro, tutoriais, diagnóstico), Barista estruturado, quiz de paladar, recompra pela ficha existente, navegação inferior no celular (docs/EXPERIENCIA.md)
+- [ ] Dados reais: coordenadas, fotos e histórias de produtores, ficha sensorial 1–5, domínio definitivo do QR
+- [ ] Fase 2: mapa interativo, Minha Xícara com comparação e compartilhamento, conquistas, Minha jornada, CMS para `content/experience/`
+- [ ] Fase 3: Barista com IA em rota de servidor, personalização, histórico com consentimento, métricas avançadas

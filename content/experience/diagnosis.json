@@ -1,0 +1,168 @@
+{
+  "question": "Como ficou seu café?",
+  "oneVariable": "Mude uma coisa por vez e prepare de novo. Assim você descobre o que realmente fez diferença na sua xícara.",
+  "options": [
+    {
+      "id": "amargo",
+      "label": "Muito amargo",
+      "summary": "Amargor em excesso pode ter várias causas. As mais comuns são extração demais (água tirando compostos além do ponto), café concentrado demais ou café que perdeu frescor.",
+      "checks": [
+        "A moagem estava mais fina do que a sugerida?",
+        "O preparo demorou mais do que o tempo indicado?",
+        "A água estava fervendo?",
+        "Quanto tempo faz que o pacote foi aberto?"
+      ],
+      "adjustments": [
+        {
+          "variable": "moagem",
+          "text": "Na prensa francesa, confira se a moagem está grossa e pressione aos 4 minutos, servindo logo em seguida.",
+          "methods": ["prensa-francesa"]
+        },
+        {
+          "variable": "tempo",
+          "text": "No espresso, pare a extração um pouco antes (menos bebida na xícara) ou engrosse levemente a moagem para que ela fique mais rápida.",
+          "methods": ["espresso"]
+        },
+        {
+          "variable": "temperatura",
+          "text": "Na moka, use água já quente na base, fogo mais baixo e tire do fogo assim que começar a borbulhar.",
+          "methods": ["moka"]
+        },
+        {
+          "variable": "moagem",
+          "text": "Comece pela moagem: deixe-a um pouco mais grossa. Isso reduz a extração e costuma suavizar o amargor."
+        },
+        {
+          "variable": "temperatura",
+          "text": "Se já estiver usando a moagem sugerida, espere cerca de 30 segundos depois de ferver a água antes de despejar.",
+          "notFor": ["espresso", "cafeteira-eletrica", "cold-brew"]
+        },
+        {
+          "variable": "proporcao",
+          "text": "Se ainda parecer forte e amargo, use um pouco mais de água para a mesma quantidade de café (por exemplo, de 1:15 para 1:16)."
+        }
+      ]
+    },
+    {
+      "id": "azedo",
+      "label": "Muito ácido ou azedo",
+      "summary": "Acidez agradável lembra fruta; azedume é uma sensação áspera e incômoda. Azedo costuma indicar extração de menos: a água não teve tempo ou energia para extrair a doçura.",
+      "checks": [
+        "A moagem estava mais grossa do que a sugerida?",
+        "A água passou muito rápido?",
+        "A água estava morna?"
+      ],
+      "adjustments": [
+        {
+          "variable": "moagem",
+          "text": "No espresso, afine a moagem ou deixe a extração correr um pouco mais (mais bebida na xícara).",
+          "methods": ["espresso"]
+        },
+        {
+          "variable": "tempo",
+          "text": "Na prensa francesa e na Aeropress, aumente o tempo de imersão em 30 segundos a 1 minuto.",
+          "methods": ["prensa-francesa", "aeropress"]
+        },
+        {
+          "variable": "moagem",
+          "text": "Comece pela moagem: deixe-a um pouco mais fina para que a água extraia mais."
+        },
+        {
+          "variable": "temperatura",
+          "text": "Use água bem quente, logo depois de ferver (cerca de 30 segundos de espera).",
+          "notFor": ["espresso", "cafeteira-eletrica", "cold-brew"]
+        },
+        {
+          "variable": "nenhuma",
+          "text": "Lembre que alguns cafés têm acidez como característica. Se a sensação for viva e frutada, e não áspera, ela pode ser parte do perfil."
+        }
+      ]
+    },
+    {
+      "id": "fraco",
+      "label": "Muito fraco",
+      "summary": "Bebida aguada costuma vir de pouco café para a quantidade de água ou de uma extração curta.",
+      "checks": [
+        "Você mediu o café ou usou colheres?",
+        "A moagem estava grossa?",
+        "A água passou muito rápido?"
+      ],
+      "adjustments": [
+        {
+          "variable": "proporcao",
+          "text": "Use um pouco mais de café para a mesma água (por exemplo, de 1:16 para 1:15). Pesar ajuda muito: colheres variam bastante."
+        },
+        {
+          "variable": "moagem",
+          "text": "Se a proporção já estiver certa, afine um pouco a moagem."
+        },
+        {
+          "variable": "tempo",
+          "text": "Na prensa francesa, confira se esperou os 4 minutos completos antes de pressionar.",
+          "methods": ["prensa-francesa"]
+        }
+      ]
+    },
+    {
+      "id": "forte",
+      "label": "Muito forte",
+      "summary": "Intensidade demais costuma vir de muito café para pouca água. Forte não é o mesmo que amargo: pode estar só concentrado.",
+      "checks": [
+        "A proporção estava abaixo de 1:15?",
+        "A bebida está concentrada, mas sem amargor áspero?"
+      ],
+      "adjustments": [
+        {
+          "variable": "proporcao",
+          "text": "Use um pouco mais de água para a mesma quantidade de café (por exemplo, de 1:15 para 1:16 ou 1:17).",
+          "notFor": ["espresso", "moka"]
+        },
+        {
+          "variable": "proporcao",
+          "text": "No espresso e na moka, a bebida é naturalmente concentrada. Se quiser algo mais longo, complete com água quente depois de pronto.",
+          "methods": ["espresso", "moka"]
+        },
+        {
+          "variable": "moagem",
+          "text": "Se também estiver amargo, deixe a moagem um pouco mais grossa."
+        }
+      ]
+    },
+    {
+      "id": "equilibrado",
+      "label": "Equilibrado",
+      "summary": "Que bom! Sua receita encontrou um ponto de equilíbrio entre doçura, acidez e corpo.",
+      "checks": [],
+      "adjustments": [
+        {
+          "variable": "nenhuma",
+          "text": "Anote a receita: café, água, moagem e tempo. Ela é o seu ponto de partida."
+        },
+        {
+          "variable": "nenhuma",
+          "text": "Quer explorar? Experimente a mesma receita com outro café da Cura e compare as sensações."
+        }
+      ]
+    },
+    {
+      "id": "nao-sei",
+      "label": "Não consegui identificar",
+      "summary": "Tudo bem: perceber sabores é um aprendizado. Tente comparar com referências do dia a dia.",
+      "checks": [
+        "A sensação lembra fruta (acidez) ou casca queimada (amargor)?",
+        "O café parece ralo como água ou denso como suco?",
+        "Fica uma sensação doce depois de engolir?"
+      ],
+      "adjustments": [
+        {
+          "variable": "nenhuma",
+          "text": "Prove de novo quando o café amornar um pouco: muitas sensações ficam mais claras fora da temperatura muito quente."
+        },
+        {
+          "variable": "nenhuma",
+          "text": "Visite o módulo “Aprendendo a degustar” na Academia Cura para conhecer cada característica."
+        }
+      ]
+    }
+  ]
+}

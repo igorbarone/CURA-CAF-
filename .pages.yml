@@ -259,6 +259,39 @@ content:
       - name: curationNote
         label: Por que escolhemos (publicar somente motivo confirmado)
         type: text
+      - name: region
+        label: "Experiência · Região produtora (ex.: Campos Altos – MG; somente se confirmada)"
+        type: string
+      - name: farm
+        label: "Experiência · Fazenda (somente se confirmada)"
+        type: string
+      - name: altitudeMeters
+        label: "Experiência · Altitude em metros (somente se confirmada)"
+        type: number
+      - name: process
+        label: "Experiência · Processamento (ex.: Natural, Lavado, Honey)"
+        type: string
+      - name: harvest
+        label: "Experiência · Safra (ex.: 2026)"
+        type: string
+      - name: latitude
+        label: "Experiência · Latitude da fazenda (somente coordenada real e autorizada; preencher junto com longitude)"
+        type: number
+      - name: longitude
+        label: "Experiência · Longitude da fazenda (somente coordenada real e autorizada)"
+        type: number
+      - name: intensityLevel
+        label: "Experiência · Intensidade (1 a 5, da ficha sensorial oficial; vazio = oculto)"
+        type: number
+      - name: acidityLevel
+        label: "Experiência · Acidez (1 a 5, da ficha sensorial oficial; vazio = oculto)"
+        type: number
+      - name: sweetnessLevel
+        label: "Experiência · Doçura (1 a 5, da ficha sensorial oficial; vazio = oculto)"
+        type: number
+      - name: bodyLevel
+        label: "Experiência · Corpo (1 a 5, da ficha sensorial oficial; vazio = oculto)"
+        type: number
   - name: offers
     label: Ofertas (embalagens à venda; preço confirmado em centavos)
     type: collection
