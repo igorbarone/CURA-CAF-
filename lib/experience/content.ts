@@ -58,6 +58,11 @@ export function loadExperience(root?: string) {
     ...knowledge.topics.flatMap((topic) => topic.followUps),
   ])
     if (!known.has(id)) throw new Error(`barista: tópico inexistente ${id}`);
+  const optionIds = new Set(diagnosis.options.map((option) => option.id));
+  for (const option of diagnosis.options)
+    for (const next of option.followUp?.options ?? [])
+      if (!optionIds.has(next.to))
+        throw new Error(`diagnosis: opção inexistente ${next.to}`);
   const methodIds = new Set(methods.map((method) => method.id));
   for (const option of diagnosis.options)
     for (const item of option.adjustments)
