@@ -22,6 +22,7 @@ export function TasteQuiz({
   const [answers, setAnswers] = useState<TasteAnswers>({});
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
+  const [needsAnswer, setNeedsAnswer] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const question = taste.questions[step];
   const focus = () => requestAnimationFrame(() => heading.current?.focus());
@@ -69,6 +70,7 @@ export function TasteQuiz({
                       coffee={coffee}
                       context="quiz-paladar"
                       variant="link"
+                      label={`Experimentar o ${coffee.name} (ver na loja)`}
                     />
                   </div>
                 </div>
@@ -111,6 +113,12 @@ export function TasteQuiz({
           style={{ width: `${((step + 1) / taste.questions.length) * 100}%` }}
         />
       </div>
+      {needsAnswer && (
+        <p className="xp-warning" role="alert">
+          Para montar um perfil, responda pelo menos uma pergunta. Pode ser
+          qualquer uma: as outras podem continuar puladas.
+        </p>
+      )}
       <fieldset>
         <legend>
           <h2 id="quiz-q" ref={heading} tabIndex={-1}>
@@ -124,9 +132,10 @@ export function TasteQuiz({
                 type="radio"
                 name={question.id}
                 checked={answers[question.id] === option.id}
-                onChange={() =>
-                  setAnswers({ ...answers, [question.id]: option.id })
-                }
+                onChange={() => {
+                  setAnswers({ ...answers, [question.id]: option.id });
+                  setNeedsAnswer(false);
+                }}
               />
               <span>{option.label}</span>
             </label>
@@ -160,8 +169,15 @@ export function TasteQuiz({
           <button
             type="button"
             className="button"
-            disabled={!Object.keys(answers).length}
             onClick={() => {
+              if (!Object.keys(answers).length) {
+                // Every question was skipped: explain instead of locking the button.
+                setNeedsAnswer(true);
+                setStep(0);
+                focus();
+                return;
+              }
+              setNeedsAnswer(false);
               const outcome = recommendByTaste(coffees, taste, answers);
               trackExperience("quiz_complete", {
                 profile: outcome.profile?.id,
@@ -172,7 +188,8 @@ export function TasteQuiz({
               focus();
             }}
           >
-            Ver meu perfil <Arrow />
+            {answers[question.id] ? "Ver meu perfil" : "Pular e ver meu perfil"}{" "}
+            <Arrow />
           </button>
         )}
       </div>

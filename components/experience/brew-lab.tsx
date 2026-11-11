@@ -5,119 +5,259 @@ import { Arrow } from "../arrow";
 import { BrewTimer } from "./brew-timer";
 import { BrewDiagnosis } from "./brew-diagnosis";
 import { RatioCalculator } from "./ratio-calculator";
-import { ProductCta } from "./product-cta";
+import { useCoffeeContext } from "./coffee-context";
 import {
+  applyAdjustment,
   formatClock,
   formatNumber,
   formatRatio,
   generateRecipe,
   methodFit,
-  type RecipeInput,
+  parseAmount,
+  summarizeRecipe,
+  type BrewParams,
 } from "../../lib/experience/brew";
+import { labSearch, parseLabSearch } from "../../lib/experience/lab-link";
 import { trackExperience } from "../../lib/experience/analytics";
 import { STORAGE, readLocal, writeLocal } from "../../lib/experience/storage";
+import {
+  addEntry,
+  addFavorite,
+  brewParamsSchema,
+  loadJournal,
+  rateEntry,
+  saveJournal,
+  suggestNextCoffee,
+  type BrewEntry,
+  type Journal,
+} from "../../lib/experience/journal";
 import type { ExperienceCoffee } from "../../lib/experience/coffee";
 import type {
+  Adjustment,
   BrewMethod,
   Diagnosis,
+  InputMode,
   Strength,
+  Taste,
 } from "../../lib/experience/schema";
 
-type Mode = RecipeInput["mode"];
 type Level = "iniciante" | "avancado";
-type Saved = {
-  method?: string;
-  mode?: Mode;
-  amount?: number;
-  strength?: Strength;
-};
 const strengthCopy: Record<Strength, string> = {
   suave: "Mais suave",
   equilibrado: "Equilibrada",
   intenso: "Mais intensa",
 };
-const defaultAmount: Record<Mode, number> = { cups: 2, coffee: 20, water: 300 };
+const modeCopy: Record<InputMode, string> = {
+  cups: "Por porções",
+  coffee: "Pelo café",
+  water: "Pela água",
+  size: "Tamanho da moka",
+};
+const storage = () => {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+};
+
+function defaultAmount(method: BrewMethod, mode: InputMode) {
+  if (mode === "size") return method.moka?.defaultSize ?? 3;
+  if (mode === "cups")
+    return method.kind === "espresso" || method.id === "aeropress" ? 1 : 2;
+  if (mode === "coffee")
+    return method.kind === "cold" ? 50 : method.id === "aeropress" ? 15 : 20;
+  return method.id === "aeropress" ? 200 : 300;
+}
+function amountStep(mode: InputMode) {
+  return mode === "water" ? 25 : 1;
+}
 
 export function BrewLab({
   methods,
   coffees,
   diagnosis,
+  taste,
 }: {
   methods: BrewMethod[];
   coffees: ExperienceCoffee[];
   diagnosis: Diagnosis;
+  taste: Taste;
 }) {
-  const [coffeeSlug, setCoffeeSlug] = useState("");
+  const { coffeeSlug, setCoffee, ready } = useCoffeeContext();
   const [methodId, setMethodId] = useState("");
-  const [mode, setMode] = useState<Mode>("cups");
-  const [amountText, setAmountText] = useState(String(defaultAmount.cups));
+  const [mode, setMode] = useState<InputMode>("cups");
+  const [amountText, setAmountText] = useState("2");
   const [strength, setStrength] = useState<Strength>("equilibrado");
+  const [ratio, setRatio] = useState<number | undefined>();
+  const [dose, setDose] = useState<number | undefined>();
   const [level, setLevel] = useState<Level>("iniciante");
   const [activeStep, setActiveStep] = useState(-1);
   const [finished, setFinished] = useState(false);
+  const [journal, setJournal] = useState<Journal | null>(null);
+  const [entryId, setEntryId] = useState<string | null>(null);
+  const [previousId, setPreviousId] = useState<string | undefined>();
+  const [adjustNotes, setAdjustNotes] = useState<string[]>([]);
+  const [rated, setRated] = useState<BrewEntry["outcome"]>();
+  const [saved, setSaved] = useState("");
   const recipeHeading = useRef<HTMLHeadingElement>(null);
-  const diagnosisRef = useRef<HTMLDivElement>(null);
+  const tutorialHeading = useRef<HTMLHeadingElement>(null);
+  const diagnosisRef = useRef<HTMLElement>(null);
+  const initialised = useRef(false);
 
-  // URL parameters (QR deep links, Barista, coffee pages) win over memory.
+  // URL (QR, Barista, favourites, coffee pages) wins over the last recipe.
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const saved = readLocal<Saved>(STORAGE.brew, {});
-    const remembered = readLocal<string>(STORAGE.coffee, "");
-    const cafe = params.get("cafe") ?? remembered;
-    if (coffees.some((coffee) => coffee.slug === cafe)) setCoffeeSlug(cafe);
-    const method = params.get("metodo") ?? saved.method;
-    if (method && methods.some((item) => item.id === method))
-      setMethodId(method);
-    const cups = Number(params.get("xicaras"));
-    if (cups > 0 && cups <= 20) {
-      setMode("cups");
-      setAmountText(String(cups));
-    } else if (saved.mode && saved.amount) {
-      setMode(saved.mode);
-      setAmountText(String(saved.amount));
+    if (!ready || initialised.current) return;
+    initialised.current = true;
+    setJournal(loadJournal(storage()));
+    const known = {
+      coffees: coffees.map((c) => c.slug),
+      methods: methods.map((m) => m.id),
+    };
+    const fromUrl = parseLabSearch(window.location.search, known);
+    const saved = brewParamsSchema.safeParse(
+      readLocal<unknown>(STORAGE.brew, null),
+    );
+    const state: Partial<BrewParams> = fromUrl.methodId
+      ? fromUrl
+      : saved.success
+        ? saved.data
+        : {};
+    if (fromUrl.coffeeSlug) setCoffee(fromUrl.coffeeSlug);
+    const method = methods.find((item) => item.id === state.methodId);
+    if (method) {
+      setMethodId(method.id);
+      const nextMode =
+        state.mode && method.modes.includes(state.mode)
+          ? state.mode
+          : method.modes[0];
+      setMode(nextMode);
+      setAmountText(
+        formatNumber(state.amount ?? defaultAmount(method, nextMode)),
+      );
+      if (state.strength) setStrength(state.strength);
+      if (state.ratio) setRatio(state.ratio);
+      if (state.dose) setDose(state.dose);
     }
-    if (saved.strength) setStrength(saved.strength);
     setLevel(readLocal<Level>(STORAGE.level, "iniciante"));
-  }, [coffees, methods]);
+  }, [ready, coffees, methods, setCoffee]);
 
   const method = methods.find((item) => item.id === methodId);
   const coffee = coffees.find((item) => item.slug === coffeeSlug);
-  const amount = Number(amountText.replace(",", "."));
+  const amount = parseAmount(amountText);
+  const params: BrewParams | null = method
+    ? {
+        methodId: method.id,
+        mode,
+        amount,
+        strength,
+        ...(ratio ? { ratio } : {}),
+        ...(dose ? { dose } : {}),
+      }
+    : null;
+  const paramsKey = JSON.stringify(params);
   const recipe = useMemo(
-    () => (method ? generateRecipe(method, { mode, amount }, strength) : null),
-    [method, mode, amount, strength],
+    () => (method && params ? generateRecipe(method, params) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [method, paramsKey],
   );
+
+  // Keep the URL and the last recipe in sync, so the recipe can be resumed.
   useEffect(() => {
-    if (!method || !(amount > 0)) return;
-    writeLocal(STORAGE.brew, { method: method.id, mode, amount, strength });
-  }, [method, mode, amount, strength]);
+    if (!initialised.current || !recipe?.ok) return;
+    writeLocal(STORAGE.brew, recipe.params);
+    const search = labSearch({
+      ...recipe.params,
+      coffeeSlug: coffeeSlug || undefined,
+    });
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}?${search}`,
+    );
+  }, [recipe, coffeeSlug]);
   useEffect(() => {
     if (method)
       trackExperience("recipe_generate", { method: method.id, strength });
   }, [method, strength]);
-  useEffect(() => setFinished(false), [methodId]);
 
+  const persist = (next: Journal) => {
+    setJournal(next);
+    return saveJournal(storage(), next);
+  };
+  const chooseMethod = (item: BrewMethod) => {
+    setMethodId(item.id);
+    const nextMode = item.modes.includes(mode) ? mode : item.modes[0];
+    setMode(nextMode);
+    if (!item.modes.includes(mode) || item.id !== methodId)
+      setAmountText(formatNumber(defaultAmount(item, nextMode)));
+    setRatio(undefined);
+    setDose(undefined);
+    setAdjustNotes([]);
+    setFinished(false);
+    setEntryId(null);
+    setRated(undefined);
+    trackExperience("method_select", {
+      method: item.id,
+      coffee: coffeeSlug || undefined,
+    });
+    requestAnimationFrame(() =>
+      recipeHeading.current?.focus({ preventScroll: true }),
+    );
+  };
+  const scrollTo = (element: HTMLElement | null) =>
+    element?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+      block: "start",
+    });
   const finish = useCallback(() => {
     setFinished(true);
-    requestAnimationFrame(() =>
-      diagnosisRef.current?.scrollIntoView({
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-          ? "auto"
-          : "smooth",
-        block: "start",
-      }),
-    );
-  }, []);
-  const fit = method ? methodFit(method, coffee) : "unknown";
-  const modeLabels: Record<Mode, string> = {
-    cups: method?.cupIsDose ? "Doses" : "Xícaras",
-    coffee: "Café que tenho (g)",
-    water:
-      method?.ratioMeaning === "beverage"
-        ? "Bebida desejada (g)"
-        : "Água que tenho (g)",
+    if (method && recipe?.ok && journal) {
+      const result = addEntry(journal, {
+        coffeeSlug: coffeeSlug || undefined,
+        params: recipe.params,
+        summary: summarizeRecipe(method, recipe),
+        previousId,
+      });
+      persist(result.journal);
+      setEntryId(result.entry.id);
+    }
+    requestAnimationFrame(() => scrollTo(diagnosisRef.current));
+  }, [method, recipe, journal, coffeeSlug, previousId]);
+
+  const retry = (adjustment: Adjustment, text: string) => {
+    if (!method || !params) return;
+    const next = applyAdjustment(method, params, adjustment);
+    if (journal && entryId)
+      persist(
+        rateEntry(journal, entryId, {
+          outcome: rated,
+          adjustment: { text, notes: next.notes },
+        }),
+      );
+    setRatio(next.params.ratio);
+    setAdjustNotes(next.notes);
+    setPreviousId(entryId ?? undefined);
+    setEntryId(null);
+    setFinished(false);
+    setRated(undefined);
+    trackExperience("recipe_generate", { method: method.id, via: "ajuste" });
+    requestAnimationFrame(() => {
+      scrollTo(recipeHeading.current);
+      recipeHeading.current?.focus({ preventScroll: true });
+    });
   };
-  const valid = recipe && recipe.coffeeGrams > 0 && recipe.waterGrams > 0;
+  const fit = method ? methodFit(method, coffee) : "unknown";
+  const suggestion =
+    rated === "equilibrado" && journal
+      ? suggestNextCoffee(journal, coffees, taste)
+      : null;
+  const baristaHref = (problem: string) =>
+    recipe?.ok
+      ? `/experiencia/barista/?${labSearch({ ...recipe.params, coffeeSlug: coffeeSlug || undefined })}&problema=${problem}`
+      : "/experiencia/barista/";
 
   return (
     <div className="xp-lab">
@@ -127,7 +267,7 @@ export function BrewLab({
         </h2>
         <fieldset className="xp-lab-step">
           <legend>
-            <span className="mono">1</span> Qual café da Cura você vai usar?
+            <span className="mono">1</span> Qual café você vai usar?
           </legend>
           <div className="xp-chip-row">
             {coffees.map((item) => (
@@ -137,8 +277,7 @@ export function BrewLab({
                   name="cafe"
                   checked={coffeeSlug === item.slug}
                   onChange={() => {
-                    setCoffeeSlug(item.slug);
-                    writeLocal(STORAGE.coffee, item.slug);
+                    setCoffee(item.slug);
                     trackExperience("coffee_select", {
                       coffee: item.slug,
                       context: "laboratorio",
@@ -153,7 +292,7 @@ export function BrewLab({
                 type="radio"
                 name="cafe"
                 checked={coffeeSlug === ""}
-                onChange={() => setCoffeeSlug("")}
+                onChange={() => setCoffee("")}
               />
               <span>Outro café</span>
             </label>
@@ -165,36 +304,24 @@ export function BrewLab({
             <span className="mono">2</span> Qual equipamento você tem?
           </legend>
           <div className="xp-method-grid">
-            {methods.map((item) => {
-              const itemFit = methodFit(item, coffee);
-              return (
-                <label
-                  key={item.id}
-                  className={`xp-method-card ${methodId === item.id ? "is-selected" : ""}`}
-                >
-                  <input
-                    type="radio"
-                    name="metodo"
-                    checked={methodId === item.id}
-                    onChange={() => {
-                      setMethodId(item.id);
-                      trackExperience("method_select", {
-                        method: item.id,
-                        coffee: coffeeSlug || undefined,
-                      });
-                      requestAnimationFrame(() =>
-                        recipeHeading.current?.focus({ preventScroll: true }),
-                      );
-                    }}
-                  />
-                  <span className="xp-method-name">{item.name}</span>
-                  <span className="xp-method-summary">{item.summary}</span>
-                  {itemFit === "label" && coffee && (
-                    <span className="xp-badge mono">Sugerido no rótulo</span>
-                  )}
-                </label>
-              );
-            })}
+            {methods.map((item) => (
+              <label
+                key={item.id}
+                className={`xp-method-card ${methodId === item.id ? "is-selected" : ""}`}
+              >
+                <input
+                  type="radio"
+                  name="metodo"
+                  checked={methodId === item.id}
+                  onChange={() => chooseMethod(item)}
+                />
+                <span className="xp-method-name">{item.name}</span>
+                <span className="xp-method-summary">{item.summary}</span>
+                {methodFit(item, coffee) === "label" && (
+                  <span className="xp-badge mono">Sugerido no rótulo</span>
+                )}
+              </label>
+            ))}
           </div>
         </fieldset>
 
@@ -202,101 +329,148 @@ export function BrewLab({
           <>
             <fieldset className="xp-lab-step">
               <legend>
-                <span className="mono">3</span> Quanto você quer preparar?
+                <span className="mono">3</span>{" "}
+                {method.kind === "espresso"
+                  ? "Quantos espressos?"
+                  : method.kind === "moka"
+                    ? "Qual o tamanho da sua moka?"
+                    : "Quanto você quer preparar?"}
               </legend>
-              <div
-                className="xp-segmented"
-                role="group"
-                aria-label="Calcular a partir de"
-              >
-                {(Object.keys(modeLabels) as Mode[]).map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    aria-pressed={mode === item}
-                    onClick={() => {
-                      setMode(item);
-                      setAmountText(String(defaultAmount[item]));
-                    }}
-                  >
-                    {item === "cups"
-                      ? "Por xícaras"
-                      : item === "coffee"
-                        ? "Pelo café"
-                        : "Pela água"}
-                  </button>
-                ))}
-              </div>
-              <div className="xp-stepper">
-                <button
-                  type="button"
-                  aria-label="Diminuir"
-                  onClick={() =>
-                    setAmountText(
-                      String(
-                        Math.max(
-                          mode === "cups" ? 1 : 1,
-                          (amount || 0) -
-                            (mode === "cups" ? 1 : mode === "coffee" ? 1 : 25),
-                        ),
-                      ),
-                    )
-                  }
+              {method.kind === "moka" && method.moka ? (
+                <div
+                  className="xp-chip-row"
+                  role="radiogroup"
+                  aria-label="Tamanho da moka em xícaras"
                 >
-                  −
-                </button>
-                <label>
-                  <span>{modeLabels[mode]}</span>
-                  <input
-                    inputMode="decimal"
-                    value={amountText}
-                    onChange={(event) => setAmountText(event.target.value)}
-                    aria-describedby="amount-help"
-                  />
-                </label>
-                <button
-                  type="button"
-                  aria-label="Aumentar"
-                  onClick={() =>
-                    setAmountText(
-                      String(
-                        (amount || 0) +
-                          (mode === "cups" ? 1 : mode === "coffee" ? 1 : 25),
-                      ),
-                    )
-                  }
-                >
-                  +
-                </button>
-              </div>
-              <p id="amount-help" className="xp-small">
-                {mode === "cups"
-                  ? `Uma ${method.cupIsDose ? "dose" : "porção"} = ${method.cup.label}.`
-                  : "Informe o que você tem disponível e calculamos o resto."}
-              </p>
+                  {method.moka.sizes.map((size) => (
+                    <label key={size} className="xp-chip-option">
+                      <input
+                        type="radio"
+                        name="moka"
+                        checked={amount === size}
+                        onChange={() => setAmountText(String(size))}
+                      />
+                      <span>
+                        {size} {size === 1 ? "xícara" : "xícaras"}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  {method.modes.length > 1 && (
+                    <div
+                      className="xp-segmented"
+                      role="group"
+                      aria-label="Calcular a partir de"
+                    >
+                      {method.modes.map((item) => (
+                        <button
+                          key={item}
+                          type="button"
+                          aria-pressed={mode === item}
+                          onClick={() => {
+                            setMode(item);
+                            setAmountText(
+                              formatNumber(defaultAmount(method, item)),
+                            );
+                          }}
+                        >
+                          {modeCopy[item]}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="xp-stepper">
+                    <button
+                      type="button"
+                      aria-label="Diminuir"
+                      onClick={() =>
+                        setAmountText(
+                          formatNumber(
+                            Math.max(
+                              amountStep(mode),
+                              (amount || 0) - amountStep(mode),
+                            ),
+                          ),
+                        )
+                      }
+                    >
+                      −
+                    </button>
+                    <label>
+                      <span>
+                        {mode === "cups"
+                          ? method.kind === "espresso"
+                            ? "Espressos"
+                            : "Porções"
+                          : mode === "coffee"
+                            ? "Café que tenho (g)"
+                            : "Água que tenho (g ou ml)"}
+                      </span>
+                      <input
+                        inputMode="decimal"
+                        value={amountText}
+                        onChange={(event) => setAmountText(event.target.value)}
+                        aria-describedby="amount-help"
+                        aria-invalid={!recipe?.ok}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      aria-label="Aumentar"
+                      onClick={() =>
+                        setAmountText(
+                          formatNumber(
+                            (Number.isFinite(amount) ? amount : 0) +
+                              amountStep(mode),
+                          ),
+                        )
+                      }
+                    >
+                      +
+                    </button>
+                  </div>
+                  <p id="amount-help" className="xp-small">
+                    {mode === "cups"
+                      ? method.kind === "espresso"
+                        ? "Cada espresso é uma extração separada, com uma dose no cesto."
+                        : `Uma porção = ${method.cup.label}.`
+                      : mode === "water"
+                        ? "Água de preparo. Parte dela fica no pó, então a xícara recebe um pouco menos."
+                        : "Informe o café que você tem; calculamos a água."}
+                  </p>
+                </>
+              )}
             </fieldset>
 
-            <fieldset className="xp-lab-step">
-              <legend>
-                <span className="mono">4</span> Como você prefere a bebida?
-              </legend>
-              <div
-                className="xp-segmented"
-                role="group"
-                aria-label="Intensidade da bebida"
-              >
-                {(Object.keys(strengthCopy) as Strength[]).map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    aria-pressed={strength === item}
-                    onClick={() => setStrength(item)}
-                  >
-                    {strengthCopy[item]}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
+            {method.kind !== "moka" && (
+              <fieldset className="xp-lab-step">
+                <legend>
+                  <span className="mono">4</span> Como você prefere a bebida?
+                </legend>
+                <div
+                  className="xp-segmented"
+                  role="group"
+                  aria-label="Intensidade da bebida"
+                >
+                  {(Object.keys(strengthCopy) as Strength[]).map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      aria-pressed={strength === item && !ratio}
+                      onClick={() => {
+                        setStrength(item);
+                        setRatio(undefined);
+                        setAdjustNotes([]);
+                      }}
+                    >
+                      {strengthCopy[item]}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+            )}
           </>
         )}
       </section>
@@ -316,8 +490,18 @@ export function BrewLab({
                 SUA RECEITA{coffee ? ` · ${coffee.name}` : ""}
               </p>
               <h2 id="recipe-title" ref={recipeHeading} tabIndex={-1}>
-                {method.name},{" "}
-                <em>{strengthCopy[strength].toLocaleLowerCase("pt-BR")}.</em>
+                {method.name}
+                {method.kind !== "moka" && (
+                  <>
+                    ,{" "}
+                    <em>
+                      {ratio
+                        ? `proporção ${formatRatio(ratio)}`
+                        : strengthCopy[strength].toLocaleLowerCase("pt-BR")}
+                      .
+                    </em>
+                  </>
+                )}
               </h2>
             </div>
             <div
@@ -340,6 +524,12 @@ export function BrewLab({
               ))}
             </div>
           </div>
+          {adjustNotes.length > 0 && (
+            <div className="xp-callout xp-adjusted" role="status">
+              <strong>Nova tentativa com ajuste:</strong>{" "}
+              {adjustNotes.join(" ")} Mude só isso e prove de novo.
+            </div>
+          )}
           {coffee && fit === "experiment" && (
             <p className="xp-callout">
               {method.name} não está entre os preparos sugeridos no rótulo do{" "}
@@ -349,34 +539,78 @@ export function BrewLab({
               café.
             </p>
           )}
-          {valid ? (
+          {recipe.ok ? (
             <>
+              {recipe.rounds > 1 && (
+                <p className="xp-rounds" role="note">
+                  <strong>
+                    {recipe.rounds}{" "}
+                    {recipe.roundLabel === "extração" ? "extrações" : "rodadas"}
+                  </strong>{" "}
+                  de {formatNumber(recipe.perRound.coffeeGrams)} g de café e{" "}
+                  {formatNumber(recipe.perRound.waterGrams)} g de{" "}
+                  {recipe.ratioMeaning === "beverage" ? "bebida" : "água"} cada.
+                  Os números abaixo valem para cada {recipe.roundLabel}.
+                </p>
+              )}
               <dl className="xp-recipe-grid">
                 <div>
-                  <dt>Café</dt>
+                  <dt>
+                    Café{recipe.rounds > 1 ? ` por ${recipe.roundLabel}` : ""}
+                  </dt>
                   <dd>
                     <span className="xp-big">
-                      {formatNumber(recipe.coffeeGrams)}
+                      {formatNumber(recipe.perRound.coffeeGrams)}
                     </span>{" "}
                     g
+                    {recipe.approximate && recipe.rounds === 1 && (
+                      <span className="xp-approx mono">
+                        {" "}
+                        ≈ (exato {formatNumber(recipe.coffeeExact)} g)
+                      </span>
+                    )}
                   </dd>
                 </div>
                 <div>
                   <dt>
                     {recipe.ratioMeaning === "beverage"
                       ? "Bebida na xícara"
-                      : "Água"}
+                      : method.kind === "cold"
+                        ? "Água de infusão"
+                        : "Água de preparo"}
+                    {recipe.rounds > 1 ? ` por ${recipe.roundLabel}` : ""}
                   </dt>
                   <dd>
                     <span className="xp-big">
-                      {formatNumber(recipe.waterGrams)}
+                      {formatNumber(recipe.perRound.waterGrams)}
                     </span>{" "}
                     {recipe.ratioMeaning === "beverage" ? "g" : "g ou ml"}
                   </dd>
                 </div>
                 <div>
                   <dt>Proporção</dt>
-                  <dd className="mono">{formatRatio(recipe.ratio)}</dd>
+                  <dd className="mono">
+                    {method.kind === "moka"
+                      ? `≈ ${formatRatio(recipe.ratio)}`
+                      : formatRatio(recipe.ratio)}
+                    {recipe.effectiveRatio !== recipe.ratio &&
+                      method.kind !== "moka" && (
+                        <span className="xp-approx">
+                          {" "}
+                          · efetiva {formatRatio(recipe.effectiveRatio)}
+                        </span>
+                      )}
+                  </dd>
+                </div>
+                <div>
+                  <dt>{method.kind === "cold" ? "Rende" : "Na xícara"}</dt>
+                  <dd>
+                    {recipe.beverageMl === null
+                      ? `cerca de ${recipe.servings} xícaras pequenas`
+                      : method.kind === "cold"
+                        ? `≈ ${formatNumber(recipe.concentrateMl ?? 0)} ml de concentrado → ${formatNumber(recipe.beverageMl)} ml de bebida`
+                        : `≈ ${formatNumber(recipe.beverageMl)} ml no total`}
+                  </dd>
                 </div>
                 <div>
                   <dt>Moagem</dt>
@@ -396,46 +630,101 @@ export function BrewLab({
                   </dd>
                 </div>
                 <div>
-                  <dt>Tempo estimado</dt>
+                  <dt>Tempo</dt>
                   <dd>{method.time.label}</dd>
                 </div>
-                {level === "avancado" && recipe.bloomGrams && (
+                {level === "avancado" && recipe.perRound.bloomGrams && (
                   <div>
                     <dt>Pré-infusão</dt>
                     <dd>
-                      {formatNumber(recipe.bloomGrams)} g (
+                      {formatNumber(recipe.perRound.bloomGrams)} g (
                       {formatNumber(method.bloomFactor ?? 0)}× o café)
                     </dd>
                   </div>
                 )}
-                {level === "avancado" && (
-                  <div>
-                    <dt>Rende</dt>
-                    <dd>
-                      cerca de {formatNumber(recipe.cups)}{" "}
-                      {method.cupIsDose
-                        ? "dose(s)"
-                        : `porção(ões) · ${method.cup.label}`}
-                    </dd>
-                  </div>
-                )}
               </dl>
-              {method.capacityNote && (
-                <p className="xp-small">{method.capacityNote}</p>
-              )}
+              {method.kind === "espresso" &&
+                method.espresso &&
+                level === "avancado" && (
+                  <label className="xp-dose">
+                    <span>Dose do seu cesto (g)</span>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      min={method.espresso.minDose}
+                      max={method.espresso.maxDose}
+                      step={0.5}
+                      value={dose ?? method.espresso.defaultDose}
+                      onChange={(event) =>
+                        setDose(Number(event.target.value) || undefined)
+                      }
+                    />
+                  </label>
+                )}
               {recipe.warnings.map((warning) => (
                 <p key={warning} className="xp-warning" role="note">
                   {warning}
+                </p>
+              ))}
+              {recipe.notes.map((note) => (
+                <p key={note} className="xp-small">
+                  {note}
                 </p>
               ))}
               <p className="xp-small">
                 É um ponto de partida ajustável, não uma regra. Prove e ajuste
                 ao seu gosto.
               </p>
+              <div className="xp-hero-actions">
+                <button
+                  type="button"
+                  className="button"
+                  onClick={() => {
+                    scrollTo(tutorialHeading.current);
+                    tutorialHeading.current?.focus({ preventScroll: true });
+                  }}
+                >
+                  Começar o preparo guiado <Arrow />
+                </button>
+                <button
+                  type="button"
+                  className="xp-button-ghost"
+                  onClick={() => {
+                    if (!journal) return;
+                    const name = `${coffee?.name ?? "Café"} · ${method.name}`;
+                    const ok = persist(
+                      addFavorite(journal, {
+                        name,
+                        coffeeSlug: coffeeSlug || undefined,
+                        params: recipe.params,
+                        summary: summarizeRecipe(method, recipe),
+                      }),
+                    );
+                    setSaved(
+                      ok
+                        ? "Receita salva em Minha jornada."
+                        : "Este navegador não permitiu salvar (navegação privada ou armazenamento bloqueado).",
+                    );
+                  }}
+                >
+                  Salvar receita
+                </button>
+                <Link
+                  className="xp-text-link"
+                  href="/experiencia/minha-jornada/"
+                >
+                  Minha jornada
+                </Link>
+              </div>
+              <p className="xp-small" role="status">
+                {saved}
+              </p>
 
               <div className="xp-tutorial-layout">
                 <div>
-                  <h3 className="eyebrow">PASSO A PASSO</h3>
+                  <h3 className="eyebrow" ref={tutorialHeading} tabIndex={-1}>
+                    PREPARO GUIADO
+                  </h3>
                   <ol className="xp-tutorial">
                     {recipe.steps.map((step, index) => {
                       const timedIndex = recipe.schedule.findIndex(
@@ -471,12 +760,16 @@ export function BrewLab({
                               )}
                             </h4>
                             <p>{step.text}</p>
-                            {level === "avancado" &&
-                              step.targetGrams !== undefined && (
-                                <p className="mono xp-step-target">
-                                  Balança: {formatNumber(step.targetGrams)} g
-                                </p>
-                              )}
+                            {step.targetGrams !== undefined && (
+                              <p className="mono xp-step-target">
+                                Balança: {formatNumber(step.targetGrams)} g
+                              </p>
+                            )}
+                            {step.observe && (
+                              <p className="xp-step-observe">
+                                Observe: {step.observe}
+                              </p>
+                            )}
                           </div>
                         </li>
                       );
@@ -487,17 +780,22 @@ export function BrewLab({
                   {method.timer && recipe.totalSeconds ? (
                     <>
                       <h3 className="eyebrow">CRONÔMETRO</h3>
+                      <p className="xp-small">{method.timer.start}</p>
                       <BrewTimer
                         schedule={recipe.schedule}
                         totalSeconds={recipe.totalSeconds}
                         methodId={method.id}
+                        startButton={method.timer.button}
+                        startHint={method.timer.start}
+                        rounds={recipe.rounds}
+                        roundLabel={recipe.roundLabel}
                         onStepChange={setActiveStep}
                         onFinish={finish}
                       />
                     </>
                   ) : (
                     <p className="xp-callout">
-                      {method.id === "cold-brew"
+                      {method.kind === "cold"
                         ? "O cold brew leva de 12 a 18 horas: anote o horário em que começou e siga o passo a passo."
                         : "Neste método a máquina controla o tempo. Siga o passo a passo."}
                     </p>
@@ -520,29 +818,30 @@ export function BrewLab({
             </>
           ) : (
             <p className="xp-warning" role="alert">
-              Informe uma quantidade maior que zero para calcular a receita.
+              {recipe.error}
             </p>
           )}
         </section>
       )}
 
-      {method && (
+      {method && recipe?.ok && (
         <section className="xp-section" aria-labelledby="calc-title">
           <p className="eyebrow">CALCULADORA DE PROPORÇÃO</p>
           <h2 id="calc-title">
             Faça a conta <em>do seu jeito.</em>
           </h2>
           <RatioCalculator
-            key={`${method.id}-${recipe?.coffeeGrams}-${recipe?.ratio}`}
-            initialCoffee={recipe?.coffeeGrams || 20}
-            initialRatio={recipe?.ratio || 15}
-            presets={method.presets}
-            beverage={method.ratioMeaning === "beverage"}
+            key={`${method.id}-${recipe.perRound.coffeeGrams}-${recipe.perRound.waterGrams}`}
+            initialCoffee={recipe.perRound.coffeeGrams}
+            initialRatio={recipe.ratio}
+            initialWater={recipe.perRound.waterGrams}
+            presets={method.presets ?? [recipe.ratio]}
+            beverage={recipe.ratioMeaning === "beverage"}
           />
         </section>
       )}
 
-      {method && (
+      {method && recipe?.ok && (
         <section
           className="xp-section"
           ref={diagnosisRef}
@@ -554,21 +853,40 @@ export function BrewLab({
             {finished ? "Hora de provar." : "Depois de preparar,"}{" "}
             <em>conte como ficou.</em>
           </h2>
-          <BrewDiagnosis diagnosis={diagnosis} methodId={method.id} />
-          {coffee && (
-            <div className="xp-hero-actions">
-              <ProductCta
-                coffee={coffee}
-                context="laboratorio"
-                variant="link"
-              />
+          {finished && entryId && (
+            <p className="xp-small">
+              Preparo registrado em Minha jornada, só neste navegador.
+            </p>
+          )}
+          <BrewDiagnosis
+            key={`${entryId ?? "novo"}-${method.id}`}
+            diagnosis={diagnosis}
+            methodId={method.id}
+            onRate={(id) => {
+              const outcome = id as BrewEntry["outcome"];
+              setRated(outcome);
+              if (journal && entryId)
+                persist(rateEntry(journal, entryId, { outcome }));
+            }}
+            onRetry={retry}
+            baristaHref={baristaHref}
+          />
+          {suggestion && (
+            <aside
+              className="xp-next-coffee"
+              aria-label="Sugestão para a próxima compra"
+            >
+              <p className="eyebrow">QUANDO QUISER VARIAR</p>
+              <p>
+                <strong>{suggestion.coffee.name}.</strong> {suggestion.reason}
+              </p>
               <Link
                 className="xp-text-link"
-                href={`/experiencia/cafes/${coffee.slug}/`}
+                href={`/experiencia/cafes/${suggestion.coffee.slug}/`}
               >
-                Conhecer a origem do {coffee.name} <Arrow />
+                Conhecer o {suggestion.coffee.name} <Arrow />
               </Link>
-            </div>
+            </aside>
           )}
         </section>
       )}

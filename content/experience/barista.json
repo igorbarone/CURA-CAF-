@@ -1,12 +1,12 @@
 {
-  "greeting": "Olá! Eu sou o Barista Cura. Posso ajudar a preparar seu café, ajustar uma receita, entender um conceito ou escolher um café. Por onde começamos?",
-  "disclaimer": "Assistente educativo com respostas estruturadas a partir da base revisada da Cura e dos dados publicados de cada café. Não é uma inteligência artificial generativa e não guarda suas mensagens.",
+  "greeting": "Olá! Eu sou o Barista Cura. Posso calcular a receita do seu café, ajudar a ajustar um preparo que não ficou bom, explicar conceitos e comparar os cafés da Cura. Pode perguntar do seu jeito, por exemplo: “Tenho SALSA, V60 e 250 ml de água. Quanto café uso?”",
+  "disclaimer": "No modo guiado, as respostas vêm de regras e da base revisada da Cura, sem inteligência artificial. Os números de receitas sempre vêm do mesmo cálculo do Laboratório.",
   "starters": [
-    "diagnostico",
     "receita",
+    "diagnostico",
     "recomendar",
-    "metodos",
-    "cafe-especial",
+    "comparar",
+    "tds",
     "moagem"
   ],
   "topics": [
@@ -20,8 +20,8 @@
         "especial"
       ],
       "answer": [
-        "Café especial é aquele que passa por uma avaliação sensorial e alcança pelo menos 80 pontos, de 0 a 100, na metodologia da SCA.",
-        "Para chegar lá, é preciso cuidado em todas as etapas: cultivo, colheita, secagem, armazenamento e torra."
+        "Café especial é um café de qualidade diferenciada, avaliado por provadores treinados. Por muitos anos, a referência mais conhecida foi a escala de 0 a 100 da SCA (Specialty Coffee Association), em que cafés com 80 pontos ou mais eram considerados especiais.",
+        "Hoje a SCA trabalha com o Coffee Value Assessment (CVA), que olha para atributos físicos, sensoriais e extrínsecos do café em vez de uma única nota. A pontuação 0–100 continua muito usada no mercado como referência. SAMBA (84) e SALSA (86) trazem a pontuação dos lotes no rótulo."
       ],
       "followUps": ["pontuacao", "gourmet"],
       "link": {
@@ -42,8 +42,8 @@
         "sca"
       ],
       "answer": [
-        "É a nota da avaliação sensorial. A partir de 80 pontos o café é especial; de 80 a 84,99 é classificado como muito bom; de 85 a 89,99, como excelente.",
-        "Pontuação mostra qualidade técnica. Preferência é pessoal: o seu paladar continua sendo o melhor guia."
+        "É a nota do lote numa prova sensorial, na escala de 0 a 100 usada historicamente pela SCA: a partir de 80 pontos, o café é tratado como especial; de 80 a 84,99 costuma ser chamado de muito bom; de 85 a 89,99, de excelente.",
+        "A SCA hoje também usa o Coffee Value Assessment, que descreve o café por vários atributos em vez de uma nota só. E pontuação mostra avaliação técnica, não preferência: o seu paladar continua sendo o melhor guia."
       ],
       "followUps": ["recomendar", "cafe-especial"],
       "link": {
@@ -77,8 +77,8 @@
         "granulometria"
       ],
       "answer": [
-        "Cada método pede uma moagem: fina para espresso; média-fina para V60, Aeropress e moka; média para filtro de papel tradicional e cafeteira elétrica; grossa para prensa francesa e cold brew.",
-        "Se o café estiver amargo, a moagem pode estar fina demais. Se estiver azedo ou ralo, grossa demais. Mude um pouco por vez."
+        "Depende do método: fina para espresso; média-fina para V60, AeroPress e moka; média para filtro de papel tradicional e cafeteira elétrica; grossa para prensa francesa e cold brew.",
+        "Se o café estiver amargo, a moagem pode estar fina demais; se estiver azedo ou ralo, grossa demais. Mude um pouco por vez."
       ],
       "followUps": ["graos-ou-moido", "receita"],
       "link": {
@@ -266,7 +266,88 @@
       "answer": [
         "Os cafés, preços e condições de compra ficam na loja oficial da Cura, no próprio site. Eu não registro pedidos por aqui."
       ],
-      "link": { "href": "/cafes/", "label": "Ver os cafés da Cura" }
+      "link": {
+        "href": "/cafes/",
+        "label": "Ver os cafés da Cura"
+      }
+    },
+    {
+      "id": "tds",
+      "label": "O que é TDS?",
+      "keywords": [
+        "tds",
+        "sólidos dissolvidos",
+        "solidos dissolvidos",
+        "concentração",
+        "refratômetro",
+        "refratometro"
+      ],
+      "answer": [
+        "TDS (sólidos totais dissolvidos) é a concentração da bebida: quanto do que está na xícara é café dissolvido, e não água. Num coado típico, fica em torno de 1,15% a 1,45%. É medido com um refratômetro.",
+        "TDS é diferente de rendimento de extração. O rendimento diz quanto do pó foi parar na xícara e é calculado: TDS × massa da bebida ÷ massa de café. Exemplo: 250 g de bebida a 1,4% têm 3,5 g de café dissolvido; com 18 g de pó, o rendimento é cerca de 19,4%."
+      ],
+      "followUps": ["rendimento", "receita"],
+      "link": {
+        "href": "/experiencia/aprender/ciencia-do-cafe/#solubilidade",
+        "label": "Ler sobre TDS e rendimento"
+      }
+    },
+    {
+      "id": "rendimento",
+      "label": "O que é rendimento de extração?",
+      "keywords": [
+        "rendimento de extração",
+        "rendimento de extracao",
+        "extração",
+        "extracao",
+        "extraction yield",
+        "subextração",
+        "superextração"
+      ],
+      "answer": [
+        "Rendimento de extração é a porcentagem do café moído que se dissolveu na bebida. Uma faixa de referência clássica para coados é de 18% a 22%: abaixo, a bebida tende a ficar azeda e rala; acima, amarga e adstringente.",
+        "Ele não é medido diretamente: calcula-se a partir do TDS (medido com refratômetro), da massa da bebida e da massa de café. Em casa, o paladar e o tempo de preparo são as melhores pistas."
+      ],
+      "followUps": ["tds", "diagnostico"],
+      "link": {
+        "href": "/experiencia/aprender/ciencia-do-cafe/#extracao",
+        "label": "Abrir a Ciência do café"
+      }
+    },
+    {
+      "id": "capacidade",
+      "label": "Meu equipamento não comporta a água",
+      "keywords": [
+        "não comporta",
+        "nao comporta",
+        "não cabe",
+        "nao cabe",
+        "transborda",
+        "capacidade",
+        "muito grande",
+        "pequena demais"
+      ],
+      "answer": [
+        "Quando a receita passa da capacidade do equipamento, o certo é dividir em rodadas completas: cada rodada com o seu café e a sua água, uma depois da outra, juntando as bebidas no final. O Laboratório faz essa divisão automaticamente.",
+        "Na AeroPress, por exemplo, a fabricante informa câmara de cerca de 296 ml; o Laboratório usa até 230 g de água por rodada, para sobrar espaço ao café e à mexida."
+      ],
+      "followUps": ["receita"]
+    },
+    {
+      "id": "pressurizado",
+      "label": "Cesto pressurizado",
+      "keywords": [
+        "pressurizado",
+        "parede dupla",
+        "cesto duplo",
+        "porta-filtro",
+        "porta filtro"
+      ],
+      "answer": [
+        "Cestos pressurizados (de parede dupla, comuns em máquinas domésticas) têm um furo pequeno que cria a pressão por conta própria. Por isso, moagem e compactação têm menos efeito do que num cesto comum.",
+        "Neles, ajuste primeiro a dose indicada pelo fabricante e a quantidade de bebida na xícara. Cada espresso é uma extração com uma dose: não coloque a dose de duas bebidas no mesmo cesto."
+      ],
+      "followUps": ["receita", "diagnostico"]
     }
   ]
 }

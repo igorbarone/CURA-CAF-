@@ -1,96 +1,80 @@
-// Barista Cura — MVP conversation engine.
+// Barista Cura — guided mode (no AI).
 //
-// Deterministic, structured answers built only from the reviewed knowledge
-// base (content/experience/barista.json), the published coffees and the brew /
-// diagnosis rules. It asks before it diagnoses: a problem report starts a
-// short flow (method → grind → suggestion) instead of a precipitated verdict.
-//
-// The `BaristaProvider` interface is the seam for a future AI integration: a
-// server route (never the browser) holds the API key, receives the same
-// context, must answer from this knowledge base, and can fall back to this
-// local provider. See docs/EXPERIENCIA.md.
-import type { ExperienceCoffee } from "./coffee";
-import type { BaristaKnowledge, BrewMethod, Diagnosis, Taste } from "./schema";
-import { diagnose } from "./diagnosis";
-import { formatNumber, formatRatio, generateRecipe } from "./brew";
-import { coffeeTraits } from "./taste";
+// Deterministic answers built from the reviewed knowledge base, the published
+// coffees and the recipe engine, through the same tools the AI Barista uses
+// (barista-tools.ts). It reads compound questions (coffee + method + amount),
+// keeps the session context (the coffee and recipe being discussed) and asks
+// one short question only when something essential is missing.
+import {
+  analisarEspresso,
+  calcularReceita,
+  compararCafes,
+  detalharCafe,
+  diagnosticarPreparo,
+  recomendarCafe,
+  type BaristaAction,
+  type BaristaData,
+} from "./barista-tools";
+import {
+  detectIntent,
+  extractEntities,
+  normalize,
+  type Entities,
+  type Quantity,
+} from "./barista-intent";
+import { formatNumber } from "./brew";
+import type { LabState } from "./lab-link";
+import type { BrewMethod } from "./schema";
 
-export type BaristaContext = {
-  knowledge: BaristaKnowledge;
-  coffees: ExperienceCoffee[];
-  methods: BrewMethod[];
-  diagnosis: Diagnosis;
-  taste: Taste;
+export type BaristaSession = {
+  coffeeSlug?: string;
+  methodId?: string;
+  lab?: LabState;
 };
+type Problem =
+  "amargo" | "azedo" | "fraco" | "forte" | "equilibrado" | "nao-sei";
 export type BaristaFlow =
   | { kind: "idle" }
   | {
-      kind: "diagnosis";
-      problem?: string;
-      method?: string;
-      step: "problem" | "method" | "grind";
+      kind: "await-method";
+      purpose: "recipe" | "diagnosis";
+      problem?: Problem;
+      quantity?: Quantity;
     }
-  | { kind: "recipe"; method?: string; step: "method" | "cups" }
+  | { kind: "await-quantity"; methodId: string }
+  | { kind: "await-grind"; problem: Problem; methodId: string }
+  | { kind: "await-problem" }
   | { kind: "recommend" };
 export type BaristaChip = { label: string; value: string };
 export type BaristaReply = {
   text: string[];
   chips: BaristaChip[];
-  link?: { href: string; label: string };
+  actions: BaristaAction[];
   flow: BaristaFlow;
+  session: BaristaSession;
 };
 export type BaristaInput = { text?: string; value?: string };
-export interface BaristaProvider {
-  reply(flow: BaristaFlow, input: BaristaInput): Promise<BaristaReply>;
-}
+export type BaristaState = { flow: BaristaFlow; session: BaristaSession };
 
 export const FLOW_IDS = [
   "diagnostico",
   "receita",
   "recomendar",
   "metodos",
+  "comparar",
 ] as const;
 const flowLabels: Record<(typeof FLOW_IDS)[number], string> = {
   diagnostico: "Meu café não ficou bom",
   receita: "Quero uma receita",
   recomendar: "Qual café combina comigo?",
   metodos: "Qual método escolher?",
+  comparar: "Comparar os cafés",
 };
+const idle: BaristaFlow = { kind: "idle" };
 
-const normalize = (value: string) =>
-  value
-    .toLocaleLowerCase("pt-BR")
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .replace(/\s+/g, " ")
-    .trim();
-
-const problemKeywords: [string, string[]][] = [
-  ["amargo", ["amarg", "queimad", "adstring"]],
-  ["azedo", ["azed", "acido demais", "muito acido", "azedinho"]],
-  ["fraco", ["fraco", "aguado", "ralo", "sem gosto"]],
-  ["forte", ["forte demais", "muito forte", "concentrado demais"]],
-];
-const methodAliases: [string, string[]][] = [
-  ["v60", ["v60", "hario"]],
-  ["melitta", ["melitta", "filtro de papel", "coador", "coado", "pano"]],
-  ["prensa-francesa", ["prensa", "french press"]],
-  ["moka", ["moka", "italiana"]],
-  ["aeropress", ["aeropress"]],
-  ["espresso", ["espresso", "expresso", "maquina de espresso"]],
-  ["cafeteira-eletrica", ["eletrica", "cafeteira eletrica"]],
-  ["cold-brew", ["cold brew", "coldbrew", "gelado", "frio"]],
-];
-
-function detect(table: [string, string[]][], text: string) {
-  const value = normalize(text);
-  return table.find(([, words]) =>
-    words.some((word) => value.includes(word)),
-  )?.[0];
-}
-
-export function createBarista(context: BaristaContext) {
-  const { knowledge, coffees, methods } = context;
+export function createBarista(data: BaristaData) {
+  const { knowledge, coffees, methods } = data;
+  const names = coffees.map(({ slug, name }) => ({ slug, name }));
   const topic = (id: string) => knowledge.topics.find((item) => item.id === id);
   const chipFor = (id: string): BaristaChip | null => {
     if ((FLOW_IDS as readonly string[]).includes(id))
@@ -109,408 +93,731 @@ export function createBarista(context: BaristaContext) {
       label: method.name,
       value: `method:${method.id}`,
     }));
-  const idle: BaristaFlow = { kind: "idle" };
+  const methodById = (id?: string) => methods.find((item) => item.id === id);
+  const coffeeName = (slug?: string) =>
+    coffees.find((item) => item.slug === slug)?.name;
 
-  function greeting(): BaristaReply {
-    return { text: [knowledge.greeting], chips: starters(), flow: idle };
-  }
-
-  function describeCoffee(coffee: ExperienceCoffee): BaristaReply {
-    const facts = [
-      coffee.category,
-      coffee.score !== undefined ? `${coffee.score} pontos SCA` : null,
-      coffee.roast ? `torra ${coffee.roast.toLocaleLowerCase("pt-BR")}` : null,
-    ].filter(Boolean);
-    const origin = [
-      coffee.origin?.farm,
-      coffee.origin?.region,
-      coffee.origin?.altitudeMeters
-        ? `${formatNumber(coffee.origin.altitudeMeters)} m`
-        : null,
-    ].filter(Boolean);
-    const text = [
-      `${coffee.name}: ${coffee.description}`,
-      facts.join(" · ") + ".",
-    ];
-    if (coffee.sensory?.notes?.length)
-      text.push(`Notas do rótulo: ${coffee.sensory.notes.join(", ")}.`);
-    if (origin.length) text.push(`Origem: ${origin.join(" · ")}.`);
-    if (coffee.origin?.producers?.length)
-      text.push(`Quem produz: ${coffee.origin.producers.join(" e ")}.`);
-    if (coffee.preparations.length)
-      text.push(
-        `O rótulo sugere: ${coffee.preparations.join(" e ").toLocaleLowerCase("pt-BR")}.`,
-      );
-    if (!coffee.score && !coffee.sensory?.notes?.length && !coffee.origin)
-      text.push(
-        "Ainda não temos notas, origem ou pontuação publicadas para este café, e eu não vou inventar.",
-      );
+  function reply(
+    session: BaristaSession,
+    text: string[],
+    options: {
+      chips?: BaristaChip[];
+      actions?: BaristaAction[];
+      flow?: BaristaFlow;
+    } = {},
+  ): BaristaReply {
     return {
       text,
-      chips: [
-        { label: `Preparar ${coffee.name}`, value: "flow:receita" },
-        ...starters().slice(0, 2),
-      ],
-      link: {
-        href: `/experiencia/cafes/${coffee.slug}/`,
-        label: `Conhecer o ${coffee.name}`,
-      },
-      flow: idle,
+      chips: options.chips ?? [],
+      actions: options.actions ?? [],
+      flow: options.flow ?? idle,
+      session,
     };
   }
 
-  function diagnosisStep(
-    flow: Extract<BaristaFlow, { kind: "diagnosis" }>,
-    grind?: string,
+  function greeting(session: BaristaSession = {}): BaristaReply {
+    const text = [knowledge.greeting];
+    const current = coffeeName(session.coffeeSlug);
+    if (current)
+      text.push(
+        `Vi que você está com o ${current}. Posso usar esse café nas respostas.`,
+      );
+    return reply(session, text, { chips: starters() });
+  }
+
+  // ---------- recipes -------------------------------------------------------
+  function defaultQuantity(method: BrewMethod): {
+    mode: LabState["mode"];
+    amount: number;
+    label: string;
+  } {
+    if (method.kind === "moka") {
+      const size = method.moka?.defaultSize ?? 3;
+      return {
+        mode: "size",
+        amount: size,
+        label: `uma moka de ${size} xícaras`,
+      };
+    }
+    if (method.kind === "espresso")
+      return { mode: "cups", amount: 1, label: "um espresso" };
+    if (method.id === "aeropress")
+      return { mode: "cups", amount: 1, label: `uma ${method.cup.label}` };
+    return {
+      mode: "cups",
+      amount: 2,
+      label: `2 porções (${method.cup.label})`,
+    };
+  }
+  function toParams(method: BrewMethod, quantity: Quantity | undefined) {
+    if (!quantity) return { ...defaultQuantity(method), assumed: true };
+    if (method.kind === "moka") {
+      const count = quantity.kind === "servings" ? quantity.count : 3;
+      const sizes = method.moka?.sizes ?? [3];
+      const size =
+        sizes.find((item) => item >= count) ?? sizes[sizes.length - 1];
+      return {
+        mode: "size" as const,
+        amount: size,
+        label: `uma moka de ${size} xícaras`,
+        assumed: quantity.kind !== "servings",
+      };
+    }
+    if (quantity.kind === "servings")
+      return {
+        mode: "cups" as const,
+        amount: quantity.count,
+        label: "",
+        assumed: false,
+      };
+    if (quantity.kind === "coffee" && method.modes.includes("coffee"))
+      return {
+        mode: "coffee" as const,
+        amount: quantity.grams,
+        label: "",
+        assumed: false,
+      };
+    if (quantity.kind === "water" && method.modes.includes("water"))
+      return {
+        mode: "water" as const,
+        amount: quantity.grams,
+        label: "",
+        assumed: false,
+      };
+    return { ...defaultQuantity(method), assumed: true };
+  }
+  function recipeReply(
+    session: BaristaSession,
+    methodId: string | undefined,
+    quantity?: Quantity,
   ): BaristaReply {
-    if (!flow.problem)
-      return {
-        text: ["Vamos descobrir o motivo. Como ficou o seu café?"],
-        chips: context.diagnosis.options.map((option) => ({
-          label: option.label,
-          value: `problem:${option.id}`,
-        })),
-        flow: { ...flow, step: "problem" },
-      };
-    if (!flow.method)
-      return {
-        text: ["Entendi. Qual método você está usando?"],
-        chips: methodChips(),
-        flow: { ...flow, step: "method" },
-      };
-    if (!grind && ["amargo", "azedo", "fraco"].includes(flow.problem))
-      return {
-        text: ["Você utiliza café já moído ou mói na hora?"],
-        chips: [
-          { label: "Mói na hora", value: "grind:fresh" },
-          { label: "Já moído", value: "grind:pre" },
-          { label: "Não sei", value: "grind:unknown" },
+    const method = methodById(methodId);
+    if (!method)
+      return reply(
+        session,
+        [
+          quantity
+            ? "Combinado. Qual equipamento você vai usar?"
+            : "Vamos montar sua receita. Qual equipamento você tem?",
         ],
-        flow: { ...flow, step: "grind" },
-      };
-    const result = diagnose(context.diagnosis, flow.problem, flow.method);
-    const method = methods.find((item) => item.id === flow.method);
-    if (!result) return greeting();
-    const text = [result.summary];
+        {
+          chips: methodChips(),
+          flow: { kind: "await-method", purpose: "recipe", quantity },
+        },
+      );
+    const params = toParams(method, quantity);
+    const result = calcularReceita(data, {
+      metodo: method.id,
+      modo: params.mode,
+      quantidade: params.amount,
+      cafe: session.coffeeSlug,
+      ...(session.lab?.methodId === method.id && session.lab.strength
+        ? { intensidade: session.lab.strength }
+        : {}),
+    });
+    const next: BaristaSession = { ...session, methodId: method.id };
+    if (!result.ok)
+      return reply(next, [result.erro], {
+        chips: [1, 2, 3, 4].map((n) => ({
+          label: `${n} ${n === 1 ? "porção" : "porções"}`,
+          value: `cups:${n}`,
+        })),
+        flow: { kind: "await-quantity", methodId: method.id },
+      });
+    const lab = result.acoes[0].lab as LabState;
+    const r = result.receita;
+    const text = [
+      `${result.resumo}${r.cafe ? `, com o ${r.cafe}` : ""}.`,
+      ...(params.assumed && params.label
+        ? [
+            `Calculei para ${params.label}. Se quiser outra quantidade, é só dizer.`,
+          ]
+        : []),
+      ...(r.doseAproximada
+        ? [
+            "A dose foi arredondada para 0,5 g, mantendo a quantidade que você informou.",
+          ]
+        : []),
+      ...result.avisos,
+      `Moagem: ${r.moagem} ${r.temperatura} Tempo: ${r.tempo}.`,
+      ...(result.notas[0] ? [result.notas[0]] : []),
+      ...(r.sugeridoNoRotulo === false && r.cafe
+        ? [
+            `Esse método não está entre os sugeridos no rótulo do ${r.cafe}: vale como experimento.`,
+          ]
+        : []),
+      "É um ponto de partida: prove e ajuste uma coisa por vez.",
+    ];
+    return reply({ ...next, lab }, text, {
+      chips: [
+        { label: "Mais suave", value: "strength:suave" },
+        { label: "Mais intenso", value: "strength:intenso" },
+        { label: "Meu café não ficou bom", value: "flow:diagnostico" },
+      ],
+      actions: result.acoes,
+    });
+  }
+
+  // ---------- diagnosis -----------------------------------------------------
+  function diagnosisReply(
+    session: BaristaSession,
+    problem: Problem | undefined,
+    methodId: string | undefined,
+    grind?: "fresh" | "pre" | "unknown",
+  ): BaristaReply {
+    if (!problem)
+      return reply(
+        session,
+        ["Vamos descobrir o motivo. Como ficou o seu café?"],
+        {
+          chips: data.diagnosis.options.map((option) => ({
+            label: option.label,
+            value: `problem:${option.id}`,
+          })),
+          flow: { kind: "await-problem" },
+        },
+      );
+    const method = methodById(
+      methodId ?? session.methodId ?? session.lab?.methodId,
+    );
+    if (!method)
+      return reply(session, ["Entendi. Qual método você está usando?"], {
+        chips: methodChips(),
+        flow: { kind: "await-method", purpose: "diagnosis", problem },
+      });
+    if (
+      !grind &&
+      ["amargo", "azedo", "fraco"].includes(problem) &&
+      method.kind !== "moka" &&
+      method.kind !== "espresso"
+    )
+      return reply(
+        { ...session, methodId: method.id },
+        ["Você utiliza café já moído ou mói na hora?"],
+        {
+          chips: [
+            { label: "Mói na hora", value: "grind:fresh" },
+            { label: "Já moído", value: "grind:pre" },
+            { label: "Não sei", value: "grind:unknown" },
+          ],
+          flow: { kind: "await-grind", problem, methodId: method.id },
+        },
+      );
+    const lab = session.lab?.methodId === method.id ? session.lab : undefined;
+    const result = diagnosticarPreparo(data, {
+      problema: problem,
+      metodo: method.id,
+      ...(lab
+        ? {
+            modo: lab.mode,
+            quantidade: lab.amount,
+            intensidade: lab.strength,
+            proporcao: lab.ratio,
+          }
+        : {}),
+      cafe: session.coffeeSlug,
+    });
+    if (!result.ok) return greeting(session);
+    if (result.perguntaExtra)
+      return reply(
+        { ...session, methodId: method.id },
+        [result.resumo, result.perguntaExtra.question],
+        {
+          chips: result.perguntaExtra.options.map((option) => ({
+            label: option.label,
+            value: `problem:${option.to}`,
+          })),
+          flow: { kind: "await-problem" },
+        },
+      );
+    const text = [result.resumo];
     if (grind === "pre")
       text.push(
-        "Como o café já vem moído, a moagem pode não ser a ideal para o seu método, e o pó perde frescor mais rápido. Se puder, peça a moagem específica para o método ou moa na hora.",
+        "Como o café já vem moído, a moagem pode não ser a ideal para o seu método e o pó perde frescor mais rápido. Se puder, moa na hora ou peça a moagem específica para o método.",
       );
-    if (method && result.id !== "equilibrado" && result.id !== "nao-sei")
+    if (problem !== "equilibrado" && problem !== "nao-sei")
       text.push(
         `Referência para ${method.name}: moagem ${method.grind.beginner.toLocaleLowerCase("pt-BR")} Tempo: ${method.time.label}.`,
       );
-    if (result.first) text.push(`Comece por aqui: ${result.first.text}`);
-    if (result.then.length)
-      text.push(`Se não resolver: ${result.then[0].text}`);
-    if (result.id !== "equilibrado") text.push(result.oneVariable);
-    return {
+    if (result.comeceAqui) text.push(`Comece por aqui: ${result.comeceAqui}`);
+    if (result.ajusteDeReceita)
+      text.push(`Na próxima tentativa: ${result.ajusteDeReceita.resumo}.`);
+    if (result.seNaoResolver[0])
+      text.push(`Se não resolver: ${result.seNaoResolver[0]}`);
+    if (problem !== "equilibrado") text.push(result.umaVariavelPorVez);
+    const actions: BaristaAction[] = result.ajusteDeReceita
+      ? [result.ajusteDeReceita.acao]
+      : [
+          {
+            kind: "lab",
+            label: "Abrir o Laboratório",
+            href: `/experiencia/preparar/?metodo=${method.id}`,
+          },
+        ];
+    return reply(
+      {
+        ...session,
+        methodId: method.id,
+        lab: result.ajusteDeReceita?.acao.lab ?? session.lab,
+      },
       text,
-      chips: [
-        { label: "Outro problema", value: "flow:diagnostico" },
-        { label: "Quero uma receita", value: "flow:receita" },
-      ],
-      link: {
-        href: `/experiencia/preparar/?metodo=${flow.method}`,
-        label: "Abrir o Laboratório de Preparo",
-      },
-      flow: idle,
-    };
-  }
-
-  function recipeStep(
-    flow: Extract<BaristaFlow, { kind: "recipe" }>,
-    cups?: number,
-  ): BaristaReply {
-    const method = methods.find((item) => item.id === flow.method);
-    if (!method)
-      return {
-        text: ["Qual equipamento você tem?"],
-        chips: methodChips(),
-        flow: { kind: "recipe", step: "method" },
-      };
-    if (!cups)
-      return {
-        text: [
-          method.cupIsDose
-            ? `Ótimo: ${method.name}. Quantas doses você quer preparar?`
-            : `Ótimo: ${method.name}. Quantas porções (${method.cup.label}) você quer preparar?`,
+      {
+        chips: [
+          { label: "Outro problema", value: "flow:diagnostico" },
+          { label: "Ver receita", value: `method:${method.id}` },
         ],
-        chips: [1, 2, 3, 4].map((n) => ({
-          label: String(n),
-          value: `cups:${n}`,
-        })),
-        flow: { kind: "recipe", method: method.id, step: "cups" },
-      };
-    const recipe = generateRecipe(
-      method,
-      { mode: "cups", amount: cups },
-      "equilibrado",
+        actions,
+      },
     );
-    const water =
-      recipe.ratioMeaning === "beverage"
-        ? `${formatNumber(recipe.waterGrams)} g de bebida na xícara`
-        : `${formatNumber(recipe.waterGrams)} g (ml) de água`;
-    return {
-      text: [
-        `Ponto de partida para ${method.name}: ${formatNumber(recipe.coffeeGrams)} g de café para ${water} (proporção ${formatRatio(recipe.ratio)}).`,
-        `Moagem: ${method.grind.beginner} ${method.temperature.beginner} Tempo: ${method.time.label}.`,
-        ...(method.capacityNote ? [method.capacityNote] : []),
-        "É um ponto de partida: ajuste ao seu gosto, uma variável por vez.",
-      ],
-      chips: [
-        { label: "Mais suave ou mais intenso?", value: "topic:moagem" },
-        { label: "Meu café não ficou bom", value: "flow:diagnostico" },
-      ],
-      link: {
-        href: `/experiencia/preparar/?metodo=${method.id}&xicaras=${cups}`,
-        label: "Preparar com passo a passo e cronômetro",
-      },
-      flow: idle,
-    };
   }
 
-  function recommend(text?: string): BaristaReply {
-    const preferences: [string, string, string[]][] = [
-      ["doce", "Doce e confortável", ["doce"]],
-      ["frutado", "Frutado e vivo", ["frutado", "acido"]],
-      ["dia", "Para o dia a dia", ["dia-a-dia"]],
-    ];
-    const chosen = text ? preferences.find(([id]) => id === text) : undefined;
-    if (!chosen)
-      return {
-        text: ["Me conta: o que você procura na xícara?"],
-        chips: preferences.map(([id, label]) => ({
-          label,
-          value: `pref:${id}`,
-        })),
-        link: {
-          href: "/experiencia/paladar/",
-          label: "Ou faça o quiz completo de paladar",
-        },
-        flow: { kind: "recommend" },
-      };
-    const matches = coffees
-      .map((coffee) => ({
-        coffee,
-        reasons: coffeeTraits(coffee, context.taste).filter((item) =>
-          chosen[2].includes(item.trait),
-        ),
-      }))
-      .filter((item) => item.reasons.length);
-    if (!matches.length)
-      return {
-        text: [
-          "Nenhum café publicado tem essa característica cadastrada agora. Que tal conhecer a seleção completa?",
+  // ---------- other intents -------------------------------------------------
+  function describeCoffee(session: BaristaSession, slug: string): BaristaReply {
+    const result = detalharCafe(data, { slug });
+    if (!result.ok) return fallback(session);
+    const c = result.cafe;
+    const text = [`${c.nome}: ${c.descricao}`];
+    const facts = [
+      c.categoria,
+      c.pontuacao !== null ? `${c.pontuacao} pontos no rótulo` : null,
+      c.torra ? `torra ${c.torra.toLocaleLowerCase("pt-BR")}` : null,
+    ].filter(Boolean);
+    text.push(`${facts.join(" · ")}.`);
+    if (c.notas.length) text.push(`Notas do rótulo: ${c.notas.join(", ")}.`);
+    if (c.acidez || c.corpo)
+      text.push(
+        [
+          c.acidez && `Acidez ${c.acidez.toLocaleLowerCase("pt-BR")}`,
+          c.corpo && `corpo ${c.corpo.toLocaleLowerCase("pt-BR")}`,
+        ]
+          .filter(Boolean)
+          .join(", ") + ".",
+      );
+    const origin = [
+      c.fazenda,
+      c.regiao,
+      c.altitudeMetros ? `${formatNumber(c.altitudeMetros)} m` : null,
+      c.processo ? `processo ${c.processo.toLocaleLowerCase("pt-BR")}` : null,
+      c.variedade,
+    ].filter(Boolean);
+    if (origin.length) text.push(`Origem: ${origin.join(" · ")}.`);
+    if (c.produtores.length)
+      text.push(`Quem produz: ${c.produtores.join(" e ")}.`);
+    if (!c.origemDetalhadaPublicada)
+      text.push(
+        "A origem detalhada deste café ainda não está publicada, e eu não vou inventar.",
+      );
+    if (c.preparosSugeridosNoRotulo.length)
+      text.push(
+        `O rótulo sugere: ${c.preparosSugeridosNoRotulo.join(" e ").toLocaleLowerCase("pt-BR")}.`,
+      );
+    return reply({ ...session, coffeeSlug: c.slug }, text, {
+      chips: [
+        { label: `Preparar ${c.nome}`, value: "flow:receita" },
+        { label: "Comparar os cafés", value: "flow:comparar" },
+      ],
+      actions: result.acoes,
+    });
+  }
+  function compareReply(
+    session: BaristaSession,
+    slugs: string[],
+  ): BaristaReply {
+    const chosen =
+      slugs.length >= 2 ? slugs : coffees.slice(0, 2).map((item) => item.slug);
+    const result = compararCafes(data, { slugs: chosen.slice(0, 3) });
+    if (!result.ok) return fallback(session);
+    const text = ["Comparando pelo que está publicado nos rótulos:"];
+    for (const c of result.cafes) {
+      const parts = [
+        c.pontuacao !== null ? `${c.pontuacao} pontos` : c.categoria,
+        c.perfil,
+        c.notas.length ? `notas de ${c.notas.join(" e ")}` : null,
+        c.acidez ? `acidez ${c.acidez.toLocaleLowerCase("pt-BR")}` : null,
+        c.corpo ? `corpo ${c.corpo.toLocaleLowerCase("pt-BR")}` : null,
+        c.processo && c.variedade
+          ? `${c.variedade}, ${c.processo.toLocaleLowerCase("pt-BR")}`
+          : null,
+      ].filter(Boolean);
+      text.push(`${c.nome}: ${parts.join("; ")}.`);
+    }
+    text.push(
+      "Pontuação mostra avaliação técnica, não preferência: o melhor café é o que combina com você.",
+    );
+    return reply(session, text, {
+      chips: [{ label: "Qual combina comigo?", value: "flow:recomendar" }],
+      actions: result.acoes,
+    });
+  }
+  function recommendReply(
+    session: BaristaSession,
+    entities?: Entities,
+    pref?: string,
+  ): BaristaReply {
+    const prefs = {
+      querDoce: pref === "doce" || !!entities?.wantsSweet,
+      querFrutado: pref === "frutado" || !!entities?.wantsFruity,
+      menosAcidez: pref === "doce" || !!entities?.wantsLessAcid,
+      diaADia: pref === "dia",
+    };
+    if (
+      !prefs.querDoce &&
+      !prefs.querFrutado &&
+      !prefs.menosAcidez &&
+      !prefs.diaADia
+    )
+      return reply(session, ["Me conta: o que você procura na xícara?"], {
+        chips: [
+          { label: "Doce e com pouca acidez", value: "pref:doce" },
+          { label: "Frutado e vivo", value: "pref:frutado" },
+          { label: "Para o dia a dia", value: "pref:dia" },
         ],
-        chips: starters().slice(0, 3),
-        link: { href: "/experiencia/cafes/", label: "Ver os cafés" },
-        flow: idle,
-      };
-    const best = matches[0];
-    return {
-      text: [
-        `Pelo que está publicado, o ${best.coffee.name} combina com “${chosen[1].toLocaleLowerCase("pt-BR")}”.`,
-        `Por quê: ${best.reasons.map((reason) => reason.evidence).join("; ")}.`,
-        ...(matches.length > 1
-          ? [
-              `Também vale provar: ${matches
-                .slice(1)
-                .map((item) => item.coffee.name)
-                .join(", ")}.`,
-            ]
+        actions: [
+          {
+            kind: "quiz",
+            label: "Ou faça o quiz de paladar",
+            href: "/experiencia/paladar/",
+          },
+        ],
+        flow: { kind: "recommend" },
+      });
+    const result = recomendarCafe(data, prefs);
+    if (!result.recomendacoes.length)
+      return reply(
+        session,
+        [
+          result.aviso ??
+            "Não encontrei um café com essas características publicadas.",
+        ],
+        { chips: starters().slice(0, 3), actions: result.acoes },
+      );
+    const [best, ...rest] = result.recomendacoes;
+    return reply(
+      { ...session, coffeeSlug: session.coffeeSlug ?? best.slug },
+      [
+        `Pelo que está publicado, o ${best.cafe} combina com o que você descreveu.`,
+        `Por quê: ${best.motivos.join("; ")}.`,
+        ...(rest.length
+          ? [`Também vale provar: ${rest.map((item) => item.cafe).join(", ")}.`]
           : []),
+        "É uma sugestão a partir dos rótulos: o seu paladar tem a palavra final.",
       ],
-      chips: [
-        {
-          label: `Mais sobre o ${best.coffee.name}`,
-          value: `coffee:${best.coffee.slug}`,
-        },
-        { label: "Quero uma receita", value: "flow:receita" },
-      ],
-      link: {
-        href: `/experiencia/cafes/${best.coffee.slug}/`,
-        label: `Conhecer o ${best.coffee.name}`,
+      {
+        chips: [
+          { label: `Mais sobre o ${best.cafe}`, value: `coffee:${best.slug}` },
+          { label: "Quero uma receita", value: "flow:receita" },
+        ],
+        actions: result.acoes,
       },
-      flow: idle,
-    };
+    );
   }
-
-  function methodsOverview(): BaristaReply {
-    return {
-      text: [
+  function capacityReply(
+    session: BaristaSession,
+    entities: Entities,
+  ): BaristaReply {
+    const base = topic("capacidade");
+    const methodId =
+      entities.method ?? session.lab?.methodId ?? session.methodId;
+    const method = methodById(methodId);
+    const text = [...(base?.answer ?? [])];
+    let actions: BaristaAction[] = [];
+    if (method && (session.lab?.methodId === method.id || entities.quantity)) {
+      const quantity =
+        entities.quantity ??
+        (session.lab
+          ? ({
+              kind:
+                session.lab.mode === "water"
+                  ? "water"
+                  : session.lab.mode === "coffee"
+                    ? "coffee"
+                    : "servings",
+              ...(session.lab.mode === "cups"
+                ? { count: session.lab.amount }
+                : { grams: session.lab.amount }),
+            } as Quantity)
+          : undefined);
+      const result = recipeReply(session, method.id, quantity);
+      return { ...result, text: [...text.slice(0, 1), ...result.text] };
+    }
+    if (!method)
+      text.push(
+        "Me diga o equipamento e a quantidade, e eu divido a receita em rodadas.",
+      );
+    else
+      actions = [
+        {
+          kind: "lab",
+          label: `Abrir ${method.name} no Laboratório`,
+          href: `/experiencia/preparar/?metodo=${method.id}`,
+        },
+      ];
+    return reply(session, text, {
+      chips: method ? [] : methodChips(),
+      actions,
+      flow: method ? idle : { kind: "await-method", purpose: "recipe" },
+    });
+  }
+  function grindReply(
+    session: BaristaSession,
+    methodId?: string,
+  ): BaristaReply {
+    const method = methodById(
+      methodId ?? session.methodId ?? session.lab?.methodId,
+    );
+    if (!method) return topicReply(session, "moagem");
+    return reply(
+      { ...session, methodId: method.id },
+      [`Para ${method.name}: ${method.grind.beginner}`, method.grind.advanced],
+      {
+        chips: [
+          { label: `Receita de ${method.name}`, value: `method:${method.id}` },
+        ],
+        actions: [
+          {
+            kind: "lesson",
+            label: "Por que a moagem importa",
+            href: "/experiencia/aprender/cafe-sem-complicacao/#por-que-a-moagem-importa",
+          },
+        ],
+      },
+    );
+  }
+  function methodsOverview(session: BaristaSession): BaristaReply {
+    return reply(
+      session,
+      [
         "Depende do que você tem em casa e do que gosta na xícara:",
         ...methods.map((method) => `${method.name}: ${method.summary}`),
-        "Me diga qual equipamento você tem e eu monto uma receita.",
+        "Me diga qual equipamento você tem e eu monto a receita.",
       ],
-      chips: methodChips(),
-      flow: { kind: "recipe", step: "method" },
-    };
+      {
+        chips: methodChips(),
+        flow: { kind: "await-method", purpose: "recipe" },
+      },
+    );
   }
-
-  function topicReply(id: string): BaristaReply {
+  function topicReply(session: BaristaSession, id: string): BaristaReply {
     const found = topic(id);
-    if (!found) return greeting();
-    return {
-      text: found.answer,
+    if (!found) return fallback(session);
+    return reply(session, found.answer, {
       chips: chips(
         found.followUps.length
           ? found.followUps
           : knowledge.starters.slice(0, 3),
       ),
-      link: found.link,
-      flow: idle,
-    };
+      actions: found.link
+        ? [{ kind: "lesson", label: found.link.label, href: found.link.href }]
+        : [],
+    });
   }
-
-  function startFlow(id: string): BaristaReply {
-    if (id === "diagnostico")
-      return diagnosisStep({ kind: "diagnosis", step: "problem" });
-    if (id === "receita") return recipeStep({ kind: "recipe", step: "method" });
-    if (id === "recomendar") return recommend();
-    return methodsOverview();
-  }
-
-  function fallback(): BaristaReply {
-    return {
-      text: [
-        "Ainda não sei responder isso com segurança, e prefiro não inventar. Posso ajudar com preparo, ajustes de receita, conceitos de café e com os cafés da Cura.",
+  function fallback(session: BaristaSession): BaristaReply {
+    return reply(
+      session,
+      [
+        "Ainda não sei responder isso com segurança e prefiro não inventar. No modo guiado, eu ajudo com receitas, ajustes de preparo, conceitos de café e com os cafés da Cura.",
       ],
-      chips: starters(),
-      flow: idle,
-    };
+      { chips: starters() },
+    );
+  }
+  function startFlow(session: BaristaSession, id: string): BaristaReply {
+    if (id === "diagnostico")
+      return diagnosisReply(session, undefined, undefined);
+    if (id === "receita") return recipeReply(session, session.methodId);
+    if (id === "recomendar") return recommendReply(session);
+    if (id === "comparar") return compareReply(session, []);
+    return methodsOverview(session);
   }
 
-  /** Synchronous core, used by the local provider and by tests. */
-  function respond(flow: BaristaFlow, input: BaristaInput): BaristaReply {
+  /** Synchronous core. */
+  function respond(state: BaristaState, input: BaristaInput): BaristaReply {
+    const { flow } = state;
+    let session = { ...state.session };
     const [kind, raw] = input.value
-      ? input.value.split(":")
+      ? [
+          input.value.slice(0, input.value.indexOf(":")),
+          input.value.slice(input.value.indexOf(":") + 1),
+        ]
       : [undefined, undefined];
-    if (kind === "flow" && raw) return startFlow(raw);
-    if (kind === "topic" && raw) return topicReply(raw);
-    if (kind === "coffee" && raw) {
-      const coffee = coffees.find((item) => item.slug === raw);
-      return coffee ? describeCoffee(coffee) : fallback();
-    }
-    if (kind === "pref" && raw) return recommend(raw);
-    const text = input.text ?? "";
-    // Inside a flow, a chip or a free-text answer moves it forward.
-    if (flow.kind === "diagnosis") {
-      if (flow.step === "problem") {
-        const problem =
-          kind === "problem" ? raw : detect(problemKeywords, text);
-        if (problem) return diagnosisStep({ ...flow, problem });
-      }
-      if (flow.step === "method") {
-        const method = kind === "method" ? raw : detect(methodAliases, text);
-        if (method) return diagnosisStep({ ...flow, method });
-      }
-      if (flow.step === "grind") {
-        const value = normalize(text);
-        const grind =
-          kind === "grind"
-            ? raw
-            : value.includes("ja") ||
-                value.includes("pronto") ||
-                value.includes("comprado moido")
-              ? "pre"
-              : value.includes("hora") ||
-                  value.includes("moo") ||
-                  value.includes("moedor")
-                ? "fresh"
-                : value
-                  ? "unknown"
-                  : undefined;
-        if (grind) return diagnosisStep(flow, grind);
-      }
-    }
-    if (flow.kind === "recipe") {
-      if (flow.step === "method") {
-        const method = kind === "method" ? raw : detect(methodAliases, text);
-        if (method) return recipeStep({ ...flow, method });
-      }
-      if (flow.step === "cups") {
-        const cups = Number(
-          kind === "cups" ? raw : (text.match(/\d+/)?.[0] ?? NaN),
-        );
-        if (cups > 0 && cups <= 12) return recipeStep(flow, cups);
-        if (text)
-          return {
-            text: ["Me diga um número de 1 a 12."],
-            chips: [1, 2, 3, 4].map((n) => ({
-              label: String(n),
-              value: `cups:${n}`,
-            })),
-            flow,
-          };
+    if (kind === "flow" && raw) return startFlow(session, raw);
+    if (kind === "topic" && raw) return topicReply(session, raw);
+    if (kind === "coffee" && raw) return describeCoffee(session, raw);
+    if (kind === "pref" && raw) return recommendReply(session, undefined, raw);
+    if (kind === "problem" && raw)
+      return diagnosisReply(
+        session,
+        raw as Problem,
+        flow.kind === "await-grind" ? flow.methodId : undefined,
+      );
+    if (kind === "grind" && raw && flow.kind === "await-grind")
+      return diagnosisReply(
+        session,
+        flow.problem,
+        flow.methodId,
+        raw as "fresh" | "pre" | "unknown",
+      );
+    if (kind === "cups" && raw && flow.kind === "await-quantity")
+      return recipeReply(session, flow.methodId, {
+        kind: "servings",
+        count: Number(raw),
+      });
+    if (kind === "strength" && raw && session.lab) {
+      const method = methodById(session.lab.methodId);
+      if (method) {
+        const lab = {
+          ...session.lab,
+          strength: raw as LabState["strength"],
+          ratio: undefined,
+        };
+        session = { ...session, lab };
+        const result = calcularReceita(data, {
+          metodo: lab.methodId,
+          modo: lab.mode,
+          quantidade: lab.amount,
+          intensidade: lab.strength,
+          cafe: session.coffeeSlug,
+        });
+        if (result.ok)
+          return reply(
+            { ...session, lab: result.acoes[0].lab },
+            [
+              `${result.resumo}.`,
+              "Mudei só a proporção; moagem e tempo continuam os mesmos.",
+            ],
+            {
+              actions: result.acoes,
+              chips: [
+                { label: "Meu café não ficou bom", value: "flow:diagnostico" },
+              ],
+            },
+          );
       }
     }
-    if (flow.kind === "recommend") {
+    if (kind === "method" && raw) {
+      if (flow.kind === "await-method" && flow.purpose === "diagnosis")
+        return diagnosisReply(session, flow.problem, raw);
+      return recipeReply(
+        session,
+        raw,
+        flow.kind === "await-method" ? flow.quantity : undefined,
+      );
+    }
+
+    const text = (input.text ?? "").slice(0, 500);
+    if (!text.trim()) return greeting(session);
+    const entities = extractEntities(text, names);
+    if (entities.coffee) session = { ...session, coffeeSlug: entities.coffee };
+    if (entities.method) session = { ...session, methodId: entities.method };
+
+    // A free-text answer moves the pending question forward.
+    if (flow.kind === "await-method" && entities.method)
+      return flow.purpose === "diagnosis"
+        ? diagnosisReply(
+            session,
+            entities.problem ?? flow.problem,
+            entities.method,
+          )
+        : recipeReply(
+            session,
+            entities.method,
+            entities.quantity ?? flow.quantity,
+          );
+    if (flow.kind === "await-quantity" && entities.quantity)
+      return recipeReply(session, flow.methodId, entities.quantity);
+    if (flow.kind === "await-quantity") {
+      const n = Number(normalize(text).match(/\d+/)?.[0]);
+      if (n > 0)
+        return recipeReply(session, flow.methodId, {
+          kind: "servings",
+          count: n,
+        });
+    }
+    if (flow.kind === "await-grind") {
       const value = normalize(text);
-      const pref =
-        value.includes("frut") || value.includes("acid")
-          ? "frutado"
-          : value.includes("doce")
-            ? "doce"
-            : value.includes("dia")
-              ? "dia"
-              : undefined;
-      if (pref) return recommend(pref);
+      const grind =
+        /\bja\b|pronto|comprado moido|moido/.test(value) &&
+        !/na hora/.test(value)
+          ? "pre"
+          : /hora|moo|moedor/.test(value)
+            ? "fresh"
+            : "unknown";
+      return diagnosisReply(session, flow.problem, flow.methodId, grind);
     }
-    if (kind === "method" && raw)
-      return recipeStep({ kind: "recipe", method: raw, step: "cups" });
-    if (!text.trim()) return greeting();
-    // Free text outside a flow: problems first (ask, do not diagnose yet).
-    const problem = detect(problemKeywords, text);
-    if (problem) {
-      const method = detect(methodAliases, text);
-      return diagnosisStep({
-        kind: "diagnosis",
-        problem,
-        method,
-        step: "method",
-      });
-    }
-    const value = normalize(text);
-    const coffee = coffees.find((item) => value.includes(normalize(item.name)));
-    if (coffee) return describeCoffee(coffee);
     if (
-      /(receita|proporc|quanto cafe|quantas gramas|quanto de agua)/.test(value)
-    ) {
-      const method = detect(methodAliases, text);
-      return recipeStep({
-        kind: "recipe",
-        method,
-        step: method ? "cups" : "method",
-      });
-    }
-    if (/(recomend|indica|qual cafe|combina|escolher um cafe)/.test(value))
-      return recommend();
-    if (
-      /(metodo|equipamento|qual (cafeteira|jeito)|como preparar|como fazer)/.test(
-        value,
-      )
+      flow.kind === "recommend" &&
+      (entities.wantsSweet || entities.wantsFruity || entities.wantsLessAcid)
     )
-      return methodsOverview();
-    const scored = knowledge.topics
-      .map((item) => ({
-        item,
-        score: item.keywords.reduce(
-          (sum, keyword) =>
-            value.includes(normalize(keyword))
-              ? sum + normalize(keyword).length
-              : sum,
-          0,
-        ),
-      }))
-      .filter((entry) => entry.score > 0)
-      .sort((a, b) => b.score - a.score);
-    if (scored.length) return topicReply(scored[0].item.id);
-    return fallback();
+      return recommendReply(session, entities);
+
+    const intent = detectIntent(text, entities);
+    switch (intent) {
+      case "capacity":
+        return capacityReply(session, entities);
+      case "diagnose":
+        if (
+          entities.espresso?.dose &&
+          (entities.espresso.yieldGrams || entities.espresso.seconds)
+        ) {
+          const result = analisarEspresso(data, {
+            dose: entities.espresso.dose,
+            bebida: entities.espresso.yieldGrams,
+            segundos: entities.espresso.seconds,
+            pressurizado: entities.espresso.pressurized,
+          });
+          return reply(
+            { ...session, methodId: "espresso" },
+            [
+              ...result.leitura,
+              result.sugestao,
+              ...(result.observacao ? [result.observacao] : []),
+              data.diagnosis.oneVariable,
+            ],
+            {
+              actions: result.acoes,
+              chips: [
+                { label: "Receita de espresso", value: "method:espresso" },
+              ],
+            },
+          );
+        }
+        return diagnosisReply(session, entities.problem, entities.method);
+      case "compare":
+        return compareReply(session, entities.coffees);
+      case "grind":
+        return grindReply(session, entities.method);
+      case "recipe":
+        return recipeReply(
+          session,
+          entities.method ?? session.methodId,
+          entities.quantity,
+        );
+      case "recommend":
+        return recommendReply(session, entities);
+      case "methods":
+        return methodsOverview(session);
+      case "coffee-info":
+        return describeCoffee(session, entities.coffee as string);
+      default: {
+        const value = normalize(text);
+        const scored = knowledge.topics
+          .map((item) => ({
+            item,
+            score: item.keywords.reduce(
+              (sum, keyword) =>
+                new RegExp(`\\b${normalize(keyword)}`).test(value)
+                  ? sum + normalize(keyword).length
+                  : sum,
+              0,
+            ),
+          }))
+          .filter((entry) => entry.score > 0)
+          .sort((a, b) => b.score - a.score);
+        if (scored.length) return topicReply(session, scored[0].item.id);
+        if (entities.coffee) return describeCoffee(session, entities.coffee);
+        return fallback(session);
+      }
+    }
   }
 
-  const provider: BaristaProvider = {
-    reply: async (flow, input) => respond(flow, input),
-  };
-  return { greeting, respond, provider };
+  return { greeting, respond };
 }

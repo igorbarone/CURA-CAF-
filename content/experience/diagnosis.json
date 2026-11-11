@@ -16,30 +16,50 @@
         {
           "variable": "moagem",
           "text": "Na prensa francesa, confira se a moagem está grossa e pressione aos 4 minutos, servindo logo em seguida.",
-          "methods": ["prensa-francesa"]
+          "methods": ["prensa-francesa"],
+          "apply": {
+            "grind": "mais-grossa"
+          }
         },
         {
           "variable": "tempo",
           "text": "No espresso, pare a extração um pouco antes (menos bebida na xícara) ou engrosse levemente a moagem para que ela fique mais rápida.",
-          "methods": ["espresso"]
+          "methods": ["espresso"],
+          "apply": {
+            "ratioDelta": -0.5,
+            "grind": "mais-grossa"
+          }
         },
         {
           "variable": "temperatura",
-          "text": "Na moka, use água já quente na base, fogo mais baixo e tire do fogo assim que começar a borbulhar.",
-          "methods": ["moka"]
+          "text": "Na moka, use fogo baixo a médio e tire do fogo assim que o café começar a borbulhar. Se quiser, passe a base sob água fria para interromper a extração.",
+          "methods": ["moka"],
+          "apply": {
+            "temperature": "menos-quente"
+          }
         },
         {
           "variable": "moagem",
-          "text": "Comece pela moagem: deixe-a um pouco mais grossa. Isso reduz a extração e costuma suavizar o amargor."
+          "text": "Comece pela moagem: deixe-a um pouco mais grossa. Isso reduz a extração e costuma suavizar o amargor.",
+          "apply": {
+            "grind": "mais-grossa"
+          }
         },
         {
           "variable": "temperatura",
           "text": "Se já estiver usando a moagem sugerida, espere cerca de 30 segundos depois de ferver a água antes de despejar.",
-          "notFor": ["espresso", "cafeteira-eletrica", "cold-brew"]
+          "notFor": ["espresso", "cafeteira-eletrica", "cold-brew"],
+          "apply": {
+            "temperature": "menos-quente"
+          }
         },
         {
           "variable": "proporcao",
-          "text": "Se ainda parecer forte e amargo, use um pouco mais de água para a mesma quantidade de café (por exemplo, de 1:15 para 1:16)."
+          "text": "Se ainda parecer forte e amargo, use um pouco mais de água para a mesma quantidade de café (por exemplo, de 1:15 para 1:16).",
+          "apply": {
+            "ratioDelta": 1
+          },
+          "notFor": ["moka"]
         }
       ]
     },
@@ -56,21 +76,34 @@
         {
           "variable": "moagem",
           "text": "No espresso, afine a moagem ou deixe a extração correr um pouco mais (mais bebida na xícara).",
-          "methods": ["espresso"]
+          "methods": ["espresso"],
+          "apply": {
+            "grind": "mais-fina",
+            "ratioDelta": 0.5
+          }
         },
         {
           "variable": "tempo",
           "text": "Na prensa francesa e na Aeropress, aumente o tempo de imersão em 30 segundos a 1 minuto.",
-          "methods": ["prensa-francesa", "aeropress"]
+          "methods": ["prensa-francesa", "aeropress"],
+          "apply": {
+            "timeDelta": 45
+          }
         },
         {
           "variable": "moagem",
-          "text": "Comece pela moagem: deixe-a um pouco mais fina para que a água extraia mais."
+          "text": "Comece pela moagem: deixe-a um pouco mais fina para que a água extraia mais.",
+          "apply": {
+            "grind": "mais-fina"
+          }
         },
         {
           "variable": "temperatura",
           "text": "Use água bem quente, logo depois de ferver (cerca de 30 segundos de espera).",
-          "notFor": ["espresso", "cafeteira-eletrica", "cold-brew"]
+          "notFor": ["espresso", "cafeteira-eletrica", "cold-brew"],
+          "apply": {
+            "temperature": "mais-quente"
+          }
         },
         {
           "variable": "nenhuma",
@@ -90,11 +123,34 @@
       "adjustments": [
         {
           "variable": "proporcao",
-          "text": "Use um pouco mais de café para a mesma água (por exemplo, de 1:16 para 1:15). Pesar ajuda muito: colheres variam bastante."
+          "text": "No espresso, pare a extração um pouco antes (menos bebida na xícara para a mesma dose) ou afine levemente a moagem.",
+          "methods": ["espresso"],
+          "apply": {
+            "ratioDelta": -0.5
+          }
         },
         {
           "variable": "moagem",
-          "text": "Se a proporção já estiver certa, afine um pouco a moagem."
+          "text": "Na moka, a quantidade é definida pelo cesto cheio: afine um pouco a moagem para uma bebida mais intensa.",
+          "methods": ["moka"],
+          "apply": {
+            "grind": "mais-fina"
+          }
+        },
+        {
+          "variable": "proporcao",
+          "text": "Use um pouco mais de café para a mesma água (por exemplo, de 1:16 para 1:15). Pesar ajuda muito: colheres variam bastante.",
+          "apply": {
+            "ratioDelta": -1
+          },
+          "notFor": ["moka"]
+        },
+        {
+          "variable": "moagem",
+          "text": "Se a proporção já estiver certa, afine um pouco a moagem.",
+          "apply": {
+            "grind": "mais-fina"
+          }
         },
         {
           "variable": "tempo",
@@ -115,7 +171,10 @@
         {
           "variable": "proporcao",
           "text": "Use um pouco mais de água para a mesma quantidade de café (por exemplo, de 1:15 para 1:16 ou 1:17).",
-          "notFor": ["espresso", "moka"]
+          "notFor": ["espresso", "moka"],
+          "apply": {
+            "ratioDelta": 1
+          }
         },
         {
           "variable": "proporcao",
@@ -124,7 +183,10 @@
         },
         {
           "variable": "moagem",
-          "text": "Se também estiver amargo, deixe a moagem um pouco mais grossa."
+          "text": "Se também estiver amargo, deixe a moagem um pouco mais grossa.",
+          "apply": {
+            "grind": "mais-grossa"
+          }
         }
       ]
     },
@@ -162,7 +224,32 @@
           "variable": "nenhuma",
           "text": "Visite o módulo “Aprendendo a degustar” na Academia Cura para conhecer cada característica."
         }
-      ]
+      ],
+      "followUp": {
+        "question": "Qual destas frases chega mais perto do que você sentiu?",
+        "options": [
+          {
+            "label": "Lembra casca queimada e fica um amargo no fundo da boca",
+            "to": "amargo"
+          },
+          {
+            "label": "É áspero, lembra fruta verde ou vinagre",
+            "to": "azedo"
+          },
+          {
+            "label": "Parece ralo, quase água com gosto de café",
+            "to": "fraco"
+          },
+          {
+            "label": "É pesado e concentrado demais",
+            "to": "forte"
+          },
+          {
+            "label": "Gostei, não sinto nada sobrando",
+            "to": "equilibrado"
+          }
+        ]
+      }
     }
   ]
 }

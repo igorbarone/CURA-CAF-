@@ -4,6 +4,7 @@ import {
   coffeeFor,
   formatNumber,
   formatRatio,
+  parseAmount,
   waterFor,
 } from "../../lib/experience/brew";
 
@@ -15,29 +16,42 @@ const presetLabels: Record<number, string> = {
 };
 
 /**
- * Real ratio calculator: Água (g) = Café (g) × Proporção. Editing the coffee
- * or the ratio recalculates the water; editing the water recalculates the
- * coffee. Values are kept as typed text so the fields never fight the user.
+ * Ratio calculator on the recipe engine's own primitives: Água (g) = Café (g)
+ * × Proporção, with the same rounding (coffee 0,5 g, water 1 g). Editing the
+ * coffee or the ratio recalculates the water; editing the water recalculates
+ * the coffee. An invalid entry clears the derived value instead of keeping a
+ * stale one. Seeded with the current recipe, so both show the same numbers.
  */
 export function RatioCalculator({
-  initialCoffee = 20,
-  initialRatio = 15,
-  presets = [14, 15, 16, 17],
+  initialCoffee,
+  initialRatio,
+  initialWater,
+  presets,
   beverage = false,
 }: {
-  initialCoffee?: number;
-  initialRatio?: number;
-  presets?: number[];
+  initialCoffee: number;
+  initialRatio: number;
+  initialWater: number;
+  presets: number[];
   beverage?: boolean;
 }) {
-  const [coffee, setCoffee] = useState(String(initialCoffee));
-  const [ratio, setRatio] = useState(String(initialRatio));
-  const [water, setWater] = useState(
-    String(waterFor(initialCoffee, initialRatio)),
-  );
-  const parse = (value: string) => Number(value.replace(",", "."));
-  const waterLabel = beverage ? "Bebida na xícara (g)" : "Água (g ou ml)";
-  const valid = parse(coffee) > 0 && parse(ratio) > 0;
+  const [coffee, setCoffee] = useState(formatNumber(initialCoffee));
+  const [ratio, setRatio] = useState(formatNumber(initialRatio));
+  const [water, setWater] = useState(String(initialWater));
+  const [error, setError] = useState("");
+  const c = parseAmount(coffee);
+  const r = parseAmount(ratio);
+  const w = parseAmount(water);
+  const waterLabel = beverage ? "Bebida (g)" : "Água (g ou ml)";
+  const fromCoffee = (nextCoffee: string, nextRatio: string) => {
+    const value = waterFor(parseAmount(nextCoffee), parseAmount(nextRatio));
+    setWater(value ? String(value) : "");
+    setError(
+      value
+        ? ""
+        : "Informe café e proporção maiores que zero (use vírgula ou ponto).",
+    );
+  };
   return (
     <div className="xp-calc">
       <div className="xp-calc-fields">
@@ -46,10 +60,10 @@ export function RatioCalculator({
           <input
             inputMode="decimal"
             value={coffee}
+            aria-invalid={!(c > 0)}
             onChange={(event) => {
               setCoffee(event.target.value);
-              const value = waterFor(parse(event.target.value), parse(ratio));
-              if (value) setWater(String(value));
+              fromCoffee(event.target.value, ratio);
             }}
           />
         </label>
@@ -61,10 +75,10 @@ export function RatioCalculator({
           <input
             inputMode="decimal"
             value={ratio}
+            aria-invalid={!(r > 0)}
             onChange={(event) => {
               setRatio(event.target.value);
-              const value = waterFor(parse(coffee), parse(event.target.value));
-              if (value) setWater(String(value));
+              fromCoffee(coffee, event.target.value);
             }}
           />
         </label>
@@ -76,10 +90,14 @@ export function RatioCalculator({
           <input
             inputMode="decimal"
             value={water}
+            aria-invalid={!(w > 0)}
             onChange={(event) => {
               setWater(event.target.value);
-              const value = coffeeFor(parse(event.target.value), parse(ratio));
-              if (value) setCoffee(String(value));
+              const value = coffeeFor(parseAmount(event.target.value), r);
+              setCoffee(value ? formatNumber(value) : "");
+              setError(
+                value ? "" : "Informe água e proporção maiores que zero.",
+              );
             }}
           />
         </label>
@@ -89,11 +107,10 @@ export function RatioCalculator({
           <button
             key={preset}
             type="button"
-            aria-pressed={parse(ratio) === preset}
+            aria-pressed={r === preset}
             onClick={() => {
-              setRatio(String(preset));
-              const value = waterFor(parse(coffee), preset);
-              if (value) setWater(String(value));
+              setRatio(formatNumber(preset));
+              fromCoffee(coffee, String(preset));
             }}
           >
             <span className="mono">{formatRatio(preset)}</span>
@@ -104,23 +121,27 @@ export function RatioCalculator({
         ))}
       </div>
       <p className="xp-calc-result" aria-live="polite">
-        {valid ? (
+        {c > 0 && r > 0 && w > 0 && !error ? (
           <>
             <strong>
-              {formatNumber(parse(coffee))} g de café ×{" "}
-              {formatNumber(parse(ratio))} = {formatNumber(parse(water))} g{" "}
+              {formatNumber(c)} g × {formatNumber(r)} ≈ {formatNumber(w)} g{" "}
               {beverage ? "de bebida" : "de água"}
             </strong>{" "}
-            <span className="mono">({formatRatio(parse(ratio))})</span>
+            <span className="mono">
+              (proporção efetiva {formatRatio(Math.round((w / c) * 10) / 10)})
+            </span>
           </>
         ) : (
-          "Informe a quantidade de café e a proporção."
+          <span className="xp-calc-error">
+            {error || "Informe a quantidade de café e a proporção."}
+          </span>
         )}
       </p>
       <p className="xp-small">
-        Fórmula: {beverage ? "Bebida" : "Água"} (g) = Café (g) × Proporção. A
-        percepção final também depende da extração e do método: moagem, tempo e
-        temperatura mudam o resultado mesmo com a mesma proporção.
+        Fórmula: {beverage ? "Bebida" : "Água"} (g) = Café (g) × Proporção. O
+        café é arredondado para 0,5 g e a água para 1 g, como na receita. A
+        percepção final também depende da extração: moagem, tempo e temperatura
+        mudam o resultado mesmo com a mesma proporção.
       </p>
     </div>
   );

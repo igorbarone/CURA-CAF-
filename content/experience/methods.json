@@ -3,81 +3,75 @@
     {
       "id": "v60",
       "name": "V60",
+      "kind": "filter",
       "summary": "Coado em cone, com despejos em etapas. Xícara limpa e aromática.",
       "catalogPreparations": ["Coado"],
-      "ratioMeaning": "water",
-      "ratio": {
-        "suave": 17,
-        "equilibrado": 16,
-        "intenso": 15
-      },
+      "modes": ["cups", "coffee", "water"],
+      "ratio": { "suave": 17, "equilibrado": 16, "intenso": 15 },
+      "ratioRange": [14, 18],
       "presets": [14, 15, 16, 17],
-      "cup": {
-        "grams": 150,
-        "label": "xícara de 150 ml"
+      "cup": { "ml": 150, "label": "xícara de 150 ml de bebida" },
+      "capacity": {
+        "maxWaterPerRound": 600,
+        "source": "practical",
+        "note": "Referência prática da Cura para o suporte de tamanho 02. Acima disso, prefira um suporte maior ou prepare em duas etapas."
       },
-      "maxWaterGrams": 600,
       "bloomFactor": 2.5,
       "grind": {
         "beginner": "Média-fina, parecida com sal refinado.",
-        "advanced": "Média-fina. Se o despejo terminar muito antes de 2:30, afine um pouco; se passar de 3:30, engrosse."
+        "advanced": "Média-fina. Se o escoamento terminar muito antes de 2:30, afine um pouco; se passar de 3:30, engrosse."
       },
       "temperature": {
         "celsius": [92, 96],
-        "beginner": "Água quase fervendo: ferva e espere cerca de 30 segundos."
+        "beginner": "Água bem quente, logo após ferver. Em casa, ferver e esperar cerca de 30 segundos costuma funcionar, mas varia com a chaleira e a quantidade."
       },
-      "time": {
-        "seconds": [150, 210],
-        "label": "2:30 a 3:30"
+      "time": { "seconds": [150, 210], "label": "2:30 a 3:30" },
+      "timer": {
+        "start": "Inicie o cronômetro quando começar a molhar o pó (pré-infusão).",
+        "button": "Iniciar ao molhar o pó"
       },
-      "timer": true,
       "steps": [
         {
           "title": "Prepare o filtro",
-          "text": "Coloque o filtro de papel no suporte e enxágue com água quente. Isso tira o gosto de papel e aquece o suporte. Descarte essa água."
+          "text": "Coloque o filtro de papel no suporte e enxágue com água quente. Isso tira o gosto de papel e aquece o suporte. Descarte essa água.",
+          "observe": "O papel fica bem assentado nas paredes do cone."
         },
         {
           "title": "Moa o café",
           "text": "Moa {coffee} g de café em moagem média-fina, como ponto de partida."
         },
         {
-          "title": "Adicione o café",
-          "text": "Coloque o café no filtro e nivele com leves batidinhas. Zere a balança, se tiver uma."
+          "title": "Adicione o café e zere a balança",
+          "text": "Coloque o café no filtro, nivele com leves batidinhas e zere a balança. Os pesos a seguir são o total acumulado na balança."
         },
         {
           "title": "Pré-infusão",
-          "text": "Despeje cerca de {bloom} g de água, molhando todo o pó. Aguarde de 30 a 45 segundos: o café libera gás e se prepara para a extração.",
+          "text": "Despeje até {target} g na balança, molhando todo o pó. Aguarde: o café libera gás e se prepara para a extração.",
+          "observe": "Café fresco estufa e borbulha.",
           "at": 0,
-          "pour": {
-            "type": "bloom"
-          }
+          "pour": { "type": "bloom" }
         },
         {
           "title": "Primeiro despejo",
-          "text": "Despeje em círculos, do centro para fora e sem atingir as bordas do filtro, até chegar a {target} g.",
+          "text": "Despeje em círculos, do centro para fora e sem atingir as bordas do filtro, até {target} g na balança.",
           "at": 45,
-          "pour": {
-            "type": "fraction",
-            "value": 0.6
-          }
+          "pour": { "type": "fraction", "value": 0.6 }
         },
         {
           "title": "Despejo final",
-          "text": "Continue em círculos até completar {target} g de água.",
+          "text": "Continue em círculos até {target} g na balança.",
           "at": 75,
-          "pour": {
-            "type": "fraction",
-            "value": 1
-          }
+          "pour": { "type": "fraction", "value": 1 }
         },
         {
           "title": "Espere escoar",
-          "text": "Deixe a água passar por completo. O ideal é terminar entre 2:30 e 3:30.",
+          "text": "Deixe a água passar por completo, sem mexer.",
+          "observe": "O ideal é terminar entre 2:30 e 3:30. O tempo diz se a moagem está no ponto.",
           "at": 105
         },
         {
           "title": "Deguste",
-          "text": "Mexa, espere amornar um pouco e observe aroma, doçura, acidez e corpo.",
+          "text": "Mexa a bebida, espere amornar um pouco e observe aroma, doçura, acidez e corpo.",
           "at": 180
         }
       ]
@@ -85,20 +79,19 @@
     {
       "id": "melitta",
       "name": "Melitta ou filtro de papel",
+      "kind": "filter",
       "summary": "O coado de casa, no suporte tradicional. Simples e confortável.",
       "catalogPreparations": ["Coado"],
-      "ratioMeaning": "water",
-      "ratio": {
-        "suave": 17,
-        "equilibrado": 16,
-        "intenso": 15
-      },
+      "modes": ["cups", "coffee", "water"],
+      "ratio": { "suave": 17, "equilibrado": 16, "intenso": 15 },
+      "ratioRange": [14, 18],
       "presets": [14, 15, 16, 17],
-      "cup": {
-        "grams": 150,
-        "label": "xícara de 150 ml"
+      "cup": { "ml": 150, "label": "xícara de 150 ml de bebida" },
+      "capacity": {
+        "maxWaterPerRound": 1000,
+        "source": "practical",
+        "note": "Referência prática da Cura. Suportes menores comportam menos: não encha o filtro além de dois dedos da borda."
       },
-      "maxWaterGrams": 1000,
       "bloomFactor": 2.5,
       "grind": {
         "beginner": "Média, parecida com açúcar cristal.",
@@ -106,13 +99,13 @@
       },
       "temperature": {
         "celsius": [92, 96],
-        "beginner": "Água quase fervendo: ferva e espere cerca de 30 segundos. Água em ebulição tende a amargar."
+        "beginner": "Água bem quente, logo após ferver. Água em ebulição forte, despejada por muito tempo, tende a acentuar o amargor."
       },
-      "time": {
-        "seconds": [180, 240],
-        "label": "3:00 a 4:00"
+      "time": { "seconds": [180, 240], "label": "3:00 a 4:00" },
+      "timer": {
+        "start": "Inicie o cronômetro quando começar a molhar o pó (pré-infusão).",
+        "button": "Iniciar ao molhar o pó"
       },
-      "timer": true,
       "steps": [
         {
           "title": "Prepare o filtro",
@@ -120,37 +113,31 @@
         },
         {
           "title": "Moa e adicione o café",
-          "text": "Coloque {coffee} g de café em moagem média no filtro."
+          "text": "Coloque {coffee} g de café em moagem média no filtro e zere a balança, se tiver uma."
         },
         {
           "title": "Pré-infusão",
-          "text": "Molhe todo o pó com cerca de {bloom} g de água e espere 30 a 45 segundos.",
+          "text": "Molhe todo o pó até {target} g na balança e espere.",
+          "observe": "O pó estufa; espere as bolhas diminuírem.",
           "at": 0,
-          "pour": {
-            "type": "bloom"
-          }
+          "pour": { "type": "bloom" }
         },
         {
           "title": "Primeiro despejo",
-          "text": "Despeje devagar, no centro, até {target} g. Evite jogar água direto no papel.",
+          "text": "Despeje devagar, no centro, até {target} g na balança. Evite jogar água direto no papel.",
           "at": 45,
-          "pour": {
-            "type": "fraction",
-            "value": 0.5
-          }
+          "pour": { "type": "fraction", "value": 0.5 }
         },
         {
           "title": "Segundo despejo",
-          "text": "Quando o nível baixar, complete até {target} g.",
+          "text": "Quando o nível baixar, complete até {target} g na balança.",
           "at": 90,
-          "pour": {
-            "type": "fraction",
-            "value": 1
-          }
+          "pour": { "type": "fraction", "value": 1 }
         },
         {
           "title": "Espere escoar",
-          "text": "Deixe toda a água passar. O tempo total costuma ficar entre 3 e 4 minutos.",
+          "text": "Deixe toda a água passar.",
+          "observe": "O tempo total costuma ficar entre 3 e 4 minutos.",
           "at": 120
         },
         {
@@ -163,20 +150,19 @@
     {
       "id": "prensa-francesa",
       "name": "Prensa francesa",
+      "kind": "immersion",
       "summary": "Imersão total: o pó fica na água. Bebida encorpada e macia.",
       "catalogPreparations": [],
-      "ratioMeaning": "water",
-      "ratio": {
-        "suave": 16,
-        "equilibrado": 15,
-        "intenso": 14
-      },
+      "modes": ["cups", "coffee", "water"],
+      "ratio": { "suave": 16, "equilibrado": 15, "intenso": 14 },
+      "ratioRange": [12, 17],
       "presets": [14, 15, 16, 17],
-      "cup": {
-        "grams": 150,
-        "label": "xícara de 150 ml"
+      "cup": { "ml": 150, "label": "xícara de 150 ml de bebida" },
+      "capacity": {
+        "maxWaterPerRound": 1000,
+        "source": "practical",
+        "note": "Prensas variam de 350 ml a 1 litro. Use no máximo a capacidade da sua, deixando espaço para o êmbolo."
       },
-      "maxWaterGrams": 1000,
       "bloomFactor": null,
       "grind": {
         "beginner": "Grossa, parecida com sal grosso.",
@@ -184,13 +170,13 @@
       },
       "temperature": {
         "celsius": [93, 96],
-        "beginner": "Água quase fervendo: ferva e espere cerca de 30 segundos."
+        "beginner": "Água bem quente, logo após ferver."
       },
-      "time": {
-        "seconds": [240, 240],
-        "label": "4:00"
+      "time": { "seconds": [240, 240], "label": "4:00" },
+      "timer": {
+        "start": "Inicie o cronômetro quando começar a despejar a água.",
+        "button": "Iniciar ao despejar"
       },
-      "timer": true,
       "steps": [
         {
           "title": "Aqueça a prensa",
@@ -204,10 +190,7 @@
           "title": "Despeje toda a água",
           "text": "Despeje {target} g de água, molhando todo o pó.",
           "at": 0,
-          "pour": {
-            "type": "fraction",
-            "value": 1
-          }
+          "pour": { "type": "fraction", "value": 1 }
         },
         {
           "title": "Mexa suavemente",
@@ -216,7 +199,8 @@
         },
         {
           "title": "Pressione e sirva",
-          "text": "Pressione o êmbolo devagar e sirva logo. O café que fica na prensa continua extraindo e pode amargar.",
+          "text": "Pressione o êmbolo devagar e sirva logo, transferindo toda a bebida.",
+          "observe": "O café que fica em contato com o pó continua extraindo e pode amargar.",
           "at": 240
         }
       ]
@@ -224,109 +208,108 @@
     {
       "id": "moka",
       "name": "Cafeteira italiana (moka)",
+      "kind": "moka",
       "summary": "Pressão do vapor no fogão. Bebida concentrada e intensa.",
       "catalogPreparations": [],
-      "ratioMeaning": "water",
-      "ratio": {
-        "suave": 10,
-        "equilibrado": 9,
-        "intenso": 8
+      "modes": ["size"],
+      "moka": {
+        "sizes": [1, 2, 3, 4, 6, 9, 12],
+        "defaultSize": 3,
+        "waterPerCupMl": 50,
+        "coffeePerCupGrams": 5.5,
+        "note": "Na moka, quem define as quantidades é a própria cafeteira: água até logo abaixo da válvula de segurança e o cesto cheio de café, nivelado e sem compactar. Os números são uma referência aproximada para pesar e variam de modelo para modelo."
       },
-      "presets": [8, 9, 10],
-      "cup": {
-        "grams": 50,
-        "label": "xícara pequena de 50 ml"
-      },
-      "maxWaterGrams": 600,
+      "cup": { "ml": 50, "label": "xícara pequena (tamanho nominal da moka)" },
       "bloomFactor": null,
-      "capacityNote": "Na moka, a quantidade é definida pelo tamanho da cafeteira: água até logo abaixo da válvula e cesto cheio de café, nivelado e sem compactar. Use os números como referência.",
       "grind": {
         "beginner": "Média-fina, um pouco mais grossa que a do espresso.",
-        "advanced": "Média-fina. Fina demais entope o filtro e aumenta o amargor; grossa demais deixa a bebida aguada."
+        "advanced": "Média-fina. Fina demais pode entupir o filtro e aumentar o amargor; grossa demais deixa a bebida aguada. Na moka, a intensidade se ajusta pela moagem, não pela quantidade."
       },
       "temperature": {
         "celsius": null,
-        "beginner": "Coloque água já quente (não fervendo) na base: o café fica menos tempo no fogo e tende a amargar menos."
+        "beginner": "Siga o manual do seu modelo. O manual da Bialetti Moka Express indica encher a base com água fria até logo abaixo da válvula."
       },
-      "time": {
-        "seconds": [180, 300],
-        "label": "3 a 5 minutos no fogo"
+      "time": { "seconds": [180, 300], "label": "3 a 5 minutos no fogo" },
+      "timer": {
+        "start": "Inicie o cronômetro quando levar a moka ao fogo.",
+        "button": "Iniciar ao levar ao fogo"
       },
-      "timer": true,
       "steps": [
         {
           "title": "Água na base",
-          "text": "Coloque cerca de {water} g de água quente na base, até logo abaixo da válvula de segurança."
+          "text": "Encha a base com água até logo abaixo da válvula de segurança (cerca de {water} ml nesta moka). Nunca cubra a válvula.",
+          "observe": "A válvula precisa ficar acima do nível da água."
         },
         {
           "title": "Café no cesto",
-          "text": "Encha o cesto com cerca de {coffee} g de café, nivele com o dedo e não compacte."
+          "text": "Encha o cesto com café (cerca de {coffee} g), nivele com o dedo e não compacte. Limpe as bordas antes de fechar."
         },
         {
           "title": "Monte e leve ao fogo",
-          "text": "Rosqueie bem (use um pano: a base está quente) e leve ao fogo médio-baixo, com a tampa aberta.",
+          "text": "Rosqueie bem, sem forçar, e leve ao fogo baixo a médio, com a tampa aberta. A chama não deve passar da base.",
           "at": 0
         },
         {
           "title": "Observe a saída",
-          "text": "Quando o café começar a sair, ele deve fluir como um fio de mel. Se sair espirrando, abaixe o fogo.",
+          "text": "Quando o café começar a subir, ele deve sair em fluxo contínuo e suave.",
+          "observe": "Se sair espirrando, abaixe o fogo. O tempo varia com o fogão: os sinais da cafeteira valem mais que o relógio.",
           "at": 120
         },
         {
           "title": "Tire do fogo",
-          "text": "Ao ouvir o borbulhar e o café clarear, tire do fogo. Se quiser, passe a base sob água fria para interromper a extração.",
+          "text": "Quando começar a borbulhar e o café clarear, tire do fogo e sirva. A base estará muito quente: use um pano.",
           "at": 240
         }
       ]
     },
     {
       "id": "aeropress",
-      "name": "Aeropress",
+      "name": "AeroPress",
+      "kind": "immersion",
       "summary": "Imersão curta e pressão manual. Versátil, rápido e fácil de ajustar.",
       "catalogPreparations": [],
-      "ratioMeaning": "water",
-      "ratio": {
-        "suave": 16,
-        "equilibrado": 15,
-        "intenso": 14
-      },
+      "modes": ["cups", "coffee", "water"],
+      "ratio": { "suave": 16, "equilibrado": 15, "intenso": 14 },
+      "ratioRange": [12, 17],
       "presets": [14, 15, 16, 17],
-      "cup": {
-        "grams": 200,
-        "label": "caneca de 200 ml"
+      "cup": { "ml": 200, "label": "caneca de 200 ml de bebida" },
+      "capacity": {
+        "maxWaterPerRound": 230,
+        "nominalMl": 296,
+        "source": "manufacturer",
+        "note": "A fabricante informa câmara de cerca de 296 ml (10 oz) na AeroPress Original, Clear e Go Plus. Usamos até 230 g de água por rodada para deixar espaço ao café e à mexida. Quantidades maiores são divididas em rodadas completas."
       },
-      "maxWaterGrams": 250,
       "bloomFactor": null,
       "grind": {
         "beginner": "Média-fina, parecida com sal refinado.",
         "advanced": "Média-fina. Se a pressão ficar muito pesada, engrosse um pouco."
       },
       "temperature": {
-        "celsius": [85, 92],
-        "beginner": "Ferva a água e espere cerca de 1 minuto."
+        "celsius": [85, 95],
+        "beginner": "Água quente, alguns instantes depois de ferver."
       },
       "time": {
         "seconds": [120, 150],
-        "label": "cerca de 2 minutos"
+        "label": "cerca de 2 minutos por rodada"
       },
-      "timer": true,
+      "timer": {
+        "start": "Inicie o cronômetro quando começar a despejar a água.",
+        "button": "Iniciar ao despejar"
+      },
       "steps": [
         {
           "title": "Prepare o filtro",
-          "text": "Coloque o filtro de papel na tampa, enxágue com água quente e encaixe na câmara, sobre a caneca."
+          "text": "Coloque o filtro de papel na tampa, enxágue com água quente e encaixe a câmara sobre a caneca."
         },
         {
           "title": "Adicione o café",
-          "text": "Coloque {coffee} g de café em moagem média-fina."
+          "text": "Coloque {coffee} g de café em moagem média-fina na câmara."
         },
         {
           "title": "Despeje a água",
           "text": "Despeje {target} g de água e mexa por cerca de 10 segundos.",
           "at": 0,
-          "pour": {
-            "type": "fraction",
-            "value": 1
-          }
+          "pour": { "type": "fraction", "value": 1 }
         },
         {
           "title": "Encaixe o êmbolo",
@@ -336,11 +319,12 @@
         {
           "title": "Pressione",
           "text": "Pressione devagar, por cerca de 30 segundos, até ouvir um chiado.",
+          "observe": "Se a pressão estiver muito pesada, a moagem está fina demais.",
           "at": 90
         },
         {
-          "title": "Deguste",
-          "text": "Se quiser uma bebida mais longa, complete com água quente a gosto.",
+          "title": "Sirva",
+          "text": "Mexa a bebida e deguste.",
           "at": 120
         }
       ]
@@ -348,23 +332,22 @@
     {
       "id": "espresso",
       "name": "Espresso",
+      "kind": "espresso",
       "summary": "Água sob pressão em cerca de 30 segundos. Concentrado, com crema.",
       "catalogPreparations": ["Espresso"],
-      "ratioMeaning": "beverage",
-      "ratio": {
-        "suave": 2.5,
-        "equilibrado": 2,
-        "intenso": 1.5
-      },
+      "modes": ["cups"],
+      "ratio": { "suave": 2.5, "equilibrado": 2, "intenso": 1.5 },
+      "ratioRange": [1.5, 3],
       "presets": [1.5, 2, 2.5],
-      "cup": {
-        "grams": 18,
-        "label": "dose de cerca de 18 g de café"
+      "cup": { "ml": 36, "label": "um espresso (uma extração)" },
+      "espresso": {
+        "defaultDose": 18,
+        "minDose": 7,
+        "maxDose": 22,
+        "note": "Perfil de referência: cesto duplo de 18 g. Cada cesto comporta uma dose: confira a indicação do fabricante (muitos cestos duplos levam de 14 a 18 g; cestos simples, de 7 a 10 g) e ajuste a dose no modo avançado. Cada bebida é uma extração separada.",
+        "pressurized": "Em cestos pressurizados (de parede dupla, comuns em máquinas domésticas), a moagem e o tempo têm menos efeito: a própria peça controla a pressão."
       },
-      "cupIsDose": true,
-      "maxWaterGrams": null,
       "bloomFactor": null,
-      "capacityNote": "No espresso, a proporção compara o café moído com a bebida pronta na xícara (não com a água usada). A dose depende do tamanho do filtro da sua máquina.",
       "grind": {
         "beginner": "Fina, quase como farinha. Café pré-moído para filtro fica grosso demais para espresso.",
         "advanced": "Fina, ajustada pelo tempo: se a extração passar muito rápido, afine; se demorar demais, engrosse."
@@ -373,11 +356,11 @@
         "celsius": [90, 94],
         "beginner": "A máquina controla a temperatura. Deixe-a aquecer bem antes de começar."
       },
-      "time": {
-        "seconds": [25, 32],
-        "label": "25 a 32 segundos"
+      "time": { "seconds": [25, 32], "label": "25 a 32 segundos por extração" },
+      "timer": {
+        "start": "Inicie o cronômetro no instante em que acionar a extração.",
+        "button": "Iniciar ao acionar a extração"
       },
-      "timer": true,
       "steps": [
         {
           "title": "Aqueça a máquina",
@@ -385,20 +368,26 @@
         },
         {
           "title": "Dose e distribuição",
-          "text": "Coloque {coffee} g de café em moagem fina no porta-filtro e distribua de forma uniforme."
+          "text": "Coloque {coffee} g de café em moagem fina no cesto e distribua de forma uniforme."
         },
         {
           "title": "Compacte",
-          "text": "Compacte com firmeza e por igual, deixando a superfície nivelada."
+          "text": "Compacte com firmeza e por igual, deixando a superfície nivelada. Em cesto pressurizado, apenas nivele."
         },
         {
           "title": "Extraia",
-          "text": "Encaixe e inicie a extração com a xícara sobre a balança.",
+          "text": "Encaixe o porta-filtro, coloque a xícara sobre a balança e acione a extração.",
           "at": 0
         },
         {
+          "title": "Observe o fluxo",
+          "text": "O café deve sair em um fio contínuo, como mel escorrendo.",
+          "at": 10
+        },
+        {
           "title": "Pare na medida",
-          "text": "Pare ao atingir cerca de {yield} g de bebida na xícara, idealmente entre 25 e 32 segundos.",
+          "text": "Pare ao atingir cerca de {yield} g de bebida na xícara.",
+          "observe": "Rápido demais (antes de 25 s): afine a moagem. Lento demais (depois de 32 s): engrosse.",
           "at": 25
         }
       ]
@@ -406,38 +395,34 @@
     {
       "id": "cafeteira-eletrica",
       "name": "Cafeteira elétrica",
+      "kind": "filter",
       "summary": "A máquina faz o despejo. Prática para várias xícaras.",
       "catalogPreparations": ["Coado"],
-      "ratioMeaning": "water",
-      "ratio": {
-        "suave": 17,
-        "equilibrado": 16,
-        "intenso": 15
-      },
+      "modes": ["cups", "coffee", "water"],
+      "ratio": { "suave": 17, "equilibrado": 16, "intenso": 15 },
+      "ratioRange": [14, 18],
       "presets": [14, 15, 16, 17],
-      "cup": {
-        "grams": 150,
-        "label": "xícara de 150 ml"
+      "cup": { "ml": 150, "label": "xícara de 150 ml de bebida" },
+      "capacity": {
+        "maxWaterPerRound": 1500,
+        "source": "practical",
+        "note": "Não passe da marcação máxima do reservatório da sua cafeteira."
       },
-      "maxWaterGrams": 1500,
       "bloomFactor": null,
       "grind": {
         "beginner": "Média, parecida com açúcar cristal.",
-        "advanced": "Média. Ajuste pelo sabor: amargo pede moagem mais grossa; aguado, mais fina."
+        "advanced": "Média. Ajuste pelo sabor: amargo pede moagem um pouco mais grossa; aguado, mais fina."
       },
       "temperature": {
-        "celsius": [90, 96],
+        "celsius": null,
         "beginner": "A cafeteira controla a temperatura. Use água filtrada e fria no reservatório."
       },
-      "time": {
-        "seconds": [240, 360],
-        "label": "conforme a cafeteira"
-      },
-      "timer": false,
+      "time": { "seconds": [240, 360], "label": "conforme a cafeteira" },
+      "timer": null,
       "steps": [
         {
           "title": "Água no reservatório",
-          "text": "Coloque {water} g (ml) de água filtrada no reservatório."
+          "text": "Coloque {water} ml de água filtrada no reservatório."
         },
         {
           "title": "Filtro e café",
@@ -445,7 +430,8 @@
         },
         {
           "title": "Ligue e aguarde",
-          "text": "Ligue a cafeteira e espere terminar."
+          "text": "Ligue a cafeteira e espere terminar.",
+          "observe": "Neste método a máquina controla o tempo: não há cronômetro."
         },
         {
           "title": "Sirva logo",
@@ -456,22 +442,24 @@
     {
       "id": "cold-brew",
       "name": "Cold brew",
+      "kind": "cold",
       "summary": "Extração a frio por muitas horas. Suave, doce e refrescante.",
       "catalogPreparations": [],
-      "ratioMeaning": "water",
-      "ratio": {
-        "suave": 10,
-        "equilibrado": 8,
-        "intenso": 6
-      },
+      "modes": ["cups", "coffee"],
+      "ratio": { "suave": 10, "equilibrado": 8, "intenso": 6 },
+      "ratioRange": [5, 12],
       "presets": [6, 8, 10],
-      "cup": {
-        "grams": 100,
-        "label": "copo de 200 ml (100 ml de concentrado + 100 ml de água ou leite)"
+      "cup": { "ml": 200, "label": "copo de 200 ml de bebida pronta" },
+      "cold": {
+        "dilution": 1,
+        "note": "A receita gera um concentrado. Para servir, misture partes iguais de concentrado e água, gelo ou leite, e ajuste a gosto."
       },
-      "maxWaterGrams": 2000,
+      "capacity": {
+        "maxWaterPerRound": 2000,
+        "source": "practical",
+        "note": "Use um recipiente que comporte a água e o café com folga."
+      },
       "bloomFactor": null,
-      "capacityNote": "A receita gera um concentrado: para servir, dilua em partes iguais com água, gelo ou leite e ajuste a gosto.",
       "grind": {
         "beginner": "Grossa, parecida com sal grosso.",
         "advanced": "Grossa. Moagem fina deixa a filtragem lenta e a bebida turva."
@@ -482,29 +470,29 @@
       },
       "time": {
         "seconds": [43200, 64800],
-        "label": "12 a 18 horas"
+        "label": "12 a 18 horas na geladeira"
       },
-      "timer": false,
+      "timer": null,
       "steps": [
         {
           "title": "Misture",
-          "text": "Em um pote, misture {coffee} g de café em moagem grossa com {water} g de água fria."
+          "text": "Em um pote, misture {coffee} g de café em moagem grossa com {water} g de água fria (água de infusão)."
         },
         {
           "title": "Mexa e tampe",
           "text": "Mexa para molhar todo o pó e tampe."
         },
         {
-          "title": "Espere",
-          "text": "Deixe na geladeira por 12 a 18 horas."
+          "title": "Espere na geladeira",
+          "text": "Deixe na geladeira por 12 a 18 horas. Anote o horário em que começou."
         },
         {
           "title": "Filtre",
-          "text": "Coe com filtro de papel ou pano limpo. Guarde o concentrado na geladeira em pote fechado e consuma em poucos dias."
+          "text": "Coe com filtro de papel ou pano limpo. Você terá cerca de {concentrate} ml de concentrado (o pó retém parte da água). Guarde na geladeira em pote fechado e consuma em poucos dias."
         },
         {
           "title": "Sirva",
-          "text": "Dilua em partes iguais com água, gelo ou leite e ajuste ao seu gosto."
+          "text": "Misture o concentrado com a mesma quantidade de água, gelo ou leite: cerca de {drink} ml de bebida pronta."
         }
       ]
     }

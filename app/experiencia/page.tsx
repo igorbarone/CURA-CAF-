@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Arrow } from "../../components/arrow";
 import { ExperienceIntro } from "../../components/experience/experience-intro";
-import { CoffeePicker } from "../../components/experience/coffee-picker";
 import { getExperience } from "../../lib/experience/content";
 import { metadataFor } from "../../lib/seo";
 
@@ -19,19 +18,26 @@ export default function ExperienceHome() {
   const { journey, coffees } = getExperience();
   return (
     <>
-      <ExperienceIntro intro={journey.intro} />
-      <section className="wrap xp-section" aria-labelledby="xp-which">
-        <div className="xp-section-head">
-          <p className="eyebrow">CONHECER MEU CAFÉ</p>
-          <h2 id="xp-which">
-            Qual café está <em>na sua mão?</em>
-          </h2>
-          <p className="xp-lead">
-            Toque no seu café para conhecer a origem, quem produz, o perfil
-            sensorial e a melhor forma de preparar.
-          </p>
-        </div>
-        <CoffeePicker coffees={coffees} />
+      <ExperienceIntro intro={journey.intro} coffees={coffees} />
+      <section className="wrap xp-paths" aria-labelledby="xp-paths-title">
+        <p className="eyebrow">EXPLORE NO SEU RITMO</p>
+        <h2 id="xp-paths-title">
+          Três caminhos. <em>Escolha o seu.</em>
+        </h2>
+        <ol className="xp-path-list">
+          {journey.intro.paths.map((path, index) => (
+            <li key={path.id}>
+              <Link className="xp-path" href={path.href}>
+                <span className="xp-path-number mono">0{index + 1}</span>
+                <span className="xp-path-title">{path.title}</span>
+                <span className="xp-path-text">{path.text}</span>
+                <span className="xp-path-go" aria-hidden="true">
+                  <Arrow />
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ol>
       </section>
       <section
         className="wrap xp-section xp-shortcuts"
@@ -42,16 +48,19 @@ export default function ExperienceHome() {
         </h2>
         <ul>
           <li>
-            <Link href="/experiencia/paladar/">
-              <span className="xp-shortcut-title">Descubra seu paladar</span>
-              <span>Seis perguntas para encontrar o seu perfil sensorial.</span>
+            <Link href="/experiencia/minha-jornada/">
+              <span className="xp-shortcut-title">Minha jornada</span>
+              <span>
+                Receitas salvas e o histórico dos seus preparos, neste
+                navegador.
+              </span>
               <Arrow />
             </Link>
           </li>
           <li>
-            <Link href="/experiencia/aprender/">
-              <span className="xp-shortcut-title">Academia Cura</span>
-              <span>Do básico à ciência da extração, sem complicação.</span>
+            <Link href="/experiencia/paladar/">
+              <span className="xp-shortcut-title">Descubra seu paladar</span>
+              <span>Seis perguntas para encontrar o seu perfil sensorial.</span>
               <Arrow />
             </Link>
           </li>
@@ -60,7 +69,7 @@ export default function ExperienceHome() {
               <span className="xp-shortcut-title">
                 Pergunte ao Barista Cura
               </span>
-              <span>Dúvidas de preparo, moagem e ajuste de receita.</span>
+              <span>Receitas, ajustes de preparo e dúvidas sobre café.</span>
               <Arrow />
             </Link>
           </li>

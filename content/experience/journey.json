@@ -3,12 +3,12 @@
     "eyebrow": "CURA EXPERIENCE",
     "title": "Todo café tem uma origem. O seu tem uma história para contar.",
     "subtitle": "Da terra à sua xícara, descubra o universo por trás de cada grão.",
-    "cta": "Começar experiência",
+    "cta": "Escolher meu café",
     "paths": [
       {
         "id": "meu-cafe",
         "title": "Conhecer meu café",
-        "text": "Origem, quem produz, perfil sensorial e como preparar o café que está na sua mão.",
+        "text": "Origem, quem produz, perfil sensorial e o que esperar na xícara do café que está na sua mão.",
         "href": "/experiencia/cafes/"
       },
       {

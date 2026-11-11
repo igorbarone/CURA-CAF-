@@ -1,13 +1,15 @@
 "use client";
 import { useEffect } from "react";
 import { trackExperience } from "../../lib/experience/analytics";
-import { STORAGE, writeLocal } from "../../lib/experience/storage";
+import { useCoffeeContext } from "./coffee-context";
 
-/** The Lab pre-selects the last coffee the visitor opened. */
+/** Opening a coffee's page makes it "seu café" across the Experience. */
 export function RememberCoffee({ slug }: { slug: string }) {
+  const { setCoffee, ready } = useCoffeeContext();
   useEffect(() => {
-    writeLocal(STORAGE.coffee, slug);
+    if (!ready) return;
+    setCoffee(slug);
     trackExperience("coffee_select", { coffee: slug });
-  }, [slug]);
+  }, [slug, ready, setCoffee]);
   return null;
 }

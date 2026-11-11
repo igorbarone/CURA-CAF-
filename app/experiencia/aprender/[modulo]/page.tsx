@@ -50,7 +50,7 @@ export default async function ModulePage({ params }: Props) {
         <h1>{mod.title}</h1>
         <p className="xp-lead">{mod.intro}</p>
       </header>
-      <div className="xp-mod-layout">
+      <div className="xp-module-layout">
         <nav className="xp-toc" aria-label="Lições do módulo">
           <p className="eyebrow">NESTE MÓDULO</p>
           <ol>
@@ -117,7 +117,13 @@ export default async function ModulePage({ params }: Props) {
               />
             </section>
           )}
-          <div className="xp-mod-next">
+          <p className="xp-ask-barista">
+            Ficou alguma dúvida?{" "}
+            <Link className="xp-text-link" href="/experiencia/barista/">
+              Pergunte ao Barista Cura
+            </Link>
+          </p>
+          <div className="xp-module-next">
             {next ? (
               <Link
                 className="button"

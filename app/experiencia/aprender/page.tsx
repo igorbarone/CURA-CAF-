@@ -27,12 +27,15 @@ export default function AcademyPage() {
       <ol className="xp-modules">
         {academy.modules.map((mod) => (
           <li key={mod.id}>
-            <Link href={`/experiencia/aprender/${mod.id}/`} className="xp-mod">
-              <span className="xp-mod-number mono">MÓDULO {mod.number}</span>
-              <span className="xp-mod-level mono">{mod.level}</span>
-              <span className="xp-mod-title">{mod.title}</span>
+            <Link
+              href={`/experiencia/aprender/${mod.id}/`}
+              className="xp-module"
+            >
+              <span className="xp-module-number mono">MÓDULO {mod.number}</span>
+              <span className="xp-module-level mono">{mod.level}</span>
+              <span className="xp-module-title">{mod.title}</span>
               <span>{mod.audience}</span>
-              <span className="xp-mod-count mono">
+              <span className="xp-module-count mono">
                 {mod.lessons.length}{" "}
                 {mod.lessons.length === 1 ? "lição" : "lições"}
                 {mod.interactive === "tasting" && " · roda sensorial"}

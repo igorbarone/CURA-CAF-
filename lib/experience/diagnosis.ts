@@ -26,6 +26,7 @@ export function diagnose(
     label: option.label,
     summary: option.summary,
     checks: option.checks,
+    followUp: option.followUp ?? null,
     first: adjustments[0] ?? null,
     then: adjustments.slice(1),
     oneVariable: diagnosis.oneVariable,

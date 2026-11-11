@@ -19,8 +19,8 @@ export default function TastePage() {
           O que você procura <em>na xícara?</em>
         </h1>
         <p className="xp-lead">
-          Responda no seu ritmo. Você pode pular perguntas. Nada é enviado ou
-          guardado.
+          Responda no seu ritmo. Você pode pular perguntas; para ver um perfil,
+          basta responder pelo menos uma. Nada é enviado ou guardado.
         </p>
       </header>
       <TasteQuiz taste={taste} coffees={coffees} />
