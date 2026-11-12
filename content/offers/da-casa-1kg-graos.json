@@ -4,7 +4,7 @@
   "status": "draft",
   "sku": "DACASA-1KG-GRAOS",
   "currency": "BRL",
-  "unitPriceInCents": null,
+  "unitPriceInCents": 8244,
   "availableQuantity": null,
   "weightInGrams": 1000,
   "grind": "Em grãos",

@@ -518,6 +518,16 @@ content:
         type: number
         required: true
         default: 0
+      - name: cardFeeFixedCents
+        label: "Taxa fixa por venda no cartão, em centavos (uso interno nos indicadores)"
+        type: number
+        required: true
+        default: 0
+      - name: pixFeeFixedCents
+        label: "Taxa fixa por venda no Pix, em centavos (uso interno nos indicadores)"
+        type: number
+        required: true
+        default: 0
       - name: shippingSubsidyCents
         label: Subsídio fixo de frete em centavos (vazio = cliente paga todo o frete)
         type: number

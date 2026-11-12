@@ -131,8 +131,11 @@ const row = async (id: string) =>
       stock_released: boolean;
     }>("SELECT * FROM orders WHERE id = $1", [id])
   )[0];
-const webhook = (event: string, paymentId: string, eventId: string = randomUUID()) =>
-  handleAsaasWebhook(deps, { eventId, event, paymentId });
+const webhook = (
+  event: string,
+  paymentId: string,
+  eventId: string = randomUUID(),
+) => handleAsaasWebhook(deps, { eventId, event, paymentId });
 const rejects = async (promise: Promise<unknown>, code: string) =>
   assert.rejects(
     promise,
@@ -826,4 +829,31 @@ test("reconciliation re-reads pending charges (a lost webhook) and expires overd
   const result = await reconcile(deps);
   assert.deepEqual(result.synced, { [view!.id]: "paid" });
   assert.equal((await row(view!.id)).status, "paid");
+});
+
+test("published prices match the team's pricing sheet (card price; Pix 5% less)", async () => {
+  const { loadContent } = await import("../../lib/content-loader");
+  const offers = loadContent().offers;
+  const price = (id: string) =>
+    offers.find((offer) => offer.id === id)!.unitPriceInCents!;
+  // Planilha de precificação de 12/11/2026 (Preço no cartão / Preço no Pix).
+  const sheet: [string, number, number][] = [
+    ["samba-250g-graos", 2849, 2707],
+    ["salsa-250g-graos", 2849, 2707],
+    ["da-casa-250g-graos", 2652, 2519],
+    ["samba-500g-graos", 4911, 4665],
+    ["samba-1kg-graos", 9033, 8581],
+    ["da-casa-500g-graos", 4516, 4290],
+    ["da-casa-1kg-graos", 8244, 7832],
+  ];
+  const real = commerceRulesSchema.parse(
+    (await import("../../content/commerce.json")).default,
+  );
+  for (const [id, card, pix] of sheet) {
+    assert.equal(price(id), card, id);
+    assert.equal(card - pixDiscountCents(card, real), pix, id);
+  }
+  // 500 g and 1 kg keep their price but stay drafts until the team publishes.
+  for (const id of ["samba-500g-graos", "da-casa-1kg-graos"])
+    assert.equal(offers.find((offer) => offer.id === id)!.status, "draft");
 });

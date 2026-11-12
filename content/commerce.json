@@ -6,6 +6,8 @@
   "cardExpirationMinutes": 60,
   "pixDiscountPercent": 5,
   "cardFeeAssumptionPercent": 3,
+  "cardFeeFixedCents": 49,
+  "pixFeeFixedCents": 99,
   "maxVolumeWeightGrams": 4000,
   "packingFillFactor": 0.8,
   "shippingServiceIds": ["1", "3"],

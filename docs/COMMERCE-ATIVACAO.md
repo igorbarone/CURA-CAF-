@@ -12,8 +12,7 @@ Nada abaixo foi inventado no código. Enquanto faltar, a loja mostra "Compra onl
 | **Remetente das etiquetas:** nome ou razão social, CPF/CNPJ, IE (se houver), telefone, e-mail e endereço completo | `SHIPPING_FROM_*` | pendente |
 | **Peso bruto e medidas da embalagem** de cada variante vendida (o saco pronto para envio) | CMS → Ofertas: peso bruto, altura, largura, comprimento | pendente para SAMBA, SALSA e DA CASA 250 g |
 | **Caixas de envio:** medidas internas e externas e peso vazio com proteção | CMS → Regras comerciais → Caixas | pendente (nenhuma cadastrada) |
-| **Quais variantes serão vendidas:** 500 g, 1 kg e moído estão em rascunho, sem preço | CMS → Ofertas | decidir |
-| **Preços** das variantes ainda sem preço | CMS → Ofertas | pendente |
+| **Quais variantes serão vendidas:** 500 g e 1 kg em grãos já têm o preço da planilha e estão em rascunho; 250 g moído segue sem preço | CMS → Ofertas: publicar quando a embalagem existir | decidir |
 | **Estoque inicial** por SKU | Painel → Estoque (ou `ops -- stock:set`) | pendente |
 | **NF-e ou declaração de conteúdo** nas etiquetas | Chave por pedido no painel, ou `SHIPPING_NON_COMMERCIAL=true` se a contabilidade confirmar | decidir com a contabilidade |
 | **Credenciais Asaas** (sandbox, depois produção) e token do webhook | `ASAAS_API_KEY`, `ASAAS_WEBHOOK_TOKEN` | pendente |
@@ -21,7 +20,22 @@ Nada abaixo foi inventado no código. Enquanto faltar, a loja mostra "Compra onl
 | **Senha do painel** | `ADMIN_PASSWORD_HASH` (gerado com `npm run ops -- admin:hash`), `ADMIN_SESSION_SECRET` | pendente |
 | **Dados legais:** razão social, CNPJ, política de privacidade (LGPD, encarregado), termos, trocas e arrependimento | Páginas do site | pendente |
 
-Já confirmados e aplicados: preços de 250 g (R$ 39,90 SAMBA e SALSA, R$ 29,90 DA CASA), desconto Pix de 5% sobre os cafés, taxa estimada de cartão de 3% (uso interno), serviços PAC e .Package e peso máximo de 4 kg por volume.
+Já confirmados e aplicados (planilha de precificação de 12/11/2026):
+
+| Variante | Cartão (preço do site) | Pix (−5%) | Estado |
+| --- | --- | --- | --- |
+| SAMBA e SALSA 250 g | R$ 28,49 | R$ 27,07 | publicada |
+| SAMBA e SALSA 500 g | R$ 49,11 | R$ 46,65 | rascunho |
+| SAMBA e SALSA 1 kg | R$ 90,33 | R$ 85,81 | rascunho |
+| DA CASA 250 g | R$ 26,52 | R$ 25,19 | publicada |
+| DA CASA 500 g | R$ 45,16 | R$ 42,90 | rascunho |
+| DA CASA 1 kg | R$ 82,44 | R$ 78,32 | rascunho |
+
+Também confirmados:
+- desconto de 5% no Pix só sobre os cafés;
+- taxas do Asaas usadas só nos indicadores: cartão 3% + R$ 0,49 por venda, Pix R$ 0,99 por venda;
+- serviços PAC e .Package;
+- peso máximo de 4 kg por volume.
 
 ## 2. Contas e credenciais
 

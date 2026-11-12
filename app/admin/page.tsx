@@ -84,6 +84,13 @@ export default async function AdminHome({ searchParams }: Props) {
               </dd>
             </div>
             <div>
+              <dt>Taxas estimadas de Pix</dt>
+              <dd>
+                {brl(data.estimatedPixFeesCents)}{" "}
+                <small>taxa fixa por venda, estimativa interna</small>
+              </dd>
+            </div>
+            <div>
               <dt>Ticket médio</dt>
               <dd>{brl(data.averageTicketCents)}</dd>
             </div>

@@ -37,6 +37,9 @@ export const commerceRulesSchema = z
     pixDiscountPercent: z.number().min(0).max(50).default(0),
     // Internal margin assumption for indicators. Never charged to the buyer.
     cardFeeAssumptionPercent: z.number().min(0).max(20).default(0),
+    // Fixed fee per sale (Asaas), also only for the indicators.
+    cardFeeFixedCents: z.number().int().min(0).max(1000).default(0),
+    pixFeeFixedCents: z.number().int().min(0).max(1000).default(0),
     // Packing: heaviest volume accepted and how full a box may get (volume).
     maxVolumeWeightGrams: z.number().int().min(300).max(30000).default(4000),
     packingFillFactor: z.number().min(0.3).max(1).default(0.8),

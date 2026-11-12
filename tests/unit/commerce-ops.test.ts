@@ -52,6 +52,8 @@ const book = buildPriceBook(content);
 const rules = commerceRulesSchema.parse({
   pixDiscountPercent: 5,
   cardFeeAssumptionPercent: 3,
+  cardFeeFixedCents: 49,
+  pixFeeFixedCents: 99,
   shippingServiceIds: ["1", "3"],
   boxes: TEST_BOXES,
 });
@@ -316,10 +318,12 @@ test("indicators: paid orders, revenue, Pix discounts, freight, estimated card f
     result.shippingChargedCents,
     pix.shippingCents + card.shippingCents,
   );
+  // Pricing sheet: card 3% + R$ 0,49 per sale; Pix R$ 0,99 per sale.
   assert.equal(
     result.estimatedCardFeesCents,
-    Math.round(card.totalCents * 0.03),
+    Math.round(card.totalCents * 0.03) + 49,
   );
+  assert.equal(result.estimatedPixFeesCents, 99);
   assert.equal(result.averageTicketCents, Math.round(result.grossCents / 2));
   assert.equal(result.toShip, 2);
 });

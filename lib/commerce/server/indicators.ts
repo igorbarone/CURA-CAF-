@@ -5,7 +5,10 @@ import type { Db } from "./db";
 
 export async function indicators(
   db: Db,
-  rules: Pick<CommerceRules, "cardFeeAssumptionPercent">,
+  rules: Pick<
+    CommerceRules,
+    "cardFeeAssumptionPercent" | "cardFeeFixedCents" | "pixFeeFixedCents"
+  >,
   { days }: { days: number | null },
 ) {
   const params = days === null ? [] : [String(days)];
@@ -53,9 +56,12 @@ export async function indicators(
     grossCents: gross,
     pixDiscountCents: Number(paid.discounts ?? 0),
     shippingChargedCents: Number(paid.shipping ?? 0),
-    estimatedCardFeesCents: Math.round(
-      (cardTotal * rules.cardFeeAssumptionPercent) / 100,
-    ),
+    // Asaas fees as in the team's pricing sheet: card % + fixed per sale,
+    // Pix fixed per sale. Estimates only; the real fee is in the Asaas report.
+    estimatedCardFeesCents:
+      Math.round((cardTotal * rules.cardFeeAssumptionPercent) / 100) +
+      Number(paid.card_orders) * rules.cardFeeFixedCents,
+    estimatedPixFeesCents: Number(paid.pix_orders) * rules.pixFeeFixedCents,
     averageTicketCents: orders ? Math.round(gross / orders) : 0,
     byStatus: Object.fromEntries(
       byState.map((row) => [row.status, Number(row.count)]),

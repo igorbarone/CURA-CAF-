@@ -78,7 +78,8 @@ Produto → Carrinho (CEP e frete) → Checkout (dados, entrega, pagamento) → 
 6. **Desconto Pix:**
    - 5% (`pixDiscountPercent`) **só sobre os cafés**, nunca sobre o frete, arredondado ao centavo;
    - calculado no servidor (`orderTotals`) e mostrado no carrinho, no checkout (recalculado ao trocar a forma de pagamento) e no pedido.
-7. **Taxa de cartão:** 3% (`cardFeeAssumptionPercent`) é **só** uma premissa interna dos indicadores. Nunca é cobrada do cliente.
+7. **Taxas do Asaas:** cartão 3% + R$ 0,49 por venda e Pix R$ 0,99 por venda (`cardFeeAssumptionPercent`, `cardFeeFixedCents`, `pixFeeFixedCents`), como na planilha de precificação. São **só** premissas dos indicadores: nunca são cobradas do cliente.
+   - **Preços:** o preço do site é o "preço no cartão" da planilha, e o Pix sai 5% menor no checkout.
 8. **Confirmação:**
    - só o webhook autenticado (ou a reconciliação) marca o pedido como pago, sempre **relendo a cobrança no Asaas**;
    - o valor pago é conferido com o total;
