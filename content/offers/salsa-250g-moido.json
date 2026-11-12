@@ -1,0 +1,21 @@
+{
+  "id": "salsa-250g-moido",
+  "lotId": "cura-26-02",
+  "status": "draft",
+  "sku": "SALSA-250G-MOIDO",
+  "currency": "BRL",
+  "unitPriceInCents": null,
+  "availableQuantity": null,
+  "weightInGrams": 250,
+  "grind": "Moído",
+  "promoPriceInCents": null,
+  "commercialLabel": null,
+  "grossWeightInGrams": null,
+  "packageHeightCm": null,
+  "packageWidthCm": null,
+  "packageLengthCm": null,
+  "minQuantity": null,
+  "maxQuantity": null,
+  "saleStartsAt": null,
+  "saleEndsAt": null
+}

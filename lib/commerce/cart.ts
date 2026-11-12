@@ -1,5 +1,5 @@
-import type { PriceBook, SellableItem } from "./catalog";
-import type { CommerceRules } from "./rules";
+import { onSale, type PriceBook, type SellableItem } from "./catalog";
+import type { ClientRules } from "./rules";
 // Client-safe cart math. The browser uses it to show totals; the server runs
 // the same code on its own price book and never trusts amounts it receives.
 export type CartLine = { id: string; quantity: number };
@@ -7,17 +7,28 @@ export type PricedLine = CartLine & {
   item: SellableItem;
   lineTotalCents: number;
 };
+// Most units of one item per cart line: the variant's own limit, capped by
+// the store-wide rule.
+export const lineLimit = (
+  item: Pick<SellableItem, "maxQuantity">,
+  rules: Pick<ClientRules, "maxQuantityPerLine">,
+) =>
+  Math.min(
+    item.maxQuantity ?? rules.maxQuantityPerLine,
+    rules.maxQuantityPerLine,
+  );
 export function normalizeCart(
   lines: unknown,
   book: PriceBook,
-  rules: Pick<CommerceRules, "maxQuantityPerLine">,
+  rules: Pick<ClientRules, "maxQuantityPerLine">,
+  now: Date = new Date(),
 ) {
   const merged = new Map<string, number>();
   const removed: string[] = [];
   for (const line of Array.isArray(lines) ? lines : []) {
     const id = typeof line?.id === "string" ? line.id : null;
     const quantity = Number.isInteger(line?.quantity) ? line.quantity : 0;
-    if (!id || quantity < 1 || !book[id]) {
+    if (!id || quantity < 1 || !book[id] || !onSale(book[id], now)) {
       if (id) removed.push(id);
       continue;
     }
@@ -26,7 +37,10 @@ export function normalizeCart(
   return {
     lines: [...merged].map(([id, quantity]) => ({
       id,
-      quantity: Math.min(quantity, rules.maxQuantityPerLine),
+      quantity: Math.max(
+        book[id].minQuantity,
+        Math.min(quantity, lineLimit(book[id], rules)),
+      ),
     })),
     removed,
   };
@@ -34,7 +48,7 @@ export function normalizeCart(
 export function priceCart(
   lines: CartLine[],
   book: PriceBook,
-  rules: Pick<CommerceRules, "freeShippingFromCents">,
+  rules: Pick<ClientRules, "freeShippingFromCents">,
 ) {
   const priced: PricedLine[] = lines.flatMap((line) => {
     const item = book[line.id];

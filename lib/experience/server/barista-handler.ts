@@ -1,7 +1,12 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { log } from "../../commerce/server/log";
-import { lessonIndex, type BaristaData } from "../barista-tools";
+import {
+  lessonIndex,
+  type BaristaData,
+  type ShopSnapshot,
+} from "../barista-tools";
+import { loadShop } from "./barista-shop";
 import { getExperience } from "../content";
 import { readBaristaConfig, type BaristaConfig } from "./barista-config";
 import {
@@ -66,6 +71,8 @@ export type HandlerDeps = {
   store: () => Promise<UsageStore>;
   model: () => BaristaModel;
   data: () => BaristaData;
+  // Store prices and availability for consultarCompra (optional).
+  shop?: () => Promise<ShopSnapshot | undefined>;
   now?: () => Date;
 };
 
@@ -83,6 +90,7 @@ export function defaultDeps(): HandlerDeps {
       }
       return data;
     },
+    shop: () => loadShop().catch(() => undefined),
   };
 }
 
@@ -199,7 +207,7 @@ export function createBaristaHandler(deps: HandlerDeps) {
         try {
           const result = await runBaristaTurn({
             model: deps.model(),
-            data: deps.data(),
+            data: { ...deps.data(), shop: await deps.shop?.() },
             history,
             context: body.context,
             maxSteps: config.maxSteps,

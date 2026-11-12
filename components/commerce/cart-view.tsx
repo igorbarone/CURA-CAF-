@@ -11,9 +11,12 @@ import { QuantityInput } from "./quantity-input";
 import { PackThumb } from "./pack-thumb";
 import { useAvailability } from "./use-availability";
 import { cepDigits, maskCep } from "../../lib/commerce/format";
+import { pixDiscountCents } from "../../lib/commerce/pricing";
 export type Quote = {
   subtotalCents: number;
+  pixDiscountCents: number;
   freeShipping: boolean;
+  volumes: { weightGrams: number }[];
   options: {
     id: string;
     name: string;
@@ -21,6 +24,7 @@ export type Quote = {
     priceCents: number;
     chargedCents: number;
     days: number | null;
+    volumes: number;
   }[];
 };
 export const CEP_KEY = "cura-checkout-cep";
@@ -209,6 +213,12 @@ export function CartView() {
                   </strong>
                 </li>
               ))}
+              {quote.volumes.length > 1 && (
+                <li className="availability">
+                  Enviado em {quote.volumes.length} volumes; o frete já soma
+                  todos.
+                </li>
+              )}
             </ul>
           )}
         </form>
@@ -233,6 +243,13 @@ export function CartView() {
             </dd>
           </div>
         </dl>
+        {cart.rules.pixDiscountPercent > 0 && cart.subtotalCents > 0 && (
+          <p className="cart-pix-note">
+            No Pix: {cart.rules.pixDiscountPercent}% de desconto nos cafés (−
+            {formatBRL(pixDiscountCents(cart.subtotalCents, cart.rules))}). O
+            frete não tem desconto.
+          </p>
+        )}
         {cart.rules.freeShippingFromCents !== null && !cart.freeShipping && (
           <p className="availability">
             Frete grátis a partir de{" "}

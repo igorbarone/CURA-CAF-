@@ -24,9 +24,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `${coffee.name} — Arquivado | Cura Café`,
       robots: { index: false, follow: true },
     };
+  // SEO fields from the CMS win; otherwise the confirmed lot data is used.
   return metadataFor(
-    `${coffee.name} — ${coffee.notes} | Cura Café`,
-    `${coffee.name}, ${coffee.lot}. ${coffee.notes}, torra ${coffee.roast.toLowerCase()}. Conheça o perfil e quem produz.`,
+    coffee.seoTitle
+      ? `${coffee.seoTitle} | Cura Café`
+      : `${coffee.name} — ${coffee.notes} | Cura Café`,
+    coffee.seoDescription ??
+      `${coffee.name}, ${coffee.lot}. ${coffee.notes}, torra ${coffee.roast.toLowerCase()}. Conheça o perfil e quem produz.`,
     `cafes/${coffee.slug}/`,
   );
 }

@@ -36,6 +36,22 @@ export type LessonIndex = {
   summary: string;
   text: string;
 };
+// Commercial snapshot from the store (price book + live stock), loaded by
+// the server per request. Only consultarCompra reads it, so the catalog is
+// never sent to the model unless a purchase question needs it.
+export type ShopSnapshot = {
+  // The store is taking orders (payments and freight configured).
+  online: boolean;
+  pixDiscountPercent: number;
+  offers: {
+    coffeeSlug: string;
+    label: string;
+    priceCents: number;
+    listPriceCents: number;
+    // Units that can be bought now; null = not checked (store offline).
+    units: number | null;
+  }[];
+};
 export type BaristaData = {
   coffees: ExperienceCoffee[];
   methods: BrewMethod[];
@@ -43,6 +59,7 @@ export type BaristaData = {
   taste: Taste;
   knowledge: BaristaKnowledge;
   lessons: LessonIndex[];
+  shop?: ShopSnapshot;
 };
 export type BaristaAction = {
   kind: "lab" | "coffee" | "lesson" | "quiz" | "shop" | "diagnosis";
@@ -106,6 +123,9 @@ export const schemas = {
     .object({ slugs: z.array(z.string().min(1).max(40)).min(2).max(3) })
     .strict(),
   listarMetodos: z.object({}).strict(),
+  consultarCompra: z
+    .object({ slug: z.string().min(1).max(40).optional() })
+    .strict(),
   calcularReceita: z
     .object({
       metodo: z.string().min(1).max(40),
@@ -507,6 +527,68 @@ export function recomendarCafe(
   };
 }
 
+// ---------- purchase ------------------------------------------------------
+const brl = (cents: number) =>
+  (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+/** Price and availability from the store, never from memory. */
+export function consultarCompra(data: BaristaData, input: { slug?: string }) {
+  const shop = data.shop;
+  const coffees = input.slug
+    ? data.coffees.filter((coffee) => coffee.slug === input.slug)
+    : data.coffees;
+  if (input.slug && !coffees.length)
+    return { ok: false, erro: `Café não encontrado: ${input.slug}` };
+  const offersOf = (slug: string) =>
+    (shop?.offers ?? []).filter((offer) => offer.coffeeSlug === slug);
+  const available = (slug: string) =>
+    !!shop?.online && offersOf(slug).some((offer) => (offer.units ?? 0) > 0);
+  const cafes = coffees.map((coffee) => ({
+    slug: coffee.slug,
+    nome: coffee.name,
+    vendaOnline: !shop?.online
+      ? "em breve (a loja ainda não está recebendo pedidos)"
+      : offersOf(coffee.slug).length
+        ? available(coffee.slug)
+          ? "disponível"
+          : "esgotado no momento"
+        : "em breve (embalagem ainda não liberada para venda online)",
+    embalagens: offersOf(coffee.slug).map((offer) => ({
+      rotulo: offer.label,
+      preco: brl(offer.priceCents),
+      ...(offer.listPriceCents > offer.priceCents
+        ? { precoNormal: brl(offer.listPriceCents) }
+        : {}),
+      disponivel:
+        offer.units === null ? "a confirmar na loja" : offer.units > 0,
+    })),
+    paginaDoCafe: `/cafes/${coffee.slug}/`,
+  }));
+  const alternativas =
+    input.slug && !available(input.slug)
+      ? data.coffees
+          .filter(
+            (coffee) => coffee.slug !== input.slug && available(coffee.slug),
+          )
+          .map((coffee) => ({ slug: coffee.slug, nome: coffee.name }))
+      : [];
+  return {
+    cafes,
+    descontoPix:
+      shop?.online && shop.pixDiscountPercent > 0
+        ? `${shop.pixDiscountPercent}% sobre os cafés no Pix (o frete não tem desconto)`
+        : null,
+    frete: "calculado pelo CEP no carrinho, antes de pagar",
+    alternativasDisponiveis: alternativas,
+    observacao:
+      "Preços e estoque vêm da loja agora; o valor final é conferido no checkout. Nunca prometa prazo, cupom ou condição que não esteja aqui.",
+    acoes: cafes.slice(0, 1).map((cafe) => ({
+      kind: "shop" as const,
+      label: `Ver o ${cafe.nome} na loja`,
+      href: cafe.paginaDoCafe,
+    })),
+  };
+}
+
 /** Tool registry with descriptions (pt-BR) and validated runners. */
 export const baristaTools: {
   [K in ToolName]: {
@@ -523,7 +605,7 @@ export const baristaTools: {
   },
   detalharCafe: {
     description:
-      "Dados confirmados de um café publicado, pelo slug (ex.: samba, salsa, da-casa).",
+      "Dados confirmados de um café publicado, pelo slug (os slugs vêm de listarCafes).",
     schema: schemas.detalharCafe,
     run: detalharCafe,
   },
@@ -538,6 +620,12 @@ export const baristaTools: {
       "Lista os métodos de preparo do Laboratório, seus modos de quantidade e limites de capacidade.",
     schema: schemas.listarMetodos,
     run: (data) => listarMetodos(data),
+  },
+  consultarCompra: {
+    description:
+      "Preço, embalagens, disponibilidade e desconto Pix de um café (slug) ou de todos, direto da loja. Use SEMPRE que perguntarem preço, estoque, onde ou como comprar. Se o café não estiver disponível, ofereça as alternativas devolvidas.",
+    schema: schemas.consultarCompra,
+    run: consultarCompra,
   },
   calcularReceita: {
     description:

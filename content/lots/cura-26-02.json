@@ -32,5 +32,9 @@
   "intensityLevel": null,
   "acidityLevel": null,
   "sweetnessLevel": null,
-  "bodyLevel": null
+  "bodyLevel": null,
+  "municipality": null,
+  "scoreMethodology": "SCA",
+  "saleStartsAt": null,
+  "saleEndsAt": null
 }

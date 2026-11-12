@@ -4466,3 +4466,160 @@ button[aria-pressed="true"] .showcase-progress::after {
   color: #efe9dd;
   padding: 6px 10px;
 }
+
+/* Store: Pix discount, promotional price, commercial tag, highlights. */
+.package-price del {
+  font-weight: 400;
+  color: var(--muted-ink);
+  margin-right: 4px;
+}
+.package-tag {
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.summary-discount dd,
+.cart-pix-note {
+  color: var(--brand);
+  font-weight: 700;
+}
+.cart-pix-note {
+  font-size: 13px;
+  margin: 8px 0 0;
+}
+.product-highlights {
+  margin: 12px 0;
+  padding-left: 18px;
+  line-height: 1.6;
+}
+
+/* Operations panel (/admin): plain, legible, mobile-first. */
+.admin {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+  color: var(--brand);
+}
+.admin h1 {
+  font-size: clamp(28px, 5vw, 40px);
+  margin: 12px 0 16px;
+}
+.admin h2 {
+  font-size: 20px;
+  margin: 28px 0 8px;
+}
+.admin h3 {
+  font-size: 16px;
+  margin: 16px 0 8px;
+}
+.admin small {
+  font-weight: 400;
+  font-size: 12px;
+}
+.admin-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgb(var(--brand-rgb) / 0.2);
+  padding-bottom: 12px;
+}
+.admin-header ul,
+.admin-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.admin-tabs {
+  margin: 8px 0 16px;
+}
+.admin-header a[aria-current="page"],
+.admin-tabs a[aria-current="page"] {
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.admin-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+.admin-kpis > div {
+  background: var(--light);
+  border: 1px solid rgb(var(--brand-rgb) / 0.15);
+  padding: 12px;
+}
+.admin-kpis dt {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.admin-kpis dd {
+  margin: 4px 0 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+.admin-table-wrap {
+  overflow-x: auto;
+}
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 8px;
+  border-bottom: 1px solid rgb(var(--brand-rgb) / 0.12);
+}
+.admin-list {
+  padding-left: 18px;
+  line-height: 1.7;
+}
+.admin-note {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.admin-ok {
+  background: var(--light);
+  border-left: 4px solid var(--ochre);
+  padding: 8px 12px;
+}
+.admin-action {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 8px 0;
+}
+.admin-action input {
+  min-height: 40px;
+  padding: 4px 8px;
+  border: 1px solid rgb(var(--brand-rgb) / 0.35);
+  max-width: 100%;
+}
+.admin-actions .admin-action {
+  border-top: 1px dashed rgb(var(--brand-rgb) / 0.2);
+  padding-top: 8px;
+}
+.admin-login form {
+  display: grid;
+  gap: 8px;
+  max-width: 360px;
+}
+.admin-login input {
+  min-height: 44px;
+  padding: 4px 8px;
+}
+.admin-flow {
+  padding-left: 18px;
+  line-height: 1.7;
+}

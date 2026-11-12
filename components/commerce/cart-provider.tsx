@@ -6,7 +6,7 @@ import {
   type CartLine,
 } from "../../lib/commerce/cart";
 import type { PriceBook } from "../../lib/commerce/catalog";
-import type { CommerceRules } from "../../lib/commerce/rules";
+import type { ClientRules as CommerceRules } from "../../lib/commerce/rules";
 import { centsToValue, track } from "../../lib/analytics";
 // Persistent cart: only item ids and quantities are stored in the browser.
 // Prices shown here are recomputed from the published price book, and the

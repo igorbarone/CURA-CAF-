@@ -1,0 +1,21 @@
+{
+  "id": "da-casa-500g-graos",
+  "lotId": "linha-casa",
+  "status": "draft",
+  "sku": "DACASA-500G-GRAOS",
+  "currency": "BRL",
+  "unitPriceInCents": 4516,
+  "availableQuantity": null,
+  "weightInGrams": 500,
+  "grind": "Em grãos",
+  "promoPriceInCents": null,
+  "commercialLabel": null,
+  "grossWeightInGrams": null,
+  "packageHeightCm": null,
+  "packageWidthCm": null,
+  "packageLengthCm": null,
+  "minQuantity": null,
+  "maxQuantity": null,
+  "saleStartsAt": null,
+  "saleEndsAt": null
+}

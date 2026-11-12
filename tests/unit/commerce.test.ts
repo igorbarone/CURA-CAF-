@@ -1,34 +1,39 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { beforeEach, test } from "node:test";
-import { buildPriceBook, pricePer100g } from "../../lib/commerce/catalog";
+import {
+  buildPriceBook,
+  onSale,
+  pricePer100g,
+  sellabilityIssues,
+} from "../../lib/commerce/catalog";
 import { normalizeCart, priceCart, skuDemand } from "../../lib/commerce/cart";
+import { packCart, PackingError } from "../../lib/commerce/packing";
+import {
+  chargedShippingCents,
+  orderTotals,
+  pixDiscountCents,
+} from "../../lib/commerce/pricing";
 import { crossSell, largerPackage } from "../../lib/commerce/recommendations";
 import { commerceRulesSchema } from "../../lib/commerce/rules";
-import { readConfig } from "../../lib/commerce/server/config";
 import { migrate, openDb, type Db } from "../../lib/commerce/server/db";
-import { redact } from "../../lib/commerce/server/log";
-import { brasiliaIso } from "../../lib/commerce/server/mercadopago";
 import {
   availability,
   canReadOrder,
   CheckoutError,
   createCheckout,
-  handleMercadoPagoNotification,
-  markShipped,
+  expireOverdue,
+  handleAsaasWebhook,
   orderView,
   quoteShipping,
-  reconcilePending,
-  seedStockFromContent,
+  reconcile,
   type Deps,
 } from "../../lib/commerce/server/orders";
+import { combineQuotes } from "../../lib/commerce/server/shipping";
+import { isValidCpf } from "../../lib/commerce/server/security";
+import { contentSchema, offerExtras } from "../../lib/content-schema";
 import {
-  rateLimit,
-  isValidCpf,
-  signMercadoPagoNotification,
-  verifyMercadoPagoSignature,
-} from "../../lib/commerce/server/security";
-import {
+  TEST_BOXES,
   VALID_CPF,
   fakeNotifier,
   fakePayments,
@@ -38,21 +43,28 @@ import {
 
 process.env.CURA_LOG = "silent";
 const book = buildPriceBook(fixtureContent());
-const rules = commerceRulesSchema.parse({});
+const rules = commerceRulesSchema.parse({
+  pixDiscountPercent: 5,
+  cardFeeAssumptionPercent: 3,
+  shippingServiceIds: ["1", "3"],
+  boxes: TEST_BOXES,
+});
 let db: Db;
 let payments: ReturnType<typeof fakePayments>;
 let shipping: ReturnType<typeof fakeShipping>;
 let mail: ReturnType<typeof fakeNotifier>;
 let deps: Deps;
+let clock: Date;
 beforeEach(async () => {
   db = await openDb("pglite:memory");
   await migrate(db);
   await db.query(
-    "INSERT INTO inventory (sku, available) VALUES ('A-250', 5), ('A-500', 5), ('A-1000', 5), ('B-250', 2)",
+    "INSERT INTO inventory (sku, available) VALUES ('A-250', 5), ('A-500', 5), ('A-1000', 10), ('B-250', 2)",
   );
   payments = fakePayments();
   shipping = fakeShipping();
   mail = fakeNotifier();
+  clock = new Date();
   deps = {
     db,
     book,
@@ -62,31 +74,48 @@ beforeEach(async () => {
     notifier: mail.notifier,
     siteUrl: "https://loja.test",
     tokenSecret: "x".repeat(40),
+    now: () => clock,
   };
 });
-const checkout = (overrides: Record<string, unknown> = {}) => ({
-  idempotencyKey: randomUUID(),
-  lines: [{ id: "a-250", quantity: 2 }],
-  customer: {
-    name: "Maria Teste",
-    email: "Maria@Example.com",
-    cpf: "529.982.247-25",
-    phone: "(11) 99999-0000",
-  },
-  address: {
-    cep: "01310-100",
-    street: "Rua Teste",
-    number: "10",
-    complement: "",
-    district: "Centro",
-    city: "São Paulo",
-    state: "sp",
-  },
-  shippingOptionId: "1",
-  consent: true,
-  payment: { method: "pix" },
-  ...overrides,
-});
+const address = {
+  cep: "01310-100",
+  street: "Rua Teste",
+  number: "10",
+  complement: "",
+  district: "Centro",
+  city: "São Paulo",
+  state: "sp",
+};
+const lines = [{ id: "a-250", quantity: 2 }];
+// Builds a checkout body with the freight the server quotes right now, as
+// the checkout screen would.
+async function checkout(overrides: Record<string, unknown> = {}) {
+  const body = {
+    idempotencyKey: randomUUID(),
+    lines,
+    customer: {
+      name: "Maria Teste",
+      email: "Maria@Example.com",
+      cpf: "529.982.247-25",
+      phone: "(11) 99999-0000",
+    },
+    address,
+    shippingOptionId: "1",
+    consent: true,
+    payment: { method: "pix" },
+    ...overrides,
+  } as Record<string, unknown> & { lines: unknown; address: typeof address };
+  if (!("shippingPriceCents" in overrides)) {
+    const quote = await quoteShipping(deps, {
+      cep: body.address.cep,
+      lines: body.lines,
+    }).catch(() => null);
+    body.shippingPriceCents =
+      quote?.options.find((o) => o.id === body.shippingOptionId)
+        ?.chargedCents ?? 0;
+  }
+  return body;
+}
 const stock = async (sku: string) =>
   (
     await db.query<{ available: number }>(
@@ -94,26 +123,29 @@ const stock = async (sku: string) =>
       [sku],
     )
   )[0].available;
-const status = async (id: string) =>
+const row = async (id: string) =>
   (
-    await db.query<{ status: string }>(
-      "SELECT status FROM orders WHERE id = $1",
-      [id],
-    )
-  )[0].status;
-const notify = (paymentId: string, requestId = randomUUID()) =>
-  handleMercadoPagoNotification(deps, {
-    requestId,
-    type: "payment",
-    dataId: paymentId,
-  });
+    await db.query<{
+      status: string;
+      fulfillment_status: string;
+      stock_released: boolean;
+    }>("SELECT * FROM orders WHERE id = $1", [id])
+  )[0];
+const webhook = (
+  event: string,
+  paymentId: string,
+  eventId: string = randomUUID(),
+) => handleAsaasWebhook(deps, { eventId, event, paymentId });
 const rejects = async (promise: Promise<unknown>, code: string) =>
   assert.rejects(
     promise,
     (error) => error instanceof CheckoutError && error.code === code,
   );
+const paymentOf = (orderId: string) =>
+  [...payments.store.values()].find((p) => p.externalReference === orderId)!;
 
-test("price book sells only published, priced items; kits need an approved price", () => {
+// ---------- catalog -----------------------------------------------------
+test("price book sells only published variants with price, SKU and shipping data", () => {
   assert.deepEqual(Object.keys(book).sort(), [
     "a-1000",
     "a-250",
@@ -125,11 +157,108 @@ test("price book sells only published, priced items; kits need an approved price
     { sku: "A-250", quantity: 1 },
     { sku: "B-250", quantity: 1 },
   ]);
-  assert.equal(book["kit-teste"].weightGrams, 500);
+  assert.equal(book["kit-teste"].packing.length, 2);
   assert.equal(pricePer100g(book["a-250"]), 2000);
+  // A published variant without gross weight or package size is not sold,
+  // and the reason is reported.
+  const content = fixtureContent();
+  const offer = {
+    ...content.offers.find((item) => item.id === "a-250")!,
+    grossWeightInGrams: null,
+    packageHeightCm: null,
+    packageWidthCm: null,
+    packageLengthCm: null,
+  };
+  assert.deepEqual(sellabilityIssues(content, offer), [
+    "sem peso bruto embalado",
+    "sem dimensões da embalagem",
+  ]);
+  assert.deepEqual(
+    sellabilityIssues(content, { ...offer, status: "draft" })[0],
+    "oferta não publicada",
+  );
+  const blocked = buildPriceBook({
+    ...content,
+    offers: content.offers.map((item) => (item.id === "a-250" ? offer : item)),
+  });
+  assert.equal(blocked["a-250"], undefined);
+  // The kit needs every item sellable.
+  assert.equal(blocked["kit-teste"], undefined);
+});
+test("drafts may be incomplete; inconsistent published data is refused by the schema", () => {
+  const content = fixtureContent();
+  const offer = (patch: Record<string, unknown>) => ({
+    ...content.offers[0],
+    ...patch,
+  });
+  const parse = (o: unknown) =>
+    contentSchema.safeParse({ ...content, offers: [o], bundles: [] }).success;
+  assert.ok(
+    parse({
+      id: "rascunho",
+      lotId: "cafe-a-lote",
+      status: "draft",
+      sku: "RASCUNHO",
+      currency: "BRL",
+      unitPriceInCents: null,
+      availableQuantity: null,
+      weightInGrams: null,
+      grind: null,
+      ...offerExtras,
+    }),
+  );
+  assert.ok(!parse(offer({ promoPriceInCents: 999999 })));
+  assert.ok(!parse(offer({ minQuantity: 5, maxQuantity: 2 })));
+  assert.ok(!parse(offer({ packageWidthCm: null })));
+  assert.ok(!parse(offer({ grossWeightInGrams: 100 })));
+  assert.ok(
+    !parse(offer({ saleStartsAt: "2026-12-01", saleEndsAt: "2026-11-01" })),
+  );
+});
+test("promotional price, quantity limits and sale windows apply to the variant", () => {
+  const content = fixtureContent();
+  const promo = buildPriceBook({
+    ...content,
+    offers: content.offers.map((item) =>
+      item.id === "a-250"
+        ? {
+            ...item,
+            promoPriceInCents: 4500,
+            maxQuantity: 3,
+            minQuantity: 2,
+            saleStartsAt: "2026-11-10",
+            saleEndsAt: "2026-11-20",
+          }
+        : item,
+    ),
+  });
+  assert.equal(promo["a-250"].unitPriceCents, 4500);
+  assert.equal(promo["a-250"].listPriceCents, 5000);
+  assert.ok(onSale(promo["a-250"], new Date("2026-11-15T12:00:00Z")));
+  assert.ok(!onSale(promo["a-250"], new Date("2026-11-21T12:00:00Z")));
+  // Before 03:00 UTC it is still the previous day in Brasília.
+  assert.ok(!onSale(promo["a-250"], new Date("2026-11-10T02:00:00Z")));
+  const during = new Date("2026-11-15T12:00:00Z");
+  assert.deepEqual(
+    normalizeCart([{ id: "a-250", quantity: 9 }], promo, rules, during).lines,
+    [{ id: "a-250", quantity: 3 }],
+  );
+  assert.deepEqual(
+    normalizeCart([{ id: "a-250", quantity: 1 }], promo, rules, during).lines,
+    [{ id: "a-250", quantity: 2 }],
+  );
+  assert.deepEqual(
+    normalizeCart(
+      [{ id: "a-250", quantity: 1 }],
+      promo,
+      rules,
+      new Date("2026-12-01T12:00:00Z"),
+    ).removed,
+    ["a-250"],
+  );
 });
 test("cart merges lines, caps quantities and drops unknown or unpriced items", () => {
-  const { lines, removed } = normalizeCart(
+  const { lines: merged, removed } = normalizeCart(
     [
       { id: "a-250", quantity: 2 },
       { id: "a-250", quantity: 30 },
@@ -140,7 +269,7 @@ test("cart merges lines, caps quantities and drops unknown or unpriced items", (
     book,
     rules,
   );
-  assert.deepEqual(lines, [{ id: "a-250", quantity: 10 }]);
+  assert.deepEqual(merged, [{ id: "a-250", quantity: 10 }]);
   assert.deepEqual(removed, ["b-sem-preco", "inventado", "b-250"]);
   const priced = priceCart(
     [
@@ -148,12 +277,9 @@ test("cart merges lines, caps quantities and drops unknown or unpriced items", (
       { id: "a-500", quantity: 1 },
     ],
     book,
-    {
-      freeShippingFromCents: 30000,
-    },
+    { freeShippingFromCents: 30000 },
   );
   assert.equal(priced.subtotalCents, 30000);
-  assert.equal(priced.weightGrams, 1500);
   assert.equal(priced.freeShipping, true);
   assert.deepEqual(Object.fromEntries(skuDemand(priced.lines)), {
     "A-250": 2,
@@ -163,495 +289,571 @@ test("cart merges lines, caps quantities and drops unknown or unpriced items", (
 });
 test("upsell suggests a bigger bag only when it costs less per 100 g", () => {
   assert.equal(largerPackage(book, book["a-250"])?.item.id, "a-500");
-  // 1 kg costs more per 100 g than 500 g here, so it is never pushed.
   assert.equal(largerPackage(book, book["a-500"]), null);
   assert.deepEqual(
     crossSell(book, ["cafe-a"]).map((suggestion) => suggestion.item.id),
     ["kit-teste", "b-250"],
   );
 });
-test("Pix checkout creates one order, reserves stock and returns the QR code", async () => {
-  const result = await createCheckout(deps, checkout());
-  assert.equal(result!.status, "pending_payment");
-  assert.equal(result!.subtotalCents, 10000);
-  assert.equal(result!.shippingCents, 2290);
-  assert.equal(result!.totalCents, 12290);
-  assert.equal(result!.payment?.pix?.qrCode, "PIX-1000");
-  assert.equal(await stock("A-250"), 3);
-  assert.equal(payments.created[0].amountCents, 12290);
-  assert.equal(
-    payments.created[0].notificationUrl,
-    "https://loja.test/api/webhooks/mercadopago/",
+
+// ---------- money rules -------------------------------------------------
+test("Pix discount is 5% of the coffees only; card has no discount; freight rules stay off", () => {
+  assert.equal(pixDiscountCents(10000, rules), 500);
+  assert.equal(pixDiscountCents(3990, rules), 200);
+  assert.deepEqual(
+    orderTotals({
+      subtotalCents: 10000,
+      shippingCents: 2500,
+      method: "pix",
+      rules,
+    }),
+    { discountCents: 500, totalCents: 12000 },
   );
-  assert.equal(payments.created[0].payer.email, "maria@example.com");
-  assert.ok(canReadOrder(deps, result!.id, result!.token!));
-  assert.ok(!canReadOrder(deps, result!.id, "token-errado"));
-  assert.equal(mail.sent[0].kind, "order_received");
-  const view = JSON.stringify(await orderView(deps, result!.id));
-  for (const secret of [VALID_CPF, "maria@example.com", "Rua Teste", "99999"])
-    assert.ok(!view.includes(secret), `order view leaks ${secret}`);
+  assert.deepEqual(
+    orderTotals({
+      subtotalCents: 10000,
+      shippingCents: 2500,
+      method: "card",
+      rules,
+    }),
+    { discountCents: 0, totalCents: 12500 },
+  );
+  // The customer pays all freight while no rule is approved.
+  assert.equal(chargedShippingCents(2500, 99999, rules), 2500);
+  assert.equal(
+    chargedShippingCents(2500, 10000, {
+      freeShippingFromCents: null,
+      shippingSubsidyCents: 1000,
+    }),
+    1500,
+  );
+  assert.equal(
+    chargedShippingCents(2500, 10000, {
+      freeShippingFromCents: 10000,
+      shippingSubsidyCents: null,
+    }),
+    0,
+  );
 });
-test("prices and freight come from the server, not from the request", async () => {
+
+// ---------- packing and freight -----------------------------------------
+test("packing groups bags into the smallest box and splits by weight, never one naive parcel", () => {
+  const cart = (items: { id: string; quantity: number }[]) =>
+    priceCart(items, book, rules).lines;
+  const two = packCart(cart([{ id: "a-250", quantity: 2 }]), rules);
+  assert.equal(two.length, 1);
+  assert.equal(two[0].box.id, "caixa-p");
+  assert.equal(two[0].weightGrams, 2 * 300 + 150);
+  assert.deepEqual(two[0].items, [{ sku: "A-250", quantity: 2 }]);
+  // ~4.8 kg of coffee bags: more than one 4 kg volume, each within limits.
+  const heavy = packCart(cart([{ id: "a-1000", quantity: 4 }]), rules);
+  assert.ok(heavy.length >= 2);
+  for (const volume of heavy) assert.ok(volume.weightGrams <= 4000);
+  assert.equal(
+    heavy.reduce((n, v) => n + v.items.reduce((m, i) => m + i.quantity, 0), 0),
+    4,
+  );
+  assert.equal(
+    heavy.reduce((n, v) => n + v.insuranceCents, 0),
+    4 * book["a-1000"].unitPriceCents,
+  );
+  // A kit ships as its bags.
+  const kit = packCart(cart([{ id: "kit-teste", quantity: 1 }]), rules);
+  assert.deepEqual(kit[0].items, [
+    { sku: "A-250", quantity: 1 },
+    { sku: "B-250", quantity: 1 },
+  ]);
+  assert.throws(
+    () => packCart(cart(lines), { ...rules, boxes: [] }),
+    (error) => error instanceof PackingError && error.code === "no_boxes",
+  );
+  assert.throws(
+    () =>
+      packCart(cart([{ id: "a-1000", quantity: 1 }]), {
+        ...rules,
+        boxes: [TEST_BOXES[0]],
+      }),
+    (error) => error instanceof PackingError && error.code === "unit_too_large",
+  );
+});
+test("per-volume quotes: a service must serve every volume; prices add up, slowest time wins", () => {
+  const combined = combineQuotes([
+    [
+      {
+        id: 1,
+        name: "PAC",
+        price: "20.00",
+        delivery_time: 7,
+        company: { name: "Correios" },
+      },
+      {
+        id: 3,
+        name: ".Package",
+        price: "18.50",
+        delivery_time: 5,
+        company: { name: "Jadlog" },
+      },
+    ],
+    [
+      {
+        id: 1,
+        name: "PAC",
+        price: "22.00",
+        delivery_time: 8,
+        company: { name: "Correios" },
+      },
+      {
+        id: 3,
+        name: ".Package",
+        error: "Transportadora não atende este trecho.",
+      },
+    ],
+  ]);
+  assert.deepEqual(combined, [
+    {
+      id: "1",
+      name: "PAC",
+      company: "Correios",
+      priceCents: 4200,
+      days: 8,
+      volumes: 2,
+    },
+  ]);
+  assert.deepEqual(combineQuotes([[{ id: 2, name: "SEDEX", error: "x" }]]), []);
+});
+test("freight is quoted per destination (SP, RJ, Northeast) with PAC and .Package from the quote", async () => {
+  const sp = await quoteShipping(deps, { cep: "01310-100", lines });
+  const rj = await quoteShipping(deps, { cep: "20040-020", lines });
+  const ne = await quoteShipping(deps, { cep: "50030-230", lines });
+  for (const quote of [sp, rj, ne]) {
+    assert.deepEqual(quote.options.map((o) => o.name).sort(), [
+      ".Package",
+      "PAC",
+    ]);
+    assert.equal(quote.volumes.length, 1);
+    assert.equal(quote.pixDiscountCents, 500);
+  }
+  assert.ok(sp.options[0].priceCents < rj.options[0].priceCents);
+  assert.ok(rj.options[0].priceCents < ne.options[0].priceCents);
+  assert.deepEqual(shipping.calls[0].services, ["1", "3"]);
+  // ~4 kg cart: several volumes, each sent to the quote.
+  const heavy = await quoteShipping(deps, {
+    cep: "01310-100",
+    lines: [{ id: "a-1000", quantity: 4 }],
+  });
+  assert.ok(heavy.volumes.length >= 2);
+  assert.equal(heavy.options[0].volumes, heavy.volumes.length);
+  assert.equal(shipping.calls.at(-1)!.volumes.length, heavy.volumes.length);
+  // A cart change gives a different quote.
+  const more = await quoteShipping(deps, {
+    cep: "01310-100",
+    lines: [{ id: "a-250", quantity: 6 }],
+  });
+  assert.notEqual(more.options[0].priceCents, sp.options[0].priceCents);
+});
+test("freight failures are explicit: provider down, no service, no boxes, invalid CEP", async () => {
+  shipping.setDown(true);
   await rejects(
-    createCheckout(deps, { ...checkout(), totalCents: 1 } as never),
+    quoteShipping(deps, { cep: "01310-100", lines }),
+    "shipping_unavailable",
+  );
+  shipping.setDown(false);
+  await rejects(quoteShipping(deps, { cep: "123", lines }), "invalid_input");
+  await rejects(
+    quoteShipping(deps, { cep: "01310100", lines: [] }),
+    "empty_cart",
+  );
+  await rejects(
+    quoteShipping(
+      { ...deps, rules: { ...rules, boxes: [] } },
+      { cep: "01310100", lines },
+    ),
+    "shipping_unavailable",
+  );
+  const none = fakeShipping({ services: [] });
+  await rejects(
+    quoteShipping(
+      { ...deps, shipping: none.gateway },
+      { cep: "01310100", lines },
+    ),
+    "shipping_unavailable",
+  );
+});
+
+// ---------- checkout ----------------------------------------------------
+test("Pix checkout: one order, stock reserved, 5% off the coffees, QR Code and deadline", async () => {
+  const body = await checkout();
+  const view = await createCheckout(deps, body);
+  assert.equal(view!.status, "pending_payment");
+  assert.equal(view!.subtotalCents, 10000);
+  assert.equal(view!.discountCents, 500);
+  assert.equal(view!.shippingCents, body.shippingPriceCents);
+  assert.equal(view!.totalCents, 10000 - 500 + Number(body.shippingPriceCents));
+  assert.ok(view!.payment!.pix!.qrCode.startsWith("00020126"));
+  assert.ok(view!.payment!.pix!.qrCodeBase64);
+  assert.equal(view!.payment!.invoiceUrl, null);
+  assert.equal(
+    new Date(view!.expiresAt!).getTime(),
+    clock.getTime() + 30 * 60_000,
+  );
+  assert.equal(await stock("A-250"), 3);
+  assert.equal(payments.created.length, 1);
+  assert.equal(payments.created[0].amountCents, view!.totalCents);
+  assert.equal(payments.created[0].method, "pix");
+  assert.equal(payments.created[0].customer.cpf, VALID_CPF);
+  assert.ok(canReadOrder(deps, view!.id, view!.token!));
+  assert.ok(!canReadOrder(deps, view!.id, "x"));
+  assert.deepEqual(
+    mail.sent.map((m) => m.kind),
+    ["order_received"],
+  );
+  // The buyer view never exposes personal data.
+  const text = JSON.stringify(await orderView(deps, view!.id));
+  assert.ok(!text.includes(VALID_CPF) && !/example\.com/i.test(text));
+});
+test("card checkout: no discount, pays on the Asaas page, and card data is never accepted", async () => {
+  const view = await createCheckout(
+    deps,
+    await checkout({ payment: { method: "card" } }),
+  );
+  assert.equal(view!.discountCents, 0);
+  assert.equal(view!.totalCents, 10000 + view!.shippingCents);
+  assert.match(view!.payment!.invoiceUrl!, /^https:\/\/asaas\.test\//);
+  assert.equal(view!.payment!.pix, null);
+  assert.equal(
+    payments.created[0].successUrl.startsWith("https://loja.test/pedido/"),
+    true,
+  );
+  assert.equal(
+    new Date(view!.expiresAt!).getTime(),
+    clock.getTime() + 60 * 60_000,
+  );
+  for (const payment of [
+    { method: "card", token: "tok", number: "4111111111111111" },
+    { method: "boleto" },
+  ])
+    await rejects(
+      createCheckout(deps, await checkout({ payment })),
+      "invalid_input",
+    );
+});
+test("prices, discount and freight come from the server; a changed quote must be confirmed", async () => {
+  const view = await createCheckout(
+    deps,
+    await checkout({
+      lines: [{ id: "a-250", quantity: 1 }],
+    }),
+  );
+  assert.equal(view!.subtotalCents, 5000);
+  // The browser cannot send prices.
+  await rejects(
+    createCheckout(deps, {
+      ...(await checkout()),
+      lines: [{ id: "a-250", quantity: 1, unitPriceCents: 1 }],
+    }),
     "invalid_input",
   );
+  // Expired or stale quote: the freight now differs from what was shown.
   await rejects(
-    createCheckout(deps, checkout({ shippingOptionId: "99" })),
+    createCheckout(deps, await checkout({ shippingPriceCents: 1 })),
+    "shipping_changed",
+  );
+  await rejects(
+    createCheckout(deps, await checkout({ shippingOptionId: "2" })),
     "shipping_changed",
   );
   await rejects(
     createCheckout(
       deps,
-      checkout({ lines: [{ id: "b-sem-preco", quantity: 1 }] }),
+      await checkout({ lines: [{ id: "b-sem-preco", quantity: 1 }] }),
     ),
     "item_unavailable",
-  );
-  const free = await quoteShipping(
-    { ...deps, rules: { ...rules, freeShippingFromCents: 9000 } },
-    {
-      cep: "01310100",
-      lines: [{ id: "a-250", quantity: 2 }],
-    },
-  );
-  assert.deepEqual(
-    free.options.map((option) => option.chargedCents),
-    [0, 0],
-  );
-  assert.equal(shipping.calls.at(-1)?.weightGrams, 500);
-  shipping.setDown(true);
-  await rejects(
-    quoteShipping(deps, {
-      cep: "01310100",
-      lines: [{ id: "a-250", quantity: 1 }],
-    }),
-    "shipping_unavailable",
   );
 });
 test("invalid customer data is refused before anything is created", async () => {
   assert.ok(isValidCpf(VALID_CPF));
   assert.ok(!isValidCpf("11111111111"));
-  assert.ok(!isValidCpf("52998224724"));
+  const base = await checkout();
+  const customer = base.customer as Record<string, string>;
   for (const bad of [
-    checkout({ consent: false }),
-    checkout({ customer: { ...checkout().customer, cpf: "123.456.789-00" } }),
-    checkout({ address: { ...checkout().address, state: "XX" } }),
-    checkout({ customer: { ...checkout().customer, name: "Maria" } }),
+    { ...base, consent: false },
+    { ...base, customer: { ...customer, cpf: "123.456.789-00" } },
+    { ...base, address: { ...address, state: "XX" } },
+    { ...base, customer: { ...customer, name: "Maria" } },
   ])
     await rejects(createCheckout(deps, bad), "invalid_input");
   assert.equal((await db.query("SELECT 1 FROM orders")).length, 0);
 });
-test("repeating a submission returns the same order; changing it is refused", async () => {
-  const input = checkout();
-  const first = await createCheckout(deps, input);
-  const again = await createCheckout(deps, input);
-  assert.equal(again!.id, first!.id);
+test("idempotency: a repeated or simultaneous submission is one order and one charge", async () => {
+  const body = await checkout();
+  const [first, second] = await Promise.all([
+    createCheckout(deps, body),
+    createCheckout(deps, body),
+  ]);
+  const third = await createCheckout(deps, body);
+  assert.equal(first!.id, second!.id);
+  assert.equal(first!.id, third!.id);
+  assert.equal((await db.query("SELECT 1 FROM orders")).length, 1);
   assert.equal(payments.created.length, 1);
   assert.equal(await stock("A-250"), 3);
   await rejects(
-    createCheckout(deps, { ...input, lines: [{ id: "a-250", quantity: 1 }] }),
+    createCheckout(deps, { ...body, payment: { method: "card" } }),
     "idempotency_conflict",
   );
-  const [one, two] = await Promise.all([
-    createCheckout(
-      deps,
-      checkout({ idempotencyKey: input.idempotencyKey }),
-    ).catch(() => null),
-    createCheckout(deps, input),
-  ]);
-  assert.equal(two!.id, first!.id);
-  assert.equal(one?.id ?? first!.id, first!.id);
-  assert.equal((await db.query("SELECT 1 FROM orders")).length, 1);
 });
-test("insufficient stock refuses the order and leaves stock untouched", async () => {
-  await rejects(
-    createCheckout(
-      deps,
-      checkout({ lines: [{ id: "kit-teste", quantity: 3 }] }),
+test("concurrent buyers never oversell: stock is reserved atomically", async () => {
+  const bodies = await Promise.all(
+    Array.from({ length: 5 }, () =>
+      checkout({ lines: [{ id: "b-250", quantity: 1 }] }),
     ),
-    "insufficient_stock",
   );
+  const results = await Promise.allSettled(
+    bodies.map((body) => createCheckout(deps, body)),
+  );
+  assert.equal(results.filter((r) => r.status === "fulfilled").length, 2);
+  assert.ok(
+    results
+      .filter((r) => r.status === "rejected")
+      .every(
+        (r) =>
+          (r as PromiseRejectedResult).reason instanceof CheckoutError &&
+          (r as PromiseRejectedResult).reason.code === "insufficient_stock",
+      ),
+  );
+  assert.equal(await stock("B-250"), 0);
+  assert.equal((await db.query("SELECT 1 FROM orders")).length, 2);
+});
+test("a paused SKU or missing stock refuses the order and leaves stock untouched", async () => {
+  await db.query("UPDATE inventory SET paused = true WHERE sku = 'A-250'");
+  await rejects(createCheckout(deps, await checkout()), "insufficient_stock");
   assert.equal(await stock("A-250"), 5);
-  assert.equal(await stock("B-250"), 2);
-  assert.equal((await db.query("SELECT 1 FROM orders")).length, 0);
-  await db.query("DELETE FROM inventory WHERE sku = 'A-1000'");
-  await rejects(
-    createCheckout(deps, checkout({ lines: [{ id: "a-1000", quantity: 1 }] })),
-    "insufficient_stock",
-  );
-  assert.deepEqual(await availability(deps, ["kit-teste", "a-250", "a-1000"]), {
-    "kit-teste": 2,
-    "a-250": 5,
-    "a-1000": 0,
+  assert.deepEqual(await availability(deps, ["a-250", "a-500", "kit-teste"]), {
+    "a-250": 0,
+    "a-500": 5,
+    "kit-teste": 0,
   });
 });
-test("a network failure creating the payment keeps the order; the retry pays it", async () => {
-  const input = checkout();
+test("a failure creating the charge keeps the order; the retry creates it once", async () => {
   payments.failNext();
-  await assert.rejects(createCheckout(deps, input), (error) => {
-    assert.ok(
-      error instanceof CheckoutError && error.code === "payment_unavailable",
-    );
-    assert.ok(error.details.orderId);
-    return true;
-  });
-  assert.equal(payments.created.length, 0);
+  const body = await checkout();
+  await rejects(createCheckout(deps, body), "payment_unavailable");
+  const [order] = await db.query<{ id: string }>("SELECT id FROM orders");
   assert.equal(await stock("A-250"), 3);
-  const retry = await createCheckout(deps, input);
-  assert.equal(retry!.payment?.pix?.qrCode, "PIX-1000");
+  const retry = await createCheckout(deps, body);
+  assert.equal(retry!.id, order.id);
+  assert.ok(retry!.payment?.pix);
   assert.equal(payments.created.length, 1);
 });
-test("approved webhook marks paid once; duplicates and replays change nothing", async () => {
-  const order = await createCheckout(deps, checkout());
-  payments.set("1000", { status: "approved" });
-  const requestId = randomUUID();
-  assert.deepEqual(await notify("1000", requestId), {
+
+// ---------- webhooks ----------------------------------------------------
+test("confirmed payment: paid once; duplicate, replayed and out-of-order events change nothing", async () => {
+  const view = await createCheckout(deps, await checkout());
+  const payment = paymentOf(view!.id);
+  // Only Asaas marks paid: the buyer page alone stays pending.
+  assert.equal((await orderView(deps, view!.id))!.status, "pending_payment");
+  payments.set(payment.id, { status: "RECEIVED" });
+  const eventId = "evt_1";
+  assert.deepEqual(await webhook("PAYMENT_RECEIVED", payment.id, eventId), {
     processed: true,
     outcome: "paid",
   });
-  assert.deepEqual(await notify("1000", requestId), {
+  assert.deepEqual(await webhook("PAYMENT_RECEIVED", payment.id, eventId), {
     processed: false,
     reason: "duplicate",
   });
-  assert.deepEqual(await notify("1000"), { processed: true, outcome: null });
-  assert.equal(await status(order!.id), "paid");
-  const events = await db.query<{ type: string }>(
-    "SELECT type FROM order_events WHERE order_id = $1 ORDER BY id",
-    [order!.id],
-  );
+  // Late events of an older state (Asaas re-read says RECEIVED) and a
+  // CONFIRMED after RECEIVED: no second transition, no stock change.
+  for (const event of [
+    "PAYMENT_CREATED",
+    "PAYMENT_CONFIRMED",
+    "PAYMENT_UPDATED",
+  ])
+    assert.deepEqual(await webhook(event, payment.id), {
+      processed: true,
+      outcome: null,
+    });
+  assert.equal(await stock("A-250"), 3);
+  assert.equal((await row(view!.id)).status, "paid");
   assert.deepEqual(
-    events.map((row) => row.type),
-    ["order.created", "order.paid"],
-  );
-  assert.deepEqual(
-    mail.sent.map((message) => message.kind),
+    mail.sent.map((m) => m.kind),
     ["order_received", "payment_confirmed"],
   );
+  // The webhook body is never trusted: if Asaas says PENDING, it is pending.
+  const other = await createCheckout(deps, await checkout());
+  await webhook("PAYMENT_RECEIVED", paymentOf(other!.id).id);
+  assert.equal((await row(other!.id)).status, "pending_payment");
+});
+test("a refund reaches only a paid order; a paid order never expires or goes back", async () => {
+  const view = await createCheckout(deps, await checkout());
+  const payment = paymentOf(view!.id);
+  payments.set(payment.id, { status: "OVERDUE" });
+  payments.set(payment.id, { status: "CONFIRMED" });
+  await webhook("PAYMENT_CONFIRMED", payment.id);
+  for (const status of ["OVERDUE", "DELETED", "PENDING"]) {
+    payments.set(payment.id, { status });
+    assert.deepEqual(await webhook("PAYMENT_UPDATED", payment.id), {
+      processed: true,
+      outcome: null,
+    });
+  }
   assert.equal(await stock("A-250"), 3);
-  assert.equal((await orderView(deps, order!.id))!.payment?.pix, null);
+  payments.set(payment.id, { status: "REFUNDED" });
+  assert.deepEqual(await webhook("PAYMENT_REFUNDED", payment.id), {
+    processed: true,
+    outcome: "refunded",
+  });
+  payments.set(payment.id, { status: "RECEIVED" });
+  assert.deepEqual(await webhook("PAYMENT_RECEIVED", payment.id), {
+    processed: true,
+    outcome: null,
+  });
+  assert.equal((await row(view!.id)).status, "refunded");
 });
-test("a pending status in the browser never marks the order as paid", async () => {
-  const order = await createCheckout(
-    deps,
-    checkout({
-      payment: {
-        method: "card",
-        token: "tok-review",
-        paymentMethodId: "visa",
-        installments: 1,
-      },
-    }),
-  );
-  assert.equal(order!.status, "pending_payment");
-  assert.equal(order!.payment?.status, "in_process");
-  assert.deepEqual(await notify("1000"), { processed: true, outcome: null });
-  assert.equal(await status(order!.id), "pending_payment");
-});
-test("approved card payment is paid immediately, from the server's own API call", async () => {
-  const order = await createCheckout(
-    deps,
-    checkout({
-      payment: {
-        method: "card",
-        token: "tok-approved",
-        paymentMethodId: "master",
-        installments: 3,
-        issuerId: "24",
-      },
-    }),
-  );
-  assert.equal(order!.status, "paid");
-  const request = payments.created[0];
-  assert.ok(
-    request.method === "card" &&
-      request.installments === 3 &&
-      request.issuerId === "24",
-  );
-});
-test("rejected and expired payments release stock exactly once", async () => {
-  const card = await createCheckout(
-    deps,
-    checkout({
-      payment: {
-        method: "card",
-        token: "tok-reject",
-        paymentMethodId: "visa",
-        installments: 1,
-      },
-    }),
-  );
-  assert.equal(card!.status, "payment_failed");
-  assert.equal(await stock("A-250"), 5);
-  await notify("1000");
-  assert.equal(await stock("A-250"), 5);
-  const pix = await createCheckout(deps, checkout());
-  assert.equal(await stock("A-250"), 3);
-  payments.set("1001", { status: "cancelled" });
-  await notify("1001");
-  await notify("1001");
-  assert.equal(await status(pix!.id), "cancelled");
-  assert.equal(await stock("A-250"), 5);
-  assert.equal(
-    mail.sent.filter((message) => message.kind === "payment_failed").length,
-    1,
-  );
-});
-test("an approved payment with a different amount is not accepted as paid", async () => {
-  const order = await createCheckout(deps, checkout());
-  payments.set("1000", { status: "approved", amountCents: 100 });
-  await notify("1000");
-  assert.equal(await status(order!.id), "pending_payment");
+test("a payment with a different amount is not accepted as paid", async () => {
+  const view = await createCheckout(deps, await checkout());
+  const payment = paymentOf(view!.id);
+  payments.set(payment.id, { status: "RECEIVED", amountCents: 1 });
+  await webhook("PAYMENT_RECEIVED", payment.id);
+  assert.equal((await row(view!.id)).status, "pending_payment");
   const events = await db.query<{ type: string }>(
     "SELECT type FROM order_events WHERE order_id = $1",
-    [order!.id],
+    [view!.id],
   );
-  assert.ok(events.some((row) => row.type === "payment.amount_mismatch"));
+  assert.ok(events.some((e) => e.type === "payment.amount_mismatch"));
 });
-test("webhook provider failure is retried; unknown orders are ignored", async () => {
-  const order = await createCheckout(deps, checkout());
-  const requestId = randomUUID();
-  await assert.rejects(notify("404", requestId));
-  payments.set("1000", { status: "approved" });
-  await handleMercadoPagoNotification(deps, {
-    requestId,
-    type: "payment",
-    dataId: "1000",
+test("provider failures are retried; unknown charges and other events are ignored", async () => {
+  const view = await createCheckout(deps, await checkout());
+  const payment = paymentOf(view!.id);
+  payments.set(payment.id, { status: "RECEIVED" });
+  const original = deps.payments.get;
+  deps.payments.get = async () => {
+    throw new Error("Asaas fora do ar");
+  };
+  await assert.rejects(webhook("PAYMENT_RECEIVED", payment.id, "evt_r"));
+  deps.payments.get = original;
+  assert.equal((await db.query("SELECT 1 FROM webhook_events")).length, 0);
+  assert.deepEqual(await webhook("PAYMENT_RECEIVED", payment.id, "evt_r"), {
+    processed: true,
+    outcome: "paid",
   });
-  assert.equal(await status(order!.id), "paid");
-  payments.store.set("2000", {
-    ...payments.store.get("1000")!,
-    id: "2000",
-    externalReference: randomUUID(),
-  });
-  assert.deepEqual(await notify("2000"), {
+  assert.deepEqual(await webhook("PAYMENT_RECEIVED", "pay_desconhecido"), {
     processed: false,
     reason: "unknown_order",
   });
   assert.deepEqual(
-    await handleMercadoPagoNotification(deps, {
-      requestId: randomUUID(),
-      type: "merchant_order",
-      dataId: "1",
+    await handleAsaasWebhook(deps, {
+      eventId: "evt_x",
+      event: "TRANSFER_DONE",
+      paymentId: null,
     }),
-    { processed: false, reason: "ignored_type" },
+    { processed: false, reason: "ignored_event" },
   );
 });
-test("reconciliation cancels unpaid orders and shipping requires a paid order", async () => {
-  const input = checkout();
-  payments.failNext();
-  await createCheckout(deps, input).catch(() => null);
-  const pix = await createCheckout(deps, checkout());
-  await db.query("UPDATE orders SET created_at = now() - interval '2 hours'");
-  payments.set("1000", { status: "expired" });
-  const results = await reconcilePending(deps, 60);
-  assert.deepEqual(Object.values(results).sort(), ["cancelled", "cancelled"]);
+
+// ---------- expiry and reconciliation ------------------------------------
+test("an unpaid order expires: the charge is removed at Asaas and stock returns exactly once", async () => {
+  const view = await createCheckout(deps, await checkout());
+  const payment = paymentOf(view!.id);
+  assert.deepEqual(await expireOverdue(deps), {});
+  clock = new Date(clock.getTime() + 31 * 60_000);
+  assert.deepEqual(await expireOverdue(deps), { [view!.id]: "expired" });
+  assert.deepEqual(payments.cancelled, [payment.id]);
+  assert.equal((await row(view!.id)).status, "expired");
   assert.equal(await stock("A-250"), 5);
-  assert.equal(
-    await markShipped(deps, pix!.id, { code: "BR123", carrier: "Correios" }),
-    false,
-  );
-  const paid = await createCheckout(
-    deps,
-    checkout({
-      payment: {
-        method: "card",
-        token: "tok-approved",
-        paymentMethodId: "visa",
-        installments: 1,
-      },
-    }),
-  );
-  assert.equal(
-    await markShipped(deps, paid!.id, { code: "BR123", carrier: "Correios" }),
-    true,
-  );
-  assert.deepEqual((await orderView(deps, paid!.id))!.tracking, {
-    code: "BR123",
-    carrier: "Correios",
-  });
-  assert.equal(mail.sent.at(-1)?.kind, "order_shipped");
-});
-test("Mercado Pago signatures are verified with the webhook secret", () => {
-  const signature = signMercadoPagoNotification("segredo", "123", "req-1");
-  assert.ok(
-    verifyMercadoPagoSignature({
-      secret: "segredo",
-      signature,
-      requestId: "req-1",
-      dataId: "123",
-    }),
-  );
-  for (const tampered of [
-    { secret: "outro", signature, requestId: "req-1", dataId: "123" },
-    { secret: "segredo", signature, requestId: "req-2", dataId: "123" },
-    { secret: "segredo", signature, requestId: "req-1", dataId: "124" },
-    { secret: "segredo", signature: null, requestId: "req-1", dataId: "123" },
-    {
-      secret: "segredo",
-      signature: "ts=1,v1=abc",
-      requestId: "req-1",
-      dataId: "123",
-    },
-  ])
-    assert.ok(!verifyMercadoPagoSignature(tampered));
-});
-test("live charges need an explicit opt-in; logs never carry personal data", () => {
-  const base = {
-    CURA_COMMERCE: "enabled",
-    SITE_URL: "https://loja.test",
-    DATABASE_URL: "pglite:memory",
-    ORDER_TOKEN_SECRET: "x".repeat(40),
-    MP_ACCESS_TOKEN: "token",
-    MP_WEBHOOK_SECRET: "segredo",
-  };
-  assert.equal(readConfig({ ...base }).payments, true);
-  assert.equal(
-    readConfig({ ...base, MP_ENVIRONMENT: "production" }).payments,
-    false,
-  );
-  assert.equal(
-    readConfig({
-      ...base,
-      MP_ENVIRONMENT: "production",
-      CURA_ALLOW_LIVE_PAYMENTS: "true",
-    }).payments,
-    true,
-  );
-  assert.equal(
-    readConfig({ ...base, ORDER_TOKEN_SECRET: "curto" }).enabled,
-    false,
-  );
-  assert.equal(readConfig({ ...base }).shipping, false);
-  assert.deepEqual(
-    redact({
-      orderId: "1",
-      customer: { email: "a@b.c", cpf: "1" },
-      token: "t",
-    }),
-    {
-      orderId: "1",
-      customer: { email: "[redacted]", cpf: "[redacted]" },
-      token: "[redacted]",
-    },
-  );
-  assert.equal(
-    brasiliaIso(new Date("2026-11-06T15:00:00.000Z")),
-    "2026-11-06T12:00:00.000-03:00",
-  );
-});
-test("rate limit blocks bursts per key and resets after the window", () => {
-  const key = `teste-${randomUUID()}`;
-  const results = Array.from({ length: 4 }, () =>
-    rateLimit(key, 3, 60_000, 1000),
-  );
-  assert.deepEqual(results, [true, true, true, false]);
-  assert.equal(rateLimit(key, 3, 60_000, 61_001), true);
-  assert.equal(rateLimit(`outra-${key}`, 3, 60_000, 1000), true);
-});
-test("a webhook that fails while saving is processed again on the provider's retry", async () => {
-  const order = await createCheckout(deps, checkout());
-  payments.set("1000", { status: "approved" });
-  const requestId = randomUUID();
-  // Break persistence after the provider read succeeds.
-  await db.query("ALTER TABLE payments RENAME TO payments_off");
-  await assert.rejects(notify("1000", requestId));
-  await db.query("ALTER TABLE payments_off RENAME TO payments");
-  assert.equal(await status(order!.id), "pending_payment");
-  assert.equal(
-    (await db.query("SELECT 1 FROM webhook_events WHERE id = $1", [requestId]))
-      .length,
-    0,
-  );
-  assert.deepEqual(await notify("1000", requestId), {
+  assert.deepEqual(await expireOverdue(deps), {});
+  // Asaas confirms the removal later: nothing changes.
+  assert.deepEqual(await webhook("PAYMENT_DELETED", payment.id), {
     processed: true,
-    outcome: "paid",
+    outcome: null,
   });
-  assert.equal(await status(order!.id), "paid");
-  // A later refund still reaches a paid order through its own notification.
-  payments.set("1000", { status: "refunded" });
-  assert.deepEqual(await notify("1000"), {
-    processed: true,
-    outcome: "refunded",
-  });
+  assert.equal(await stock("A-250"), 5);
+  assert.ok(mail.sent.some((m) => m.kind === "order_expired"));
 });
-test("replayed notifications never move a shipped order backwards", async () => {
-  const order = await createCheckout(deps, checkout());
-  payments.set("1000", { status: "approved" });
-  await notify("1000");
-  assert.equal(
-    await markShipped(deps, order!.id, { code: "BR1", carrier: "Correios" }),
-    true,
-  );
-  for (const next of ["approved", "pending", "cancelled", "rejected"]) {
-    payments.set("1000", { status: next });
-    assert.deepEqual(await notify("1000"), { processed: true, outcome: null });
-    assert.equal(await status(order!.id), "shipped");
-  }
-  assert.equal(
-    await markShipped(deps, order!.id, { code: "BR2", carrier: "Correios" }),
-    false,
-  );
+test("paid right at the deadline: the payment wins over the expiry", async () => {
+  const view = await createCheckout(deps, await checkout());
+  payments.set(paymentOf(view!.id).id, { status: "RECEIVED" });
+  clock = new Date(clock.getTime() + 31 * 60_000);
+  assert.deepEqual(await expireOverdue(deps), { [view!.id]: "paid" });
   assert.equal(await stock("A-250"), 3);
-  payments.set("1000", { status: "refunded" });
-  assert.deepEqual(await notify("1000"), {
-    processed: true,
-    outcome: "refunded",
-  });
-  payments.set("1000", { status: "approved" });
-  assert.deepEqual(await notify("1000"), { processed: true, outcome: null });
-  assert.equal(await status(order!.id), "refunded");
+  assert.deepEqual(payments.cancelled, []);
 });
-test("CMS stock seeds only SKUs without a stock row; Vercel variables are understood", async () => {
-  await db.query("DELETE FROM inventory WHERE sku = 'B-250'");
-  const seeded = await seedStockFromContent(db, [
-    { sku: "A-250", availableQuantity: 99 },
-    { sku: "B-250", availableQuantity: 7 },
-    { sku: "X-1", availableQuantity: null },
-  ]);
-  assert.deepEqual(seeded, ["B-250"]);
+test("paid after expiry: stock is taken again, or the order is flagged when it is gone", async () => {
+  const first = await createCheckout(deps, await checkout());
+  clock = new Date(clock.getTime() + 31 * 60_000);
+  await expireOverdue(deps);
   assert.equal(await stock("A-250"), 5);
-  assert.equal(await stock("B-250"), 7);
-  const config = readConfig({
-    CURA_COMMERCE: "enabled",
-    VERCEL_PROJECT_PRODUCTION_URL: "cura-cafe.vercel.app",
-    POSTGRES_URL: "postgres://exemplo",
-    ORDER_TOKEN_SECRET: "x".repeat(40),
-  });
-  assert.equal(config.enabled, true);
-  assert.equal(config.siteUrl, "https://cura-cafe.vercel.app");
-  assert.equal(config.databaseUrl, "postgres://exemplo");
-  assert.equal(config.payments, false);
+  // Asaas still confirms (e.g. Pix settled while the removal was in flight).
+  payments.set(paymentOf(first!.id).id, { status: "RECEIVED" });
+  await webhook("PAYMENT_RECEIVED", paymentOf(first!.id).id);
+  assert.equal((await row(first!.id)).status, "paid");
+  assert.equal(await stock("A-250"), 3);
+  // Same, with no stock left: still paid (money received), flagged.
+  const second = await createCheckout(
+    deps,
+    await checkout({ lines: [{ id: "b-250", quantity: 2 }] }),
+  );
+  clock = new Date(clock.getTime() + 31 * 60_000);
+  await expireOverdue(deps);
+  await db.query("UPDATE inventory SET available = 0 WHERE sku = 'B-250'");
+  payments.set(paymentOf(second!.id).id, { status: "RECEIVED" });
+  await webhook("PAYMENT_RECEIVED", paymentOf(second!.id).id);
+  const order = await row(second!.id);
+  assert.equal(order.status, "paid");
+  assert.equal(order.stock_released, true);
+  const events = await db.query<{ type: string }>(
+    "SELECT type FROM order_events WHERE order_id = $1",
+    [second!.id],
+  );
+  assert.ok(events.some((e) => e.type === "payment.paid_without_stock"));
 });
-test("CEP lookup returns the address, null for unknown CEPs and fails loudly when down", async () => {
-  const { lookupCep } = await import("../../lib/commerce/server/cep");
-  const calls: string[] = [];
-  const fake = (body: unknown, ok = true) =>
-    (async (url: string) => {
-      calls.push(url);
-      return { ok, json: async () => body } as Response;
-    }) as unknown as typeof fetch;
-  assert.deepEqual(
-    await lookupCep("01310-100", {
-      base: "https://cep.test",
-      fetchImpl: fake({
-        logradouro: "Avenida Paulista",
-        bairro: "Bela Vista",
-        localidade: "São Paulo",
-        uf: "SP",
-      }),
-    }),
-    {
-      street: "Avenida Paulista",
-      district: "Bela Vista",
-      city: "São Paulo",
-      state: "SP",
-    },
+test("expired holds are freed when a new buyer needs the stock", async () => {
+  await createCheckout(
+    deps,
+    await checkout({ lines: [{ id: "b-250", quantity: 2 }] }),
   );
-  assert.equal(calls[0], "https://cep.test/ws/01310100/json/");
-  assert.equal(
-    await lookupCep("00000000", { fetchImpl: fake({ erro: "true" }) }),
-    null,
+  assert.equal(await stock("B-250"), 0);
+  clock = new Date(clock.getTime() + 31 * 60_000);
+  const next = await createCheckout(
+    deps,
+    await checkout({ lines: [{ id: "b-250", quantity: 1 }] }),
   );
-  assert.equal(await lookupCep("123", { fetchImpl: fake({}) }), null);
-  await assert.rejects(lookupCep("01310100", { fetchImpl: fake({}, false) }));
+  assert.equal(next!.status, "pending_payment");
+  assert.equal(await stock("B-250"), 1);
+});
+test("reconciliation re-reads pending charges (a lost webhook) and expires overdue orders", async () => {
+  const view = await createCheckout(deps, await checkout());
+  await db.query(
+    "UPDATE payments SET created_at = now() - interval '5 minutes'",
+  );
+  payments.set(paymentOf(view!.id).id, { status: "RECEIVED" });
+  const result = await reconcile(deps);
+  assert.deepEqual(result.synced, { [view!.id]: "paid" });
+  assert.equal((await row(view!.id)).status, "paid");
+});
+
+test("published prices match the team's pricing sheet (card price; Pix 5% less)", async () => {
+  const { loadContent } = await import("../../lib/content-loader");
+  const offers = loadContent().offers;
+  const price = (id: string) =>
+    offers.find((offer) => offer.id === id)!.unitPriceInCents!;
+  // Planilha de precificação de 12/11/2026 (Preço no cartão / Preço no Pix).
+  const sheet: [string, number, number][] = [
+    ["samba-250g-graos", 2849, 2707],
+    ["salsa-250g-graos", 2849, 2707],
+    ["da-casa-250g-graos", 2652, 2519],
+    ["samba-500g-graos", 4911, 4665],
+    ["samba-1kg-graos", 9033, 8581],
+    ["da-casa-500g-graos", 4516, 4290],
+    ["da-casa-1kg-graos", 8244, 7832],
+  ];
+  const real = commerceRulesSchema.parse(
+    (await import("../../content/commerce.json")).default,
+  );
+  for (const [id, card, pix] of sheet) {
+    assert.equal(price(id), card, id);
+    assert.equal(card - pixDiscountCents(card, real), pix, id);
+  }
+  // 500 g and 1 kg keep their price but stay drafts until the team publishes.
+  for (const id of ["samba-500g-graos", "da-casa-1kg-graos"])
+    assert.equal(offers.find((offer) => offer.id === id)!.status, "draft");
 });

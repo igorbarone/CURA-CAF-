@@ -13,6 +13,7 @@ import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
 import legacy from "../tests/fixtures/legacy-catalog.json";
 import { migrateLegacyCatalog } from "./lib/migrate-legacy";
+import { offerExtras } from "../lib/content-schema";
 const root = mkdtempSync(join(tmpdir(), "cura-editorial-scenarios-"));
 const image = join(process.cwd(), "public/media/cms-fixture.png");
 if (existsSync(image))
@@ -110,6 +111,7 @@ for (const [id, lotId] of [
     currency: "BRL",
     unitPriceInCents: null,
     availableQuantity: null,
+    ...offerExtras,
     weightInGrams: null,
     grind: null,
   });

@@ -1,77 +1,87 @@
-# Ativação da loja — dependências e roteiro de homologação
+# Ativação da loja: dados da equipe e roteiro de homologação
 
-Este roteiro leva a loja do ambiente de testes à **homologação com sandbox real** e, depois, à produção. Nenhuma etapa deve publicar credenciais no repositório, no CMS ou no chat.
+Este roteiro leva a loja do ambiente de testes ao **sandbox real** do Asaas e do Melhor Envio, e depois à produção. Credenciais nunca vão para o repositório, o CMS ou o chat: só para as variáveis de ambiente da Vercel.
 
-## 1. Decisões e dados da equipe (bloqueiam a venda)
+## 1. Dados que a equipe precisa fornecer (bloqueiam a venda)
 
-- [ ] **Ofertas reais no CMS:**
-  - SKU, preço em centavos, peso em gramas e moagem por embalagem de SAMBA e SALSA.
-  - Hoje há 0 ofertas, então nada aparece à venda.
-- [ ] **Kit descoberta:** decidir se existe e com que preço; cadastrar em **Kits**.
-- [ ] **Estoque inicial por SKU:** carregado com `npm run ops -- stock:set`.
-- [ ] **Embalagem de envio:** medidas da caixa (`SHIPPING_BOX_CM`), peso da caixa e proteção (`SHIPPING_TARE_GRAMS`) e CEP de origem.
-- [ ] **Regras comerciais:** frete grátis (se houver), validade do Pix e quantidade máxima por item.
-- [ ] **Dados legais da loja**, exigidos para comércio eletrônico:
-  - Razão social, CNPJ, endereço e canal de atendimento no site.
-  - Política de trocas e direito de arrependimento de 7 dias.
-  - Política de privacidade (LGPD) com o encarregado.
-  - Termos de compra.
-- [ ] **Responsável pela operação:** quem separa, envia, informa o rastreio e responde ao cliente.
+Nada abaixo foi inventado no código. Enquanto faltar, a loja mostra "Compra online em breve" ou recusa a cotação.
 
-## 2. Contas e credenciais (feitas pela equipe)
-
-| Serviço | O que criar | Onde vai |
+| Dado | Onde entra | Situação |
 | --- | --- | --- |
-| Mercado Pago | Conta da empresa; aplicação "Checkout Transparente"; **credenciais de teste** e contas de teste (comprador e vendedor); depois as credenciais de produção | Segredos do provedor de hospedagem |
-| Mercado Pago, Webhooks | URL `https://<dominio>/api/webhooks/mercadopago/`, evento "Pagamentos"; copiar a **assinatura secreta** | `MP_WEBHOOK_SECRET` |
-| Melhor Envio | Conta, aplicativo e token no **sandbox** (sandbox.melhorenvio.com.br); depois em produção | `MELHOR_ENVIO_TOKEN`, `MELHOR_ENVIO_API_BASE` |
-| Resend | Conta, domínio verificado e chave de API | `RESEND_API_KEY`, `EMAIL_FROM` |
-| Banco | Projeto Postgres em São Paulo (homologação e produção separados) | `DATABASE_URL` |
-| Hospedagem | Projeto apontando para este repositório; build `npm run build:server` e start `npm run start:server` (ou nativo do Next.js na Vercel) | — |
+| **CEP de origem** dos envios | `SHIPPING_ORIGIN_CEP` | **informado: 22775-033** (12/11/2026), salvo na Vercel (Production e Preview) |
+| **Remetente das etiquetas:** nome ou razão social, CPF/CNPJ, IE (se houver), telefone, e-mail e endereço completo | `SHIPPING_FROM_*` | pendente |
+| **Peso bruto e medidas da embalagem** de cada variante vendida (o saco pronto para envio) | CMS → Ofertas: peso bruto, altura, largura, comprimento | pendente para SAMBA, SALSA e DA CASA 250 g |
+| **Caixas de envio:** medidas internas e externas e peso vazio com proteção | CMS → Regras comerciais → Caixas | pendente (nenhuma cadastrada) |
+| **Quais variantes serão vendidas:** 500 g e 1 kg em grãos já têm o preço da planilha e estão em rascunho; 250 g moído segue sem preço | CMS → Ofertas: publicar quando a embalagem existir | decidir |
+| **Estoque inicial** por SKU | Painel → Estoque (ou `ops -- stock:set`) | pendente |
+| **NF-e ou declaração de conteúdo** nas etiquetas | Chave por pedido no painel, ou `SHIPPING_NON_COMMERCIAL=true` se a contabilidade confirmar | decidir com a contabilidade |
+| **Credenciais Asaas** (sandbox, depois produção) e token do webhook | `ASAAS_API_KEY`, `ASAAS_WEBHOOK_TOKEN` | pendente |
+| **Credenciais Melhor Envio** (sandbox, depois produção) | `MELHOR_ENVIO_TOKEN`, `MELHOR_ENVIO_USER_AGENT` | pendente |
+| **Senha do painel** | `ADMIN_PASSWORD_HASH` (gerado com `npm run ops -- admin:hash`), `ADMIN_SESSION_SECRET` | pendente |
+| **Dados legais:** razão social, CNPJ, política de privacidade (LGPD, encarregado), termos, trocas e arrependimento | Páginas do site | pendente |
 
-Gere `ORDER_TOKEN_SECRET` com, por exemplo, `openssl rand -base64 48`.
+Já confirmados e aplicados (planilha de precificação de 12/11/2026):
 
-## 3. Homologação com sandbox real
+| Variante | Cartão (preço do site) | Pix (−5%) | Estado |
+| --- | --- | --- | --- |
+| SAMBA e SALSA 250 g | R$ 28,49 | R$ 27,07 | publicada |
+| SAMBA e SALSA 500 g | R$ 49,11 | R$ 46,65 | rascunho |
+| SAMBA e SALSA 1 kg | R$ 90,33 | R$ 85,81 | rascunho |
+| DA CASA 250 g | R$ 26,52 | R$ 25,19 | publicada |
+| DA CASA 500 g | R$ 45,16 | R$ 42,90 | rascunho |
+| DA CASA 1 kg | R$ 82,44 | R$ 78,32 | rascunho |
 
-Configure no ambiente de homologação:
-- `CURA_COMMERCE=enabled` (também no build).
-- `MP_ENVIRONMENT=sandbox`.
-- As credenciais **de teste**.
-- **Sem** `CURA_ALLOW_LIVE_PAYMENTS`.
+Também confirmados:
+- desconto de 5% no Pix só sobre os cafés;
+- taxas do Asaas usadas só nos indicadores: cartão 3% + R$ 0,49 por venda, Pix R$ 0,99 por venda;
+- serviços PAC e .Package;
+- peso máximo de 4 kg por volume.
 
-1. Implantar e rodar `npm run ops -- migrate`.
-2. Cadastrar as ofertas reais pelo CMS e carregar o estoque com `ops -- stock:set`.
-3. Conferir que `GET /api/commerce/status/` retorna `pix`, `card` e `shipping` como `true` e `environment` como `sandbox`.
-4. Fazer uma compra por **Pix** com o comprador de teste. O pedido deve:
-   - aparecer como pendente, com QR Code;
-   - ficar "pago" após a simulação de pagamento e a notificação;
-   - enviar os e-mails de pedido recebido e de pagamento confirmado.
-5. Fazer uma compra por **cartão** com os cartões de teste do Mercado Pago:
-   - aprovado → pedido pago;
-   - recusado → "Pagamento não aprovado" e estoque devolvido;
-   - em análise → pedido continua pendente.
-6. Repetir uma notificação pelo painel do Mercado Pago e conferir com `ops -- order:events <id>` que o status não muda de novo.
-7. Deixar um Pix vencer e rodar `ops -- orders:reconcile 30`: o pedido é cancelado e o estoque devolvido.
-8. Esgotar um SKU: a ficha mostra "Indisponível" e o checkout recusa a compra.
-9. Enviar um pedido pago com `ops -- order:ship <id> <rastreio> Correios` e conferir o e-mail com o rastreio.
-10. Conferir os logs da hospedagem: sem CPF, e-mail, telefone ou endereço.
+## 2. Contas e credenciais
 
-## 4. Produção (decisão explícita da equipe)
+| Serviço | O que fazer | Variável |
+| --- | --- | --- |
+| Asaas (sandbox) | Criar a conta em sandbox.asaas.com e gerar a **chave de API** (Integrações) | `ASAAS_API_KEY` (`$aact_hmlg_…`), `ASAAS_ENVIRONMENT=sandbox` |
+| Asaas, webhook | Integrações → Webhooks → novo: URL `https://<domínio>/api/webhooks/asaas/`, API v3, eventos de **Cobranças**, envio sequencial, **token de autenticação** com 32+ caracteres aleatórios | `ASAAS_WEBHOOK_TOKEN` (o mesmo token) |
+| Asaas, cartão | Na conta, cadastrar o **domínio do site** para o retorno da página de pagamento (o `successUrl` só funciona com domínio cadastrado) | — |
+| Melhor Envio (sandbox) | Conta em sandbox.melhorenvio.com.br → Integrações → token com permissões de cotação, carrinho, compra, geração, impressão e rastreio | `MELHOR_ENVIO_TOKEN`, `MELHOR_ENVIO_USER_AGENT="Cura Café (email-técnico)"`, `MELHOR_ENVIO_ENVIRONMENT=sandbox` |
+| Melhor Envio, saldo | Adicionar saldo de teste para comprar etiquetas no sandbox | — |
+| Painel | Rodar `npm run ops -- admin:hash`, que pede a senha e imprime o hash; gerar um segredo com `openssl rand -base64 48` | `ADMIN_PASSWORD_HASH`, `ADMIN_SESSION_SECRET` |
+| Cron | Gerar um segredo aleatório | `CRON_SECRET` |
 
-- [ ] Itens 1 e 2 concluídos, com revisão jurídica da política de privacidade e dos termos.
-- [ ] Domínio próprio com HTTPS; `SITE_URL` e a URL do webhook atualizados no Mercado Pago.
-- [ ] Credenciais de produção; `MP_ENVIRONMENT=production`; `MELHOR_ENVIO_API_BASE=https://melhorenvio.com.br`.
+## 3. Homologação em sandbox (passo a passo)
+
+Pré-requisitos: as variáveis da seção 2 configuradas em **Preview/Production da Vercel no projeto de homologação**, **sem** `CURA_ALLOW_LIVE_PAYMENTS`. Os dados da seção 1 cadastrados no CMS.
+
+1. Fazer o deploy; com `CURA_AUTO_MIGRATE=true` a migração 003 roda no primeiro acesso (ou use `npm run ops -- migrate`).
+2. `GET /api/commerce/status/` deve responder `pix`, `card` e `shipping` como `true` e `environment` como `sandbox`.
+3. No painel `/admin/` → **Produtos e lotes**, nenhuma variante que se quer vender pode aparecer como "Falta: …".
+4. No **Estoque**, definir o disponível de cada SKU, com motivo.
+5. **Frete:** no carrinho, cotar um CEP de SP, um do RJ e um do Nordeste. Conferir que aparecem PAC e/ou .Package conforme o Melhor Envio e que 16 sacos de 250 g (ou ~4 kg) viram mais de um volume.
+6. **Pix:** comprar, conferir o desconto de 5% só nos cafés, o QR Code e o copia e cola. Pagar no sandbox do Asaas (botão de confirmar pagamento da cobrança) → o pedido vira "Pagamento confirmado" sozinho e chegam os e-mails.
+7. **Cartão:** escolher cartão (sem desconto) → página do Asaas → pagar com o cartão de teste do sandbox → volta ao pedido → "Pagamento confirmado".
+8. **Webhook repetido:** reenviar o evento pelo painel do Asaas → o histórico do pedido no `/admin` mostra o recebimento, mas nada muda (nem estoque).
+9. **Prazo vencido:** criar um Pix e não pagar. Após 30 min, abrir a página do pedido (ou o painel → "Revisar cobranças pendentes") → pedido "Expirado", cobrança removida no Asaas, estoque devolvido.
+10. **Esgotado:** zerar um SKU no painel → a ficha mostra "Indisponível" e o Barista responde "esgotado" com alternativas.
+11. **Etiqueta:** num pedido pago, "Comprar etiqueta" (com a chave da NF-e, ou sem ela se a declaração de conteúdo foi autorizada) → link de impressão → "Atualizar rastreio" → "Enviado" com e-mail ao cliente → "Marcar como entregue".
+12. **Logs da Vercel:** sem CPF, e-mail, telefone ou endereço.
+
+## 4. Produção (somente com aprovação explícita da equipe)
+
+- [ ] Seções 1 a 3 concluídas, com revisão jurídica das políticas.
+- [ ] Domínio próprio com HTTPS; `SITE_URL`, a URL do webhook no Asaas e o domínio do retorno do cartão atualizados.
+- [ ] Chave de **produção** do Asaas (`$aact_prod_…`), `ASAAS_ENVIRONMENT=production`, novo webhook de produção com novo token.
+- [ ] Token de produção do Melhor Envio, `MELHOR_ENVIO_ENVIRONMENT=production` e saldo na carteira.
 - [ ] `CURA_ALLOW_LIVE_PAYMENTS=true`. **Sem esta variável, a produção não cobra.**
-- [ ] Rotina agendada de `orders:reconcile`.
+- [ ] `CRON_SECRET` definido (a reconciliação diária roda pelo `vercel.json`).
 - [ ] Backups do banco ativos.
 - [ ] Uma compra real de baixo valor, com estorno, antes de divulgar.
-- [ ] Para recuar, siga o rollback em `COMMERCE-ARQUITETURA.md`.
+- [ ] Para recuar, siga a seção 12 de `COMMERCE-ARQUITETURA.md`.
 
-## 5. Ainda fora desta entrega
+## 5. Fora desta entrega
 
-- Painel administrativo web com autenticação (a operação é por CLI).
-- Compra automática de etiqueta e rastreio pelo Melhor Envio.
-- Cupons e descontos, até haver regras aprovadas.
-- Assinaturas (Clube Cura), até haver regras e operador de cobrança recorrente.
-- Rota de cron autenticada para a reconciliação e limitador compartilhado entre instâncias.
-- Banner de consentimento e ferramenta de analytics.
+- Compra automática de etiquetas (não há regra aprovada; a compra é sempre manual no painel).
+- Frete grátis ou subsídio: os campos existem no CMS e ficam vazios até haver aprovação.
+- Parcelamento no cartão (a cobrança é à vista).
+- Cupons, assinaturas (Clube), NF-e automática e banner de consentimento de analytics.
+- Limitador de tentativas compartilhado entre instâncias (hoje é em memória, por instância).

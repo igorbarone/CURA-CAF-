@@ -88,31 +88,42 @@ Página B2B `/empresas/`, democratização em linguagem/conhecimento/experiênci
 
 Os cartões são compactos, em padrão de loja (grade de até 3 colunas, imagem de 300 px, produtor em uma linha, perfil e notas, faixa com pontuação, torra e preparo, preço “a confirmar” e botões Conheça/Comparar); descrição longa e etiquetas de acidez/corpo ficam na ficha. Na Home, um bloco “Em dúvida?” leva ao comparador e ao quiz. Cartões e ficha do café mostram pontuação SCA em destaque, medidor de torra na mesma escala de quatro passos dos rótulos oficiais (clara = 1, média = 2; torras sem correspondência aparecem só em texto), acidez/corpo como etiquetas quando publicados e botão principal para a ficha. `/comparar/` coloca até três cafés lado a lado com os dados do lote principal publicado; preço e disponibilidade seguem “a confirmar”. A escolha é feita pelo botão “Comparar” nos cartões e na ficha, guardada só na sessão do navegador, e o link `?cafes=samba,salsa` é compartilhável (slugs desconhecidos são ignorados). Sem cadastro, coleta ou dado inventado. Decisão: comparar pelos atributos já estruturados prepara o catálogo de microlotes e uma futura assistência de escolha (ver roadmap). [Relatório da entrega](docs/RELATORIO-VITRINE-COMPARADOR.md).
 
-Catálogo a partir dos rótulos oficiais de 10/11/2026: SAMBA e SALSA (Linha Origem, safra 2026, Região Campos Altos – MG, 1.200 m, processo natural; SALSA passa a torra média e coado/espresso, como no rótulo) e o novo DA CASA (blend gourmet da Linha Casa, sem pontuação/origem no rótulo, campos vazios). Ofertas de 250 g em grãos: R$ 39,90 para os especiais e R$ 29,90 para o gourmet, preços definidos pela equipe; estoque inicial de 20 unidades cada para homologação (`CURA_STOCK_FROM_CMS`). As artes PNG dos rótulos são a imagem principal. Decisão: os rótulos impressos são a fonte; nada além deles foi acrescentado.
+Catálogo a partir dos rótulos oficiais de 10/11/2026: SAMBA e SALSA (Linha Origem, safra 2026, Região Campos Altos – MG, 1.200 m, processo natural; SALSA passa a torra média e coado/espresso, como no rótulo) e o novo DA CASA (blend gourmet da Linha Casa, sem pontuação/origem no rótulo, campos vazios). Ofertas de 250 g em grãos: R$ 28,49 para os especiais e R$ 26,52 para o gourmet (planilha de precificação da equipe de 12/11/2026: custo + margem líquida de 40% + taxas do Asaas; no Pix, 5% a menos); estoque inicial de 20 unidades cada para homologação (`CURA_STOCK_FROM_CMS`). As artes PNG dos rótulos são a imagem principal. Decisão: os rótulos impressos são a fonte; nada além deles foi acrescentado.
 
 Tema black e console de origem: o creme continua padrão; o botão “Black” no cabeçalho liga o tema escuro (Breu #1E130C como fundo, creme como texto, ocre nos destaques), lembrado no navegador e aplicado antes da primeira pintura, sem piscar. As cores do CSS viraram tokens (`--brand`, `--cream`, `--light` e versões `-rgb`); blocos que já eram escuros viram um preto mais profundo. O cabeçalho traz o símbolo C oficial ao lado do logotipo. Para isso foram criadas cópias dos vetores oficiais apenas sem o painel de fundo (`public/brand/*-transparente.svg`), sem redesenho; o C é aplicado como máscara e assume a cor do tema.  Um teste roda a checagem de acessibilidade WCAG AA em todas as páginas públicas no tema black, e a jornada de compra passa inteira nos dois temas (`COMMERCE_THEME=black npm run test:commerce`).
 
 Embalagens na venda: as imagens das embalagens de SAMBA, SALSA e DA CASA (cenas criadas digitalmente) são a imagem principal de cada café, cadastradas com o novo tipo de mídia `illustration` (“Ilustração da embalagem” no CMS). Elas aparecem sempre com o selo “Ilustração digital” e o crédito diz que a cena não retrata a fazenda do produtor; o rótulo oficial fica na galeria. Usos: vitrine do hero (alterna os cafés a cada 5 s, pausa ao passar o mouse ou focar, sem movimento com redução de movimento), cartões da loja (mais baixos; ao passar o mouse, o rótulo aparece inteiro), ficha do produto (imagem grande) e fluxo de compra (miniatura no carrinho, mini-carrinho, resumo do checkout e barra fixa do celular, via `image` no price book). Decisão: imagem ilustrativa ajuda a vender sem se passar por fotografia real.
 
-## Cura Commerce (Missão 06)
+## Cura Commerce: Asaas, Melhor Envio, catálogo central e painel
 
-A loja roda no **alvo de servidor** (`npm run build:server` + `npm run start:server`). O export do GitHub Pages continua sem runtime e com "Compra online em breve". Estão prontos para homologação:
-- ficha com embalagens, quantidade, preço por 100 g e estoque ao vivo;
-- carrinho persistente e frete pelo Melhor Envio;
-- checkout transparente do Mercado Pago (Pix e cartão via Card Payment Brick);
-- pedidos com estoque reservado atomicamente;
-- webhook assinado e idempotente;
-- e-mails transacionais, recompra e eventos de funil.
+A loja roda no **alvo de servidor** (Vercel, `npm run build:server`). O export do GitHub Pages segue sem runtime e com "Compra online em breve". O que está pronto, para homologação em **sandbox**:
+- **Catálogo central** no Pages CMS: Café → Lote → Variante, com peso bruto, medidas, preço promocional opcional, limites de quantidade e janelas de venda. Uma variante só é vendida com preço, SKU e dados de envio. O validador e o painel mostram o que falta.
+- **Asaas:**
+  - Pix com QR Code e **5% de desconto só nos cafés**;
+  - cartão pago na página segura do Asaas, sem dados de cartão na Cura;
+  - webhook autenticado e idempotente;
+  - prazo de pagamento com devolução única do estoque.
+- **Melhor Envio:**
+  - carrinho empacotado em volumes de até 4 kg, nas caixas do CMS;
+  - cotação por volume (PAC e .Package conforme a cotação real);
+  - etiquetas compradas só por ação explícita, uma por pedido, com rastreio.
+- **Pedidos:** status financeiro separado do logístico. Não há overselling sob concorrência, e um webhook repetido ou fora de ordem nunca baixa estoque duas vezes.
+- **Painel `/admin`** com senha da equipe: indicadores, pedidos, etiquetas, estoque auditado com pausa por SKU, produtos e lotes.
+- **Barista:** preço e disponibilidade pela ferramenta `consultarCompra`, alternativas quando esgota, comparação sem nomes fixos.
 
-Decisões principais:
-- Preço, frete e status de pagamento são decididos só no servidor.
-- A cobrança real exige `MP_ENVIRONMENT=production` **e** `CURA_ALLOW_LIVE_PAYMENTS=true`.
-- Os dados editoriais seguem no Pages CMS, que ganhou Kits, Regras comerciais e galeria do produto.
-- Não há preço real cadastrado: nada aparece à venda até a equipe publicar ofertas.
+Decisões (11/11/2026):
+- O Asaas substitui o Mercado Pago por decisão da equipe. O cartão usa a página hospedada do Asaas, para que nenhum dado de cartão passe pelo servidor.
+- O catálogo continua no Git (Pages CMS): cada mudança de preço ou de origem é versionada, revisada e validada no build. O banco guarda só estoque, pausas, pedidos, pagamentos e etiquetas.
+- Os dados de envio não foram inventados. As variantes reais ficam fora da venda online até a equipe informar peso bruto, medidas, caixas e o CEP de origem.
+- A cobrança real exige `ASAAS_ENVIRONMENT=production`, uma chave de produção **e** `CURA_ALLOW_LIVE_PAYMENTS=true`.
+- A taxa de cartão de 3% é só uma premissa interna dos indicadores.
 
-Para testar a loja localmente: `npm run test:commerce`. O comando monta um ambiente isolado com catálogo fictício, PGlite e simuladores do Mercado Pago, Melhor Envio e Resend. Para operar: `npm run ops`.
+Testes: `npm run test:unit` e `npm run test:commerce`. O segundo usa um catálogo fictício e simuladores HTTP do Asaas e do Melhor Envio, e nunca usa credenciais reais. Para operar: painel `/admin` ou `npm run ops`.
 
-Mais detalhes em [Arquitetura, custos, migração e rollback](docs/COMMERCE-ARQUITETURA.md), em [Dependências e roteiro de ativação](docs/COMMERCE-ATIVACAO.md) e no [passo a passo da homologação na Vercel](docs/HOMOLOGACAO-VERCEL.md).
+Detalhes:
+- [Arquitetura](docs/COMMERCE-ARQUITETURA.md);
+- [dados que a equipe precisa fornecer e roteiro de ativação](docs/COMMERCE-ATIVACAO.md);
+- [passo a passo na Vercel](docs/HOMOLOGACAO-VERCEL.md).
 
 ## CURA Experience (Fase 1)
 

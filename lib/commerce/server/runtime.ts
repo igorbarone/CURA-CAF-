@@ -4,14 +4,15 @@ import { getCommerceRules } from "../rules";
 import { readConfig } from "./config";
 import { migrate, openDb } from "./db";
 import { log } from "./log";
-import { mercadoPagoGateway } from "./mercadopago";
+import { asaasGateway } from "./asaas";
+import type { LabelDeps } from "./labels";
 import { resendNotifier, skippedNotifier } from "./notify";
-import { CheckoutError, seedStockFromContent, type Deps } from "./orders";
+import { CheckoutError, seedStockFromContent } from "./orders";
 import { rateLimit } from "./security";
 import { melhorEnvioGateway } from "./shipping";
 // One set of dependencies per server process, built from env + CMS content.
 let cached: Promise<{
-  deps: Deps;
+  deps: LabelDeps;
   config: ReturnType<typeof readConfig>;
 }> | null = null;
 export function runtime() {
@@ -29,34 +30,20 @@ export function runtime() {
       log("stock.seeded_from_cms", {
         skus: await seedStockFromContent(db, content.offers),
       });
-    const unavailable = async () => {
-      throw new Error("not configured");
-    };
-    const deps: Deps = {
+    const deps: LabelDeps = {
       db,
       book: buildPriceBook(content),
       rules: getCommerceRules(),
       siteUrl: config.siteUrl,
       tokenSecret: config.orderTokenSecret,
-      payments: config.payments
-        ? mercadoPagoGateway({
-            base: config.mp.base,
-            accessToken: config.mp.accessToken,
-          })
-        : { create: unavailable, get: unavailable },
-      shipping: config.shipping
-        ? melhorEnvioGateway(config.melhorEnvio)
-        : {
-            quote: async () => {
-              throw new CheckoutError("shipping_unavailable", 503);
-            },
-          },
+      ...gateways(config),
       notifier: config.email ? resendNotifier(config.resend) : skippedNotifier,
     };
     log("commerce.ready", {
       payments: config.payments,
       card: config.card,
       shipping: config.shipping,
+      labels: config.labels,
       email: config.email,
       environment: config.environment,
     });
@@ -66,6 +53,37 @@ export function runtime() {
     cached = null;
   });
   return cached;
+}
+// Provider clients for a configuration; an unconfigured provider answers
+// "unavailable" instead of pretending.
+export function gateways(config: ReturnType<typeof readConfig>) {
+  const unavailable = async (): Promise<never> => {
+    throw new CheckoutError("payment_unavailable", 503);
+  };
+  const noShipping = async (): Promise<never> => {
+    throw new CheckoutError("shipping_unavailable", 503);
+  };
+  return {
+    payments: config.payments
+      ? asaasGateway(config.asaas)
+      : { create: unavailable, get: unavailable, cancel: unavailable },
+    shipping: config.shipping
+      ? melhorEnvioGateway(config.melhorEnvio)
+      : {
+          quote: noShipping,
+          addToCart: noShipping,
+          checkout: noShipping,
+          generate: noShipping,
+          print: noShipping,
+          tracking: noShipping,
+        },
+    labels: config.labels
+      ? {
+          sender: config.melhorEnvio.sender,
+          nonCommercial: config.melhorEnvio.nonCommercial,
+        }
+      : null,
+  };
 }
 export const json = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: { "Cache-Control": "no-store" } });

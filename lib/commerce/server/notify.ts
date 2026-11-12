@@ -4,7 +4,11 @@ import { log } from "./log";
 // only a redacted log line records that the message was skipped.
 export type OrderMessage = {
   kind:
-    "order_received" | "payment_confirmed" | "payment_failed" | "order_shipped";
+    | "order_received"
+    | "payment_confirmed"
+    | "payment_failed"
+    | "order_expired"
+    | "order_shipped";
   to: string;
   firstName: string;
   orderId: string;
@@ -17,15 +21,18 @@ const SUBJECT: Record<OrderMessage["kind"], string> = {
   order_received: "Recebemos seu pedido",
   payment_confirmed: "Pagamento confirmado",
   payment_failed: "Pagamento não aprovado",
+  order_expired: "Prazo de pagamento encerrado",
   order_shipped: "Seu pedido foi enviado",
 };
 const BODY: Record<OrderMessage["kind"], string> = {
   order_received:
-    "Seu pedido foi registrado. Se escolheu Pix, conclua o pagamento pelo link abaixo dentro do prazo.",
+    "Seu pedido foi registrado. Conclua o pagamento pelo link abaixo dentro do prazo.",
   payment_confirmed:
-    "O pagamento foi confirmado pelo Mercado Pago. Vamos preparar o envio e avisaremos quando sair.",
+    "O pagamento foi confirmado. Vamos preparar o envio e avisaremos quando sair.",
   payment_failed:
     "O pagamento não foi aprovado e o pedido não será enviado. Você pode tentar novamente na loja.",
+  order_expired:
+    "O prazo para pagar terminou e o pedido foi cancelado. Nada foi cobrado; você pode montar o carrinho de novo na loja.",
   order_shipped: "Seu pedido saiu para entrega.",
 };
 const escape = (value: string) =>

@@ -8,6 +8,7 @@ import { join } from "node:path";
 import { loadContent } from "../../lib/content-loader";
 import {
   contentSchema,
+  offerExtras,
   type CoffeeEntity,
   type Lot,
   type Offer,
@@ -63,6 +64,7 @@ const offer = (
   availableQuantity: null,
   weightInGrams: null,
   grind: null,
+  ...offerExtras,
   ...overrides,
 });
 const content = (

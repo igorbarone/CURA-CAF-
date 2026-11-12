@@ -1,0 +1,21 @@
+{
+  "id": "samba-250g-moido",
+  "lotId": "cura-26-01",
+  "status": "draft",
+  "sku": "SAMBA-250G-MOIDO",
+  "currency": "BRL",
+  "unitPriceInCents": null,
+  "availableQuantity": null,
+  "weightInGrams": 250,
+  "grind": "Moído",
+  "promoPriceInCents": null,
+  "commercialLabel": null,
+  "grossWeightInGrams": null,
+  "packageHeightCm": null,
+  "packageWidthCm": null,
+  "packageLengthCm": null,
+  "minQuantity": null,
+  "maxQuantity": null,
+  "saleStartsAt": null,
+  "saleEndsAt": null
+}

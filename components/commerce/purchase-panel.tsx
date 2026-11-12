@@ -8,6 +8,7 @@ import {
   type SellableItem,
 } from "../../lib/commerce/catalog";
 import { largerPackage } from "../../lib/commerce/recommendations";
+import { lineLimit } from "../../lib/commerce/cart";
 import { centsToValue, track } from "../../lib/analytics";
 import { Arrow } from "../arrow";
 import { useCart } from "./cart-provider";
@@ -96,17 +97,18 @@ export function PurchasePanel({
   if (!selected)
     return (
       <aside className="commerce-status" aria-label="Informações comerciais">
-        <p className="eyebrow">UMA ESCOLHA COM TRANSPARÊNCIA</p>
-        <p>Este lote ainda não tem embalagem com preço confirmado à venda.</p>
+        <p className="eyebrow">COMPRA ONLINE EM BREVE</p>
+        <p>
+          As embalagens deste lote ainda não estão à venda pelo site. Assim que
+          os dados de envio forem confirmados, a compra abre aqui.
+        </p>
       </aside>
     );
   const stockOf = (item: SellableItem) =>
     units ? (units[item.id] ?? 0) : null;
   const available = stockOf(selected);
-  const max = Math.min(
-    cart.rules.maxQuantityPerLine,
-    available ?? cart.rules.maxQuantityPerLine,
-  );
+  const limit = lineLimit(selected, cart.rules);
+  const max = Math.min(limit, available ?? limit);
   const upsell = largerPackage(cart.book, selected);
   const add = (item: SellableItem, count: number) => {
     cart.add(item.id, count);
@@ -130,8 +132,20 @@ export function PurchasePanel({
                   setQuantity(1);
                 }}
               />
-              <span className="package-label">{item.label}</span>
+              <span className="package-label">
+                {item.label}
+                {item.commercialLabel && (
+                  <small className="package-tag"> {item.commercialLabel}</small>
+                )}
+              </span>
               <span className="package-price">
+                {item.listPriceCents > item.unitPriceCents && (
+                  <del
+                    aria-label={`Preço normal ${formatBRL(item.listPriceCents)}`}
+                  >
+                    {formatBRL(item.listPriceCents)}
+                  </del>
+                )}{" "}
                 {formatBRL(item.unitPriceCents)}
               </span>
               <span className="package-unit mono">
@@ -241,7 +255,12 @@ export function PurchasePanel({
       })}
       <ul className="purchase-trust">
         <li>Frete calculado pelo CEP, antes de pagar.</li>
-        <li>Pix ou cartão, processados pelo Mercado Pago.</li>
+        <li>
+          {cart.rules.pixDiscountPercent > 0
+            ? `Pix com ${cart.rules.pixDiscountPercent}% de desconto nos cafés, ou cartão de crédito.`
+            : "Pix ou cartão de crédito."}{" "}
+          Pagamento processado pelo Asaas.
+        </li>
         <li>O preço e o estoque são conferidos de novo ao finalizar.</li>
       </ul>
     </aside>

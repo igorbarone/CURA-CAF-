@@ -4,8 +4,18 @@
   "status": "published",
   "sku": "DACASA-250G-GRAOS",
   "currency": "BRL",
-  "unitPriceInCents": 2990,
+  "unitPriceInCents": 2652,
   "availableQuantity": 20,
   "weightInGrams": 250,
-  "grind": "Em grãos"
+  "grind": "Em grãos",
+  "promoPriceInCents": null,
+  "commercialLabel": null,
+  "grossWeightInGrams": null,
+  "packageHeightCm": null,
+  "packageWidthCm": null,
+  "packageLengthCm": null,
+  "minQuantity": null,
+  "maxQuantity": null,
+  "saleStartsAt": null,
+  "saleEndsAt": null
 }

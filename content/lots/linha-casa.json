@@ -24,5 +24,9 @@
   "intensityLevel": null,
   "acidityLevel": null,
   "sweetnessLevel": null,
-  "bodyLevel": null
+  "bodyLevel": null,
+  "municipality": null,
+  "scoreMethodology": null,
+  "saleStartsAt": null,
+  "saleEndsAt": null
 }

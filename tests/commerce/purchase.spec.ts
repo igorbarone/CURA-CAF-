@@ -4,15 +4,15 @@ import AxeBuilder from "@axe-core/playwright";
 // started by scripts/test-commerce.ts (fictitious catalog, simulated providers).
 const mock = process.env.COMMERCE_MOCK_URL ?? "http://127.0.0.1:4300";
 type MockState = {
-  payments: { id: number; status: string; external_reference: string }[];
+  payments: { id: string; status: string; externalReference: string }[];
   emails: { subject: string }[];
+  shippingCalls: { package: { weight: number }; services?: string }[];
 };
 const state = async (page: Page) =>
   (await (await page.request.get(`${mock}/__test/state`)).json()) as MockState;
 async function axe(page: Page) {
   const audit = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
-    .exclude("#card-brick")
     .analyze();
   expect(audit.violations).toEqual([]);
 }
@@ -140,8 +140,13 @@ test("full Pix purchase: product → cart → checkout → server-confirmed paym
     .click();
   await page.getByLabel("Calcular frete").fill("01310-100");
   await page.getByRole("button", { name: "Calcular", exact: true }).click();
-  await expect(page.getByText(/Correios PAC · até 7 dias úteis/)).toBeVisible();
-  await expect(page.getByText(".Package")).toHaveCount(0);
+  // Services come from the real quote, filtered to PAC and .Package.
+  await expect(page.getByText(/Correios PAC · até 4 dias úteis/)).toBeVisible();
+  await expect(page.getByText(/Jadlog \.Package/)).toBeVisible();
+  await expect(page.getByText(/SEDEX/)).toHaveCount(0);
+  await expect(page.locator(".cart-pix-note")).toContainText(
+    "5% de desconto nos cafés",
+  );
   await expect(page.locator(".cart-suggestions")).toContainText(
     "Kit técnico A + B",
   );
@@ -156,17 +161,25 @@ test("full Pix purchase: product → cart → checkout → server-confirmed paym
   await expect(
     page.getByText("Ambiente de testes: pagamentos simulados"),
   ).toBeVisible();
-  await expect(page.getByLabel("Cartão de crédito")).toHaveCount(0);
   await fillCheckout(page);
-  // 2 × R$ 80,00 + R$ 52,00 + PAC for 1.25 kg + 150 g tare
-  // (18 + 1.4 × 4 = R$ 23,60).
+  // 2 × R$ 80,00 + R$ 52,00 = R$ 212,00. Packed in one box G (2 × 600 g +
+  // 300 g + 300 g tare = 1,8 kg): PAC = 16 + 1,8 × 4 = R$ 23,20.
+  // Pix: −5% of the coffees only (R$ 10,60) → R$ 224,60.
+  await expect(page.locator(".summary-discount")).toContainText("R$ 10,60");
   await expect(
-    page.getByRole("button", { name: "Gerar Pix de R$ 235,60" }),
+    page.getByRole("button", { name: "Gerar Pix de R$ 224,60" }),
   ).toBeVisible();
+  // Switching to card removes the discount; switching back restores it.
+  await page.getByLabel(/Cartão de crédito/).check();
+  await expect(page.locator(".summary-discount")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Pagar R$ 235,20 no cartão" }),
+  ).toBeVisible();
+  await page.getByLabel(/^Pix/).check();
   await shot(page, "loja-checkout");
   await axe(page);
   expect(await noOverflow(page)).toBe(true);
-  await page.getByRole("button", { name: "Gerar Pix de R$ 235,60" }).click();
+  await page.getByRole("button", { name: "Gerar Pix de R$ 224,60" }).click();
 
   await expect(page).toHaveURL(/pedido\/\?id=[0-9a-f-]+&token=/);
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
@@ -181,29 +194,39 @@ test("full Pix purchase: product → cart → checkout → server-confirmed paym
   await axe(page);
   const orderId = new URL(page.url()).searchParams.get("id")!;
   const payment = (await state(page)).payments.find(
-    (item) => item.external_reference === orderId,
+    (item) => item.externalReference === orderId,
   )!;
-  expect(payment.status).toBe("pending");
-  // Nothing in the browser can mark it paid: only the signed notification,
-  // followed by the store reading the payment from the provider.
-  const forged = await page.request.post(
-    `api/webhooks/mercadopago/?data.id=${payment.id}&type=payment`,
-    {
-      headers: { "x-signature": "ts=1,v1=forjada", "x-request-id": "forjado" },
-      data: { type: "payment", data: { id: String(payment.id) } },
-    },
-  );
+  expect(payment.status).toBe("PENDING");
+  // Nothing in the browser can mark it paid: only an authenticated webhook,
+  // followed by the store reading the charge from Asaas.
+  const forged = await page.request.post("api/webhooks/asaas/", {
+    headers: { "asaas-access-token": "forjado" },
+    data: { id: "evt_forjado", event: "PAYMENT_RECEIVED", payment },
+  });
   expect(forged.status()).toBe(401);
+  const wrongToken = await page.request.post(
+    `${mock}/__test/payments/${payment.id}/receive?token=errado`,
+  );
+  expect((await wrongToken.json()).status).toBe(401);
+  expect(
+    (
+      await (
+        await page.request.get(
+          `api/orders/${orderId}/?token=${new URL(page.url()).searchParams.get("token")}`,
+        )
+      ).json()
+    ).status,
+  ).toBe("pending_payment");
   const approved = await page.request.post(
-    `${mock}/__test/payments/${payment.id}/approve?requestId=entrega-${orderId}`,
+    `${mock}/__test/payments/${payment.id}/receive?eventId=evt_${orderId}`,
   );
   expect((await approved.json()).body).toEqual({
     processed: true,
     outcome: "paid",
   });
-  // Mercado Pago may deliver the same notification again.
+  // Asaas may deliver the same event again.
   const duplicate = await page.request.post(
-    `${mock}/__test/payments/${payment.id}/approve?requestId=entrega-${orderId}`,
+    `${mock}/__test/payments/${payment.id}/receive?eventId=evt_${orderId}`,
   );
   expect((await duplicate.json()).body).toEqual({
     processed: false,
@@ -230,10 +253,10 @@ test("full Pix purchase: product → cart → checkout → server-confirmed paym
 
   await page.getByRole("button", { name: "Comprar novamente" }).click();
   await expect(page.locator(".header-cart")).toContainText("3 itens");
-  const wrongToken = await page.request.get(
+  const wrongOrderToken = await page.request.get(
     `api/orders/${orderId}/?token=errado`,
   );
-  expect(wrongToken.status()).toBe(404);
+  expect(wrongOrderToken.status()).toBe(404);
   const view = await (
     await page.request.get(
       `api/orders/${orderId}/?token=${new URL(page.url()).searchParams.get("token")}`,
@@ -292,8 +315,7 @@ test("a provider outage keeps the same order and the retry pays it without dupli
   expect((await state(page)).payments.length).toBe(before + 1);
 });
 
-test("rejected card and invalid requests never create a paid order", async ({
-  page,
+test("card data, tampered totals and unknown items never reach an order", async ({
   request,
 }) => {
   const base = {
@@ -314,22 +336,18 @@ test("rejected card and invalid requests never create a paid order", async ({
       state: "SP",
     },
     shippingOptionId: "1",
+    shippingPriceCents: 1780,
     consent: true,
   };
+  // The store never accepts card numbers: card is typed on the Asaas page.
   const card = await request.post("api/checkout/", {
     data: {
       ...base,
       idempotencyKey: crypto.randomUUID(),
-      payment: {
-        method: "card",
-        token: "tok-reject-card",
-        paymentMethodId: "visa",
-        installments: 1,
-      },
+      payment: { method: "card", number: "4111111111111111", cvv: "123" },
     },
   });
-  expect(card.status()).toBe(201);
-  expect((await card.json()).status).toBe("payment_failed");
+  expect(card.status()).toBe(400);
   const tampered = await request.post("api/checkout/", {
     data: {
       ...base,
@@ -348,16 +366,71 @@ test("rejected card and invalid requests never create a paid order", async ({
     },
   });
   expect((await unpriced.json()).error).toBe("item_unavailable");
+  // A freight price the server no longer quotes (stale quote) is refused.
+  const stale = await request.post("api/checkout/", {
+    data: {
+      ...base,
+      shippingPriceCents: 1,
+      idempotencyKey: crypto.randomUUID(),
+      payment: { method: "pix" },
+    },
+  });
+  expect(stale.status()).toBe(409);
+  expect((await stale.json()).error).toBe("shipping_changed");
   const status = await (await request.get("api/commerce/status/")).json();
   expect(status).toEqual({
     enabled: true,
     pix: true,
-    card: false,
+    card: true,
     shipping: true,
     environment: "sandbox",
-    publicKey: null,
   });
-  void page;
+});
+
+test("card purchase: typed on the Asaas page, confirmed by webhook, back to the order", async ({
+  page,
+}) => {
+  await addFromProduct(page, "teste-a", "250 g · Em grãos", 1);
+  await page.goto("checkout/");
+  await fillCheckout(page);
+  await page.getByLabel(/Cartão de crédito/).check();
+  await expect(page.locator(".summary-discount")).toHaveCount(0);
+  await page.getByRole("button", { name: /Pagar R\$ .* no cartão/ }).click();
+  // The hosted page belongs to the provider (simulated here).
+  await expect(
+    page.getByRole("heading", { name: "Página de pagamento simulada" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Pagar com cartão de teste" }).click();
+  await expect(page).toHaveURL(/pedido\/\?id=/);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(
+    "Pagamento confirmado",
+    { timeout: 15_000 },
+  );
+  await axe(page);
+});
+
+test("a freight provider outage is explained and nothing is charged", async ({
+  page,
+}) => {
+  await addFromProduct(page, "teste-a", "250 g · Em grãos", 1);
+  await page.request.post(`${mock}/__test/shipping-down?value=true`);
+  await page.goto("checkout/");
+  await page.getByLabel("CEP", { exact: true }).fill("20040020");
+  await expect(page.locator(".cart-warning[role=alert]")).toContainText(
+    "Não conseguimos calcular o frete agora",
+  );
+  await expect(
+    page.getByRole("radiogroup", { name: "Opções de entrega" }),
+  ).toHaveCount(0);
+  await page.request.post(`${mock}/__test/shipping-down?value=false`);
+  await page.getByRole("button", { name: "Calcular frete" }).click();
+  await expect(
+    page.getByRole("radiogroup", { name: "Opções de entrega" }),
+  ).toBeVisible();
+  // Rio de Janeiro in the simulation: 16 + 2 × 1,5 + 0,45 × 4 = R$ 20,80.
+  await expect(
+    page.locator(".shipping-options .package-option").first(),
+  ).toContainText("R$ 20,80");
 });
 
 test("checkout fills the address from the CEP, quotes freight and points at wrong fields", async ({
@@ -426,11 +499,13 @@ test("a late freight answer for a previous CEP never replaces the current one", 
   await cep.fill("01310100");
   const pac = page.locator(".shipping-options .package-option").first();
   await expect(pac).toContainText("Correios PAC");
-  // 250 g + 150 g tare: 18 + 0.4 × 4 = R$ 19,60 (the slow CEP would be R$ 99,60).
-  await expect(pac).toContainText("R$ 19,60");
+  // 300 g bag + 150 g box P = 0,45 kg: 16 + 0,45 × 4 = R$ 17,80 (the slow
+  // CEP would be R$ 106,80).
+  await expect(pac).toContainText("R$ 17,80");
   await page.waitForTimeout(3000);
-  await expect(pac).toContainText("R$ 19,60");
+  await expect(pac).toContainText("R$ 17,80");
+  // R$ 52,00 − 5% Pix (R$ 2,60) + R$ 17,80.
   await expect(page.locator(".checkout-summary .cart-total")).toContainText(
-    "R$ 71,60",
+    "R$ 67,20",
   );
 });
