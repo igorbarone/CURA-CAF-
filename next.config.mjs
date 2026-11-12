@@ -23,8 +23,13 @@ const nextConfig = isServer
       distDir: onVercel ? ".next" : ".next-server",
       images: { unoptimized: true },
       trailingSlash: true,
+      // Server functions read the CMS content and the migrations at request
+      // time: the API routes and the operations panel (rendered per request,
+      // so the root layout loads the catalog there too).
       outputFileTracingIncludes: {
         "/api/**": ["./content/**/*", "./public/media/**/*", "./db/**/*"],
+        "/admin": ["./content/**/*", "./db/**/*"],
+        "/admin/**": ["./content/**/*", "./db/**/*"],
       },
       serverExternalPackages: ["@electric-sql/pglite", "pg"],
       async headers() {
