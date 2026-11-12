@@ -61,6 +61,6 @@ SALSA — Linha Origem, safra 2026, CURA-26-02, de Décio José Lemos, Fazenda S
 
 DA CASA — Linha Casa, “sempre disponível”, blend gourmet, “o café do dia a dia”. Sem pontuação, origem ou notas no rótulo; esses campos ficam vazios.
 
-Ofertas aprovadas pela equipe: 250 g em grãos — SAMBA e SALSA R$ 39,90, DA CASA R$ 29,90. Estoque inicial de homologação: 20 unidades cada (ajustável no CMS).
+Ofertas aprovadas pela equipe (planilha de precificação de 12/11/2026): 250 g em grãos — SAMBA e SALSA R$ 28,49, DA CASA R$ 26,52 (preço de cartão; no Pix, 5% a menos: R$ 27,07 e R$ 25,19). Estoque inicial de homologação: 20 unidades cada (ajustável no CMS).
 
 Os campos entre colchetes nos rótulos são provisórios e não viram dados do catálogo. Indicação impressa de formato não confirma uma oferta. Não inventar preços, estoque, peso, moagem, contatos, origem, depoimentos, visitas, certificações ou motivos de seleção. Fotos reais exigem autorização e crédito; artes são identificadas como artes, nunca como fotografias. Ilustrações de embalagem criadas digitalmente usam o tipo `illustration`, sempre com o selo “Ilustração digital” e sem se apresentar como a fazenda ou o produtor.
