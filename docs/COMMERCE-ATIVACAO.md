@@ -8,7 +8,7 @@ Nada abaixo foi inventado no código. Enquanto faltar, a loja mostra "Compra onl
 
 | Dado | Onde entra | Situação |
 | --- | --- | --- |
-| **CEP de origem** dos envios | `SHIPPING_ORIGIN_CEP` | pendente |
+| **CEP de origem** dos envios | `SHIPPING_ORIGIN_CEP` | **informado: 22775-033** (12/11/2026), salvo na Vercel (Production e Preview) |
 | **Remetente das etiquetas:** nome ou razão social, CPF/CNPJ, IE (se houver), telefone, e-mail e endereço completo | `SHIPPING_FROM_*` | pendente |
 | **Peso bruto e medidas da embalagem** de cada variante vendida (o saco pronto para envio) | CMS → Ofertas: peso bruto, altura, largura, comprimento | pendente para SAMBA, SALSA e DA CASA 250 g |
 | **Caixas de envio:** medidas internas e externas e peso vazio com proteção | CMS → Regras comerciais → Caixas | pendente (nenhuma cadastrada) |

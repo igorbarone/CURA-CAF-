@@ -108,6 +108,8 @@ Sem `BARISTA_AI=enabled`, sem chave ou sem um armazenamento durável, a IA fica 
 
 Para comparação, com as mesmas premissas e sem cache, o Opus 5.5 custaria ≈ US$ 0,037 por resposta, entre 50 e 90 vezes mais.
 
+**Teto em uso (12/11/2026):** a equipe definiu até US$ 10 por mês para a Anthropic. Na Vercel, o Barista ficou com `BARISTA_DAILY_REQUESTS=500`, `BARISTA_DAILY_INPUT_TOKENS=2000000` e `BARISTA_DAILY_OUTPUT_TOKENS=200000`, ou seja, no máximo ≈ US$ 0,30/dia (≈ US$ 9/mês). O limite mensal propriamente dito é configurado pela equipe no Console da Anthropic (Settings → Limits).
+
 **Teto com os limites padrão:** até 1.000 respostas por dia, 4 milhões de tokens de entrada faturável e 400 mil de saída, ou seja, no máximo ≈ US$ 0,60/dia (≈ US$ 18/mês). O orçamento diário já conta os tokens de cache pelo peso real, e os limites por IP, por sessão e por concorrência continuam iguais. Ao atingir o teto, a IA responde "limite de hoje" e o modo guiado continua. A execução das funções na Vercel depende do plano contratado e não está incluída aqui.
 
 ## 5. Segurança e privacidade
