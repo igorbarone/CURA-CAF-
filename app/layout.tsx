@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   icons: {
     icon: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/brand/cura-simbolo.svg`,
   },
-  metadataBase: new URL("https://igorbarone.github.io"),
+  metadataBase: new URL("https://curacafe.com.br"),
   openGraph: {
     siteName: "Cura Café",
     locale: "pt_BR",

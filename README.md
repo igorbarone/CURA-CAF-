@@ -94,6 +94,13 @@ Tema black e console de origem: o creme continua padrão; o botão “Black” n
 
 Embalagens na venda: as imagens das embalagens de SAMBA, SALSA e DA CASA (cenas criadas digitalmente) são a imagem principal de cada café, cadastradas com o novo tipo de mídia `illustration` (“Ilustração da embalagem” no CMS). Elas aparecem sempre com o selo “Ilustração digital” e o crédito diz que a cena não retrata a fazenda do produtor; o rótulo oficial fica na galeria. Usos: vitrine do hero (alterna os cafés a cada 5 s, pausa ao passar o mouse ou focar, sem movimento com redução de movimento), cartões da loja (mais baixos; ao passar o mouse, o rótulo aparece inteiro), ficha do produto (imagem grande) e fluxo de compra (miniatura no carrinho, mini-carrinho, resumo do checkout e barra fixa do celular, via `image` no price book). Decisão: imagem ilustrativa ajuda a vender sem se passar por fotografia real.
 
+## Domínio próprio
+
+Desde 24/11/2026 o endereço oficial é **https://curacafe.com.br**, comprado no Registro.br e ligado ao projeto `cura-caf` na Vercel. O `www.curacafe.com.br` redireciona para ele.
+- **SEO:** canônicos, sitemap, robots e Open Graph usam o domínio novo.
+- **Endereços antigos:** `cura-caf.vercel.app` e o GitHub Pages continuam no ar e indicam o domínio novo como canônico, então QR Codes e links antigos seguem funcionando.
+- **Loja:** quando ela for ativada, defina `SITE_URL=https://curacafe.com.br` na Vercel. Os links de pedido, o retorno do pagamento com cartão e o webhook do Asaas passam a usar esse endereço.
+
 ## Cura Commerce: Asaas, Melhor Envio, catálogo central e painel
 
 A loja roda no **alvo de servidor** (Vercel, `npm run build:server`). O export do GitHub Pages segue sem runtime e com "Compra online em breve". O que está pronto, para homologação em **sandbox**:

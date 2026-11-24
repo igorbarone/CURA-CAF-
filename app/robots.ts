@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/CURA-CAF-/carrinho/", "/admin/"],
+      disallow: ["/carrinho/", "/admin/"],
     },
     sitemap: canonical("sitemap.xml"),
   };
