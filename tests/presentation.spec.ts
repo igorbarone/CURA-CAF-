@@ -95,7 +95,7 @@ test("published pages expose canonical URLs and a sitemap without cart or drafts
   await page.goto("cafes/");
   await expect(page.locator("link[rel=canonical]")).toHaveAttribute(
     "href",
-    "https://igorbarone.github.io/CURA-CAF-/cafes/",
+    "https://curacafe.com.br/cafes/",
   );
   const sitemap = await page.request.get("sitemap.xml");
   expect(sitemap.ok()).toBe(true);

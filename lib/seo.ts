@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-export const siteUrl = "https://igorbarone.github.io/CURA-CAF-";
+// Endereço oficial (domínio próprio desde 24/11/2026). O GitHub Pages e o
+// cura-caf.vercel.app continuam no ar e apontam o canônico para cá.
+export const siteUrl = "https://curacafe.com.br";
 export function canonical(path = "") {
   return `${siteUrl}/${path.replace(/^\//, "")}`;
 }
